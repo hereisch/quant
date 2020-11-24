@@ -9,6 +9,14 @@ import plotly
 import tushare as ts
 
 
+def code(code):
+    stk = 'TQDat/data/stk_code.csv'
+    df = pd.read_csv(stk,encoding="gbk")
+    stk_code = df[df['code']==code].to_dict(orient='records')[0]
+    print(stk_code)
+    return [str(stk_code['code']),stk_code['name'],stk_code['industry'],stk_code['area']]
+
+
 def MACD(df, n_fast, n_slow, ksgn='close'):
     '''
     def MACD(df, n_fast, n_slow):
@@ -63,13 +71,12 @@ def MA(df, n,ksgn='close'):
     return df
 
 
+def draw(path,stk):
 
-def draw():
 
-    code = input("input code:")
-    df = pd.read_csv('TQDat/day/stk/{}.csv'.format(code))
+    df = pd.read_csv(path)
     df = df.sort_index(ascending=False)
-    layout = go.Layout(title='quant')
+    layout = go.Layout(title='  '.join(stk))
 
     close = go.Scatter(x=df['date'],y=df['close'],mode='lines',name='close',line=dict(color='rgba(255, 182, 193)', width=1)
         #     marker=dict(
@@ -109,7 +116,8 @@ def draw():
     # 绘图
     # of.plot(data)
     '''将graph部分和layout部分组合成figure对象'''
-    fig = subplots.make_subplots(rows=2, cols=1, )
+    print('222',stk)
+    fig = subplots.make_subplots(rows=1, cols=1,subplot_titles=[' '.join(stk)])
     # fig = go.Figure(data=data,layout=layout)
     fig.append_trace(close, 1, 1)
     # fig.append_trace(open, 1, 1)
@@ -120,7 +128,7 @@ def draw():
     fig.append_trace(macd_up, 1, 1)
     fig.append_trace(macd_down, 1, 1)
 
-
+    fig.update_layout(xaxis={'tickmode':'auto', 'nticks':10},)
     '''启动绘图直接绘制figure对象'''
     # plotly.offline.init_notebook_mode()
     # plotly.offline.iplot(fig, filename='basic-scatter')
@@ -129,8 +137,10 @@ def draw():
 
 if __name__ == '__main__':
 
-
-    draw()
+    file_path = 'TQDat/day/stk/{0:06d}.csv'
+    stk_code = int(input("input code:"))
+    stk = code(stk_code)
+    draw(file_path.format(stk_code),stk)
 
 
 
