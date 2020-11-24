@@ -96,7 +96,9 @@ def draw():
     macd = MACD(df,5,26)
     macd_up = go.Bar(x=macd[macd.macd>0]['date'],y=macd[macd.macd>0]['macd'],name='macd_up',marker=dict(color='red'))
     macd_down = go.Bar(x=macd[macd.macd<0]['date'],y=macd[macd.macd<0]['macd'],name='macd_down',marker=dict(color='green'))
-
+    print('upday',macd[macd.macd>=0].shape[0])
+    print('downday',macd[macd.macd<0].shape[0])
+    print('total',df.shape[0])
 
     '''
     marker ----> 图形的样式，可单个数据使用或者字典
