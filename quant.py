@@ -128,7 +128,7 @@ def draw(path,stk):
     fig.append_trace(macd_up, 1, 1)
     fig.append_trace(macd_down, 1, 1)
 
-    fig.update_layout(xaxis={'tickmode':'auto', 'nticks':10},)
+    fig.update_layout(xaxis={'tickmode':'auto', 'nticks':10,'tickformat':'%Y-%m-%d'})
     '''启动绘图直接绘制figure对象'''
     # plotly.offline.init_notebook_mode()
     # plotly.offline.iplot(fig, filename='basic-scatter')
