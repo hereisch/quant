@@ -18,6 +18,6 @@ if __name__ == '__main__':
     buy = (price*count)*(1+0.0025+0.0002)
 
     cost = (sale*count*0.0002+buy)/(1-0.001-0.0025)/count
-    profit = sale*count*(1-(0.001+0.0002+0.00025))
+    profit = sale*count*(1-(0.001+0.0002+0.00025))-buy
     print('------------------------------------------')
     print('单股成本：',cost,'收益：',profit,'买入成本：',buy)
