@@ -17,16 +17,18 @@ pd.set_option('display.max_columns', None)
 if __name__ == '__main__':
 
     print(time.strftime("%Y-%m-%d", time.localtime()))
-    # df = ts.get_realtime_quotes('000876')
-    # print(df.columns.values.tolist())
-    df = ts.get_realtime_quotes('000876')  # Single stock symbol
+    df = ts.get_realtime_quotes('000876')
+    print(df.columns.values.tolist())
+
+    df = ts.get_realtime_quotes('600685')  # Single stock symbol
     real = df[['code', 'name', 'price', 'bid', 'ask', 'volume', 'amount', 'time']]
     print(real.columns.values.tolist())
     while True:
 
-        df = ts.get_realtime_quotes('000876')  # Single stock symbol
+        df = ts.get_realtime_quotes('600685')  # Single stock symbol
         real = df[['code', 'name', 'price', 'bid', 'ask', 'volume', 'amount', 'time']]
         print(list(real.iloc[0].values))
         # print(list(df.iloc[0].values))
         time.sleep(5)
+
 

@@ -25,4 +25,4 @@ if __name__ == '__main__':
         print('默认10天')
     cap = ts.cap_tops(days=day)
     print('\n')
-    print(cap.sort_values(by="count" , ascending=False))
+    print(cap.sort_values(by=['bamount','count'] , ascending=(False,False)))
