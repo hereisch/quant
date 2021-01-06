@@ -116,7 +116,6 @@ def draw(path,stk):
     # 绘图
     # of.plot(data)
     '''将graph部分和layout部分组合成figure对象'''
-    print('222',stk)
     fig = subplots.make_subplots(rows=1, cols=1,subplot_titles=[' '.join(stk)])
     # fig = go.Figure(data=data,layout=layout)
     fig.append_trace(close, 1, 1)
