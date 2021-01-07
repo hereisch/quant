@@ -21,6 +21,7 @@ def stat(code):
     sale = df[df['type']=='卖出']
     s = sale.groupby(['price'])['vol'].sum()
     b = buy.groupby(['price'])['vol'].sum()
+    t = df.groupby(['price'])['vol'].sum()
 
     print('买入总成交：',buy['vol'].sum(),'手')
     print('卖出总成交：',sale['vol'].sum(),'手')
@@ -28,11 +29,17 @@ def stat(code):
     print('总卖出：',sale['amount'].sum())
     print('净买入额：',(buy['amount'].sum()-sale['amount'].sum())/10000,'万')
 
-    fig = subplots.make_subplots(rows=2, cols=1)
-    traceS = go.Bar(x = list(s.to_dict().keys()),y = list(s.to_dict().values()),name='卖出',marker=dict(color='green'))
-    traceB = go.Bar(x = list(b.to_dict().keys()),y = list(b.to_dict().values()),name='买入',marker=dict(color='red'))
+    fig = subplots.make_subplots(rows=3, cols=1)
+    traceS = go.Bar(x = list(s.to_dict().keys()),y = list(s.to_dict().values()),name='卖出',marker=dict(color='green'),)
+    traceB = go.Bar(x = list(b.to_dict().keys()),y = list(b.to_dict().values()),name='买入',marker=dict(color='red'),)
+    # traceT = go.Bar(x = list(t.to_dict().keys()),y = list(t.to_dict().values()),name='总数',marker=dict(color='blue'))
     fig.append_trace(traceS,1,1)
     fig.append_trace(traceB,2,1)
+    fig.add_trace(traceB,row=3,col=1)
+    fig.add_trace(traceS,row=3,col=1)
+    fig.update_layout(barmode='stack')
+
+
     fig.show()
 
 
