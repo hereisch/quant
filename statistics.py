@@ -38,8 +38,6 @@ def stat(code):
     fig.add_trace(traceB,row=3,col=1)
     fig.add_trace(traceS,row=3,col=1)
     fig.update_layout(barmode='stack')
-
-
     fig.show()
 
 
