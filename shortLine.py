@@ -47,7 +47,8 @@ if __name__ == '__main__':
     print(time.strftime("%Y-%m-%d", time.localtime()))
     # df = ts.get_realtime_quotes(code)
     # print(df.columns.values.tolist())
-    todayQuotes(code)
+    realTime(code)
+    # todayQuotes(code)
 
 
 
