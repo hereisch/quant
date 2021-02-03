@@ -34,5 +34,5 @@ def topList():
 
 if __name__ == '__main__':
 
-   # capTops()
-    topList()
+   capTops()
+   #  topList()

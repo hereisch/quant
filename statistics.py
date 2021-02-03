@@ -32,7 +32,8 @@ def stat(code):
     fig = subplots.make_subplots(rows=3, cols=1)
     traceS = go.Bar(x = list(s.to_dict().keys()),y = list(s.to_dict().values()),name='卖出',marker=dict(color='green'),)
     traceB = go.Bar(x = list(b.to_dict().keys()),y = list(b.to_dict().values()),name='买入',marker=dict(color='red'),)
-    # traceT = go.Bar(x = list(t.to_dict().keys()),y = list(t.to_dict().values()),name='总数',marker=dict(color='blue'))
+    # traceT
+    # = go.Bar(x = list(t.to_dict().keys()),y = list(t.to_dict().values()),name='总数',marker=dict(color='blue'))
     fig.append_trace(traceS,1,1)
     fig.append_trace(traceB,2,1)
     fig.add_trace(traceB,row=3,col=1)
