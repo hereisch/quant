@@ -26,13 +26,28 @@ def capTops():
     print('\n')
     print(cap.sort_values(by=['bamount', 'count'], ascending=(False, False)))
 
+
 def topList():
     """今日上榜"""
     top = ts.top_list()
     print(top.sort_values(by=['pchange'], ascending=(False)))
 
 
+def choice():
+
+    data = ts.get_today_all()
+    filt = data['code'].str.contains('^(?!688|300)')
+    data = data[filt]
+    filt = data['name'].str.contains('^(?!ST|退市|\*ST)')
+    data = data[filt]
+    # 筛选出涨幅>0,收盘价>10
+    result = data[(data['changepercent'] > 0) & (data['trade'] > 10)].sort_values(by=['changepercent'],
+                                                                                  ascending=(False))
+    print('\n', result)
+
+
 if __name__ == '__main__':
 
-   capTops()
+   # capTops()
    #  topList()
+   choice()
