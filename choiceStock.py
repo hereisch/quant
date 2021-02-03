@@ -40,8 +40,8 @@ def choice():
     data = data[filt]
     filt = data['name'].str.contains('^(?!ST|退市|\*ST)')
     data = data[filt]
-    # 筛选出涨幅>0,收盘价>10
-    result = data[(data['changepercent'] > 0) & (data['trade'] > 10)].sort_values(by=['changepercent'],
+    # 筛选出涨幅>0,80>收盘价>10
+    result = data[(data['changepercent'] > 0) & (data['trade'] > 10) & (data['trade'] < 80)].sort_values(by=['changepercent'],
                                                                                   ascending=(False))
     print('\n', result)
 
