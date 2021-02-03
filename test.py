@@ -26,3 +26,4 @@ if __name__ == '__main__':
             # data = ts.get_hist_data(i['code'],start='2020-12-01',end=today)
             data = ts.get_hist_data(i['code'])
             print(data)
+
