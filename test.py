@@ -18,16 +18,10 @@ client = pymongo.MongoClient(host="192.168.0.28", port=27017)
 db = client['quant']
 
 if __name__ == '__main__':
-
-    res = db.get_collection('today').distinct('code')
-    for i in res[2:]:
-        print(i)
-        kk = db.get_collection('dayK').find({'code': i})
-        df = pd.DataFrame(list(kk))
-        # df = 除今日外切片-today
-        topN = df['pressure'].max()
-        print(topN)
-        print(df)
-
-        time.sleep(10)
+    today = time.strftime("%Y-%m-%d", time.localtime())
+    kk = db.get_collection('dayK').find({'$and': [{"date": {'$ne': today}}, {"code": '603991'}]})
+    df = pd.DataFrame(list(kk))
+    df = df.sort_values(by='date', ascending=False)
+    topN = df[:60 + 1]['pressure'].max()
+    print(df, topN)
 

@@ -108,7 +108,7 @@ class Select():
                         db.get_collection('dayK').insert(v)
 
 
-    def topN(self,N):
+    def topN(self):
         """
         N日内最高价
         :param N:
@@ -116,26 +116,18 @@ class Select():
         """
         today = time.strftime("%Y-%m-%d", time.localtime())
         topday = [5, 10, 30, 60, 100, 150, 200, 270]
-        res = db.get_collection('today').distinct('code')
+        res = db.get_collection('today').find()
         for i in res:
-            kk = db.get_collection('dayK').find({ '$and' : [{"date" : { '$ne' : today }}, {"code" : i}] })
+            kk = db.get_collection('dayK').find({ '$and' : [{"date" : { '$ne' : today }}, {"code" : i['code']}] })
             df = pd.DataFrame(list(kk))
             df = df.sort_values(by='date',ascending=False)
             for d in topday:
-
-                topN = df['pressure'].max()
-
-            print(df,topN)
-
-
-            time.sleep(10)
-
-
-
-
-
-
-
+                topN = df[:d+1]['pressure'].max()
+                if i['trade'] > topN:
+                    price = str(topN)
+                else:
+                    price = topN
+                db.get_collection('today').update({'code':i['code']},{'$set':{'top'+str(d):price}})
 
 
 if __name__ == '__main__':
@@ -143,8 +135,8 @@ if __name__ == '__main__':
     today = time.strftime('%Y-%m-%d' , time.localtime())
 
     s = Select(init=False)
-    s.download()
-    # s.topN(10)
+    # s.download()
+    s.topN()
 
 
 
