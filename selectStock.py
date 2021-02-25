@@ -10,6 +10,10 @@ import pymongo
 import tushare as ts
 import pandas as pd
 import akshare as ak
+from tqdm import tqdm
+
+
+
 pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
@@ -45,9 +49,12 @@ class Select():
                     db.get_collection('today').remove({'code': i['code']})
 
             # 剔除新股
-            newStock = ts.new_stocks()['code'].tolist()
-            for i in newStock:
-                db.get_collection('today').remove({'code':i},multi=True)
+            try:
+                newStock = ts.new_stocks()['code'].tolist()
+                for i in newStock:
+                    db.get_collection('today').remove({'code':i},multi=True)
+            except:
+                pass
 
             # 剔除停牌
             db.get_collection('today').remove({'open': 0})
@@ -59,7 +66,7 @@ class Select():
         :return:
         """
         kk = db.get_collection('dayK').aggregate([{'$group': {'_id': {'date': "$date", 'code': "$code"}}}])
-        for i in kk:
+        for i in tqdm(kk):
             count = db.get_collection('dayK').count(i['_id'])
             if count > 1:
                 print(count, i['_id'])
@@ -71,8 +78,8 @@ class Select():
         :return:
         """
         res = db.get_collection('today').distinct('code')
-        for i in res:
-            print(i)
+        for i in tqdm(res):
+            # print(i)
             # 查询库中是否有历史数据
             kk = db.get_collection('dayK').find({'code':i})
             kk = list(kk)
@@ -85,13 +92,14 @@ class Select():
                 if nextday < today:
                     time.sleep(1)
                     data = ts.get_hist_data(i,start=nextday)
-                    data['pressure'] = data.apply(lambda x: max(x['open'], x['close']), axis=1)
-                    data = json.loads(data.to_json(orient='index'))
-                    for k, v in data.items():
-                        print(k, v)
-                        v['date'] = k
-                        v['code'] = i
-                        db.get_collection('dayK').insert(v)
+                    if not data.empty:
+                        data['pressure'] = data.apply(lambda x: max(x['open'], x['close']), axis=1)
+                        data = json.loads(data.to_json(orient='index'))
+                        for k, v in data.items():
+                            # print(k, v)
+                            v['date'] = k
+                            v['code'] = i
+                            db.get_collection('dayK').insert(v)
 
             else:
                 # 无，全量获取数据
@@ -102,7 +110,7 @@ class Select():
                     data['pressure'] = data.apply(lambda x:max(x['open'],x['close']),axis=1)
                     data = json.loads(data.to_json(orient='index'))
                     for k,v in data.items():
-                        print(k,v)
+                        # print(k,v)
                         v['date'] = k
                         v['code'] = i
                         db.get_collection('dayK').insert(v)
@@ -115,7 +123,7 @@ class Select():
         :return:
         """
         today = time.strftime("%Y-%m-%d", time.localtime())
-        topday = [5, 10, 30, 60, 100, 150, 200, 270]
+        topday = [5, 10, 30, 60, 100, 150, 210, 280]
         res = db.get_collection('today').find()
         for i in res:
             kk = db.get_collection('dayK').find({ '$and' : [{"date" : { '$ne' : today }}, {"code" : i['code']}] })
@@ -134,9 +142,10 @@ if __name__ == '__main__':
 
     today = time.strftime('%Y-%m-%d' , time.localtime())
 
-    s = Select(init=False)
-    # s.download()
+    s = Select(init=True)
+    s.download()
     s.topN()
+    # s.uniqDayK()
 
 
 
