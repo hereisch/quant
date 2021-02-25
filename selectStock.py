@@ -48,16 +48,23 @@ class Select():
                 if not kk:
                     db.get_collection('today').remove({'code': i['code']})
 
+                # 行业
+                industry = db.get_collection('base').find_one({'code':i['code']})
+                if industry:
+                    db.get_collection('today').update_many({'code':i['code']},{'$set':{'industry':industry['industry']}})
+
+
             # 剔除新股
-            try:
-                newStock = ts.new_stocks()['code'].tolist()
+            newStock = ts.new_stocks()['code'].tolist()
+            if not newStock:
                 for i in newStock:
                     db.get_collection('today').remove({'code':i},multi=True)
-            except:
-                pass
 
             # 剔除停牌
             db.get_collection('today').remove({'open': 0})
+
+
+
 
 
     def uniqDayK(self):
