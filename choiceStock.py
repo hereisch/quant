@@ -54,6 +54,7 @@ def choice():
 
 if __name__ == '__main__':
 
-   # capTops()
-   #  topList()
-   choice()
+    # capTops()
+    # topList()
+    # choice()
+    ts.new_stocks()
