@@ -29,7 +29,7 @@ class Select():
         初始化，筛除688,300，ST，退市股，新股，低价股，下跌股
         """
         if init:
-            db.get_collection('today').remove()
+
             data = ts.get_today_all() #今日复盘
             # data = ts.get_day_all(date='2021-02-18')   #历史复盘
             filt = data['code'].str.contains('^(?!688|300)')
@@ -37,6 +37,7 @@ class Select():
             filt = data['name'].str.contains('^(?!S|退市|\*ST)')
             data = data[filt]
             data = data.to_json(orient='records')
+            db.get_collection('today').remove()
             for i in eval(data):
                 db.get_collection('today').insert(i)
 
