@@ -131,7 +131,7 @@ class Select():
         :return:
         """
         today = time.strftime("%Y-%m-%d", time.localtime())
-        topday = [2, 5, 13, 21, 34, 55, 89, 144, 233]
+        topday = [3, 5, 13, 21, 34, 55, 89, 144, 233]
         res = db.get_collection('today').find()
         for i in res:
             kk = db.get_collection('dayK').find({ '$and' : [{"date" : { '$ne' : today }}, {"code" : i['code']}] })
