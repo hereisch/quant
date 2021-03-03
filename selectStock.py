@@ -18,7 +18,7 @@ pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 
-client = pymongo.MongoClient(host="192.168.0.28", port=27017)
+client = pymongo.MongoClient(host="127.0.0.1", port=27017)
 db = client['quant']
 
 
@@ -131,7 +131,7 @@ class Select():
         :return:
         """
         today = time.strftime("%Y-%m-%d", time.localtime())
-        topday = [5, 10, 30, 60, 100, 150, 210, 280]
+        topday = [2, 5, 13, 21, 34, 55, 89, 144, 233]
         res = db.get_collection('today').find()
         for i in res:
             kk = db.get_collection('dayK').find({ '$and' : [{"date" : { '$ne' : today }}, {"code" : i['code']}] })
