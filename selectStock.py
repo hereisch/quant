@@ -18,7 +18,7 @@ pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 
-client = pymongo.MongoClient(host="127.0.0.1", port=27017)
+client = pymongo.MongoClient(host="192.168.0.28", port=27017)
 db = client['quant']
 
 
@@ -154,3 +154,4 @@ if __name__ == '__main__':
     s.download()
     s.topN()
     # s.uniqDayK()
+
