@@ -18,10 +18,15 @@ client = pymongo.MongoClient(host="192.168.0.28", port=27017)
 db = client['quant']
 
 if __name__ == '__main__':
-    today = time.strftime("%Y-%m-%d", time.localtime())
-    kk = db.get_collection('dayK').find({'$and': [{"date": {'$ne': today}}, {"code": '603991'}]})
-    df = pd.DataFrame(list(kk))
-    df = df.sort_values(by='date', ascending=False)
-    topN = df[:60 + 1]['pressure'].max()
-    print(df, topN)
+    # today = time.strftime("%Y-%m-%d", time.localtime())
+    # kk = db.get_collection('dayK').find({'$and': [{"date": {'$ne': today}}, {"code": '603991'}]})
+    # df = pd.DataFrame(list(kk))
+    # df = df.sort_values(by='date', ascending=False)
+    # topN = df[:60 + 1]['pressure'].max()
+    # print(df, topN)
 
+
+    result = db.get_collection('today').find()
+    res = pd.DataFrame(list(result))
+    res = res['code', 'name', 'industry','changepercent', 'trade','top3','top5','top13','top21','top34','top55','top89','top144','top233']
+    print(res)

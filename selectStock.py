@@ -64,6 +64,7 @@ class Select():
 
             # 剔除停牌
             db.get_collection('today').remove({'open': 0})
+            db.get_collection('today').remove({'top3': None})
 
 
 
@@ -81,7 +82,7 @@ class Select():
                 print(count, i['_id'])
                 db.get_collection('dayK').delete_one(i['_id'])
 
-    def download(self):
+    def download(self,):
         """
         增量获取数据
         :return:
