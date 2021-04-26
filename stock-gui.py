@@ -52,7 +52,6 @@ class Table(QWidget):
         layout.addWidget(self.tableView)
         self.setLayout(layout)
 
-
     def initDB(self):
         client = pymongo.MongoClient(host="192.168.0.28", port=27017)
         db = client['quant']
