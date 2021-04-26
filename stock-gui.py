@@ -19,7 +19,6 @@ class Table(QWidget):
         # 设置水平方向四个头标签文本内容
         self.model.setHorizontalHeaderLabels(self.header)
 
-
         res = self.initDB()
         for idy,itemX in enumerate(res):
             _trade = itemX['trade']
@@ -36,25 +35,22 @@ class Table(QWidget):
         self.tableView.setModel(self.model)
 
         # #todo 优化1 表格填满窗口
-        #水平方向标签拓展剩下的窗口部分，填满表格
-        self.tableView.horizontalHeader().setStretchLastSection(True)
-        #水平方向，表格大小拓展到适当的尺寸
-        self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        # #水平方向标签拓展剩下的窗口部分，填满表格
+        # self.tableView.horizontalHeader().setStretchLastSection(True)
+        # #水平方向，表格大小拓展到适当的尺寸
+        # self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         # 按涨幅排序
         self.tableView.sortByColumn(3,Qt.DescendingOrder)
+        # 不可编辑
+        self.tableView.setItemDelegate(EmptyDelegate(self))
+        # 双击取值
+        self.tableView.doubleClicked.connect(self.mouseDoubleClickEvent)
 
-        # #TODO 优化3 删除当前选中的数据
-        # indexs=self.tableView.selectionModel().selection().indexes()
-        # print(indexs)
-        # if len(indexs)>0:
-        #   index=indexs[0]
-        #   self.model.removeRows(index.row(),1)
 
         # 设置布局
         layout = QVBoxLayout()
         layout.addWidget(self.tableView)
         self.setLayout(layout)
-
 
 
     def initDB(self):
@@ -63,9 +59,22 @@ class Table(QWidget):
         result = db.get_collection('today').find()
         return result
 
+    def mouseDoubleClickEvent(self, event):
+
+        return (event.row(),event.column())
+
+
+
+class EmptyDelegate(QItemDelegate):
+    def __init__(self, parent):
+        super(EmptyDelegate, self).__init__(parent)
+
+    def createEditor(self, QWidget, QStyleOptionViewItem, QModelIndex):
+        return None
 
 
 if __name__ == '__main__':
+
     app = QApplication(sys.argv)
     table = Table()
     table.show()
