@@ -60,8 +60,7 @@ class Table(QWidget):
 
     def mouseDoubleClickEvent(self, event):
 
-        return (event.row(),event.column())
-
+        return event.row(), event.column()
 
 
 class EmptyDelegate(QItemDelegate):

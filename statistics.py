@@ -30,8 +30,8 @@ def stat(code):
     print('净买入额：',(buy['amount'].sum()-sale['amount'].sum())/10000,'万')
 
     fig = subplots.make_subplots(rows=3, cols=1)
-    traceS = go.Bar(x = list(s.to_dict().keys()),y = list(s.to_dict().values()),name='卖出',marker=dict(color='green'),)
-    traceB = go.Bar(x = list(b.to_dict().keys()),y = list(b.to_dict().values()),name='买入',marker=dict(color='red'),)
+    traceS = go.Bar(x = list(s.to_dict().values()),y = list(s.to_dict().keys()),name='卖出',marker=dict(color='green'),orientation = 'h')
+    traceB = go.Bar(x = list(b.to_dict().values()),y = list(b.to_dict().keys()),name='买入',marker=dict(color='red'),orientation = 'h')
     # traceT
     # = go.Bar(x = list(t.to_dict().keys()),y = list(t.to_dict().values()),name='总数',marker=dict(color='blue'))
     fig.append_trace(traceS,1,1)

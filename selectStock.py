@@ -64,10 +64,6 @@ class Select():
 
             # 剔除停牌
             db.get_collection('today').remove({'open': 0})
-            db.get_collection('today').remove({'top3': None})
-
-
-
 
 
     def uniqDayK(self):
@@ -81,6 +77,8 @@ class Select():
             if count > 1:
                 print(count, i['_id'])
                 db.get_collection('dayK').delete_one(i['_id'])
+
+    #todo 获取30min，15min，5min，1min数据
 
     def download(self,):
         """
@@ -146,6 +144,7 @@ class Select():
                 else:
                     price = topN
                 db.get_collection('today').update({'code':i['code']},{'$set':{'top'+str(d):price}})
+        db.get_collection('today').remove({'top3': None})
 
 
 if __name__ == '__main__':
@@ -156,6 +155,7 @@ if __name__ == '__main__':
     s.download()
     s.topN()
     # s.uniqDayK()
+
     locale.setlocale(locale.LC_CTYPE, 'chinese')
     print(time.strftime('%Y年%m月%d日%H时%M分%S秒'))
 

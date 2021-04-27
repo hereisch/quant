@@ -17,6 +17,7 @@ pd.set_option('display.max_columns', None)
 client = pymongo.MongoClient(host="192.168.0.28", port=27017)
 db = client['quant']
 
+
 if __name__ == '__main__':
     # today = time.strftime("%Y-%m-%d", time.localtime())
     # kk = db.get_collection('dayK').find({'$and': [{"date": {'$ne': today}}, {"code": '603991'}]})
@@ -25,8 +26,17 @@ if __name__ == '__main__':
     # topN = df[:60 + 1]['pressure'].max()
     # print(df, topN)
 
+    import mongoengine
+    mongoengine.connect('quant',host='192.168.0.28',port=27017)
 
-    result = db.get_collection('today').find()
-    res = pd.DataFrame(list(result))
-    res = res['code', 'name', 'industry','changepercent', 'trade','top3','top5','top13','top21','top34','top55','top89','top144','top233']
-    print(res)
+
+    class Users(mongoengine.Document):
+        meta = {'collection':'today'}
+        name = mongoengine.StringField(required=True, max_length=200)
+        age = mongoengine.IntField(required=True)
+
+
+    users = Users.objects.all()  # 返回所有的文档对象列表
+
+    for u in users:
+        print("name:", u.name, ",age:", u.age)
