@@ -6,6 +6,7 @@ import pymongo
 import pyqtgraph as pg
 from PyQt5.QtCore import QRect, QUrl
 from PyQt5.QtWidgets import QMainWindow
+from PyQt5 import QtWebEngineWidgets
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from pyqtgraph import QtCore, QtGui
 import plotly.offline as po
@@ -32,9 +33,10 @@ class CandlestickItem(pg.GraphicsObject):
         for (t, open, close, min, max) in self.data:
             p.drawLine(QtCore.QPointF(t, min), QtCore.QPointF(t, max))
             if open > close:
-                p.setBrush(pg.mkBrush('r'))
-            else:
+                # 开盘价高于收盘价，绿
                 p.setBrush(pg.mkBrush('g'))
+            else:
+                p.setBrush(pg.mkBrush('r'))
             p.drawRect(QtCore.QRectF(t - w, open, w * 2, close - open))
         p.end()
 
@@ -69,19 +71,19 @@ if __name__ == '__main__':
     client = pymongo.MongoClient(host="192.168.0.28", port=27017)
     db = client['quant']
     res = db.get_collection('dayK').find({'code':'603990'})
-    data = [(idx,i['open'],i['close'],i['low'],i['high']) for idx,i in enumerate(res)]
-    df = pd.DataFrame(list(res))
-    trace = go.Candlestick(x=df['date'],
-                           open=df['open'],
-                           high=df['high'],
-                           low=df['low'],
-                           close=df['close'])
-    data = [trace]
-    layout = {'title': '603990'}
-    fig = dict(data=data, layout=layout)
-    po.plot(fig,)
+    # df = pd.DataFrame(list(res))
+    # trace = go.Candlestick(x=df['date'],
+    #                        open=df['open'],
+    #                        high=df['high'],
+    #                        low=df['low'],
+    #                        close=df['close'])
+    # data = [trace]
+    # layout = {'title': '603990'}
+    # fig = dict(data=data, layout=layout)
+    # po.plot(fig,)
 
-    item = CandlestickItem(data)
+    _data = [(idx,i['open'],i['close'],i['low'],i['high']) for idx,i in enumerate(res)]
+    item = CandlestickItem(_data)
     plt = pg.plot()
     plt.addItem(item)
     plt.setWindowTitle('pyqtgraph example: customGraphicsItem')
