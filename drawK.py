@@ -6,7 +6,6 @@ import pymongo
 import pyqtgraph as pg
 from PyQt5.QtCore import QRect, QUrl
 from PyQt5.QtWidgets import QMainWindow
-from PyQt5 import QtWebEngineWidgets
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from pyqtgraph import QtCore, QtGui
 import plotly.offline as po
@@ -49,7 +48,6 @@ class CandlestickItem(pg.GraphicsObject):
         ## (in this case, QPicture does all the work of computing the bouning rect for us)
         return QtCore.QRectF(self.picture.boundingRect())
 
-
     """
     data = [  ## fields are (time, open, close, min, max).
         (1., 10, 13, 5, 15),
@@ -64,26 +62,29 @@ class CandlestickItem(pg.GraphicsObject):
 
 
 
-
 ## Start Qt event loop unless running in interactive mode or using pyside.
 if __name__ == '__main__':
 
     client = pymongo.MongoClient(host="192.168.0.28", port=27017)
     db = client['quant']
     res = db.get_collection('dayK').find({'code':'603990'})
+
     # df = pd.DataFrame(list(res))
     # trace = go.Candlestick(x=df['date'],
     #                        open=df['open'],
     #                        high=df['high'],
     #                        low=df['low'],
-    #                        close=df['close'])
-    # data = [trace]
+    #                        close=df['close'],
+    #                        increasing_line_color='red',
+    #                        decreasing_line_color='green')
+    # _data = [trace]
     # layout = {'title': '603990'}
-    # fig = dict(data=data, layout=layout)
+    # fig = dict(data=_data, layout=layout)
     # po.plot(fig,)
 
-    _data = [(idx,i['open'],i['close'],i['low'],i['high']) for idx,i in enumerate(res)]
-    item = CandlestickItem(_data)
+    data = [(idx,i['open'],i['close'],i['low'],i['high']) for idx,i in enumerate(res)]
+    print(data,res)
+    item = CandlestickItem(data)
     plt = pg.plot()
     plt.addItem(item)
     plt.setWindowTitle('pyqtgraph example: customGraphicsItem')

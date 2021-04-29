@@ -7,12 +7,12 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 
 
-class Table(QWidget):
+class StockTable(QWidget):
     def __init__(self, parent=None):
-        super(Table, self).__init__(parent)
+        super(StockTable, self).__init__(parent)
         # 设置标题与初始大小
-        self.setWindowTitle('主视窗')
-        self.resize(2000, 800)
+        self.setWindowTitle('新高')
+        self.resize(1500, 800)
         self.header = ['code', 'name', 'industry','changepercent', 'trade','top3','top5','top13','top21','top34','top55','top89','top144','top233']
         # 设置数据层次结构，4行4列
         self.model = QStandardItemModel(4, 4)
@@ -45,6 +45,10 @@ class Table(QWidget):
         self.tableView.setItemDelegate(EmptyDelegate(self))
         # 双击取值
         self.tableView.doubleClicked.connect(self.mouseDoubleClickEvent)
+        # 设置tableview所有列的默认行高为10
+        self.tableView.verticalHeader().setDefaultSectionSize(10)
+        # 设置tableview所有行的默认列宽为15
+        self.tableView.horizontalHeader().setDefaultSectionSize(100)
 
 
         # 设置布局
@@ -74,6 +78,6 @@ class EmptyDelegate(QItemDelegate):
 if __name__ == '__main__':
 
     app = QApplication(sys.argv)
-    table = Table()
+    table = StockTable()
     table.show()
     sys.exit(app.exec_())
