@@ -2,7 +2,7 @@
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QMainWindow
 
-from Ui_Giulia import Ui_MainWindow
+from Ui_Giulia1 import Ui_MainWindow
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *

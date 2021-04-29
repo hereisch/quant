@@ -69,24 +69,24 @@ if __name__ == '__main__':
     db = client['quant']
     res = db.get_collection('dayK').find({'code':'603990'})
 
-    # df = pd.DataFrame(list(res))
-    # trace = go.Candlestick(x=df['date'],
-    #                        open=df['open'],
-    #                        high=df['high'],
-    #                        low=df['low'],
-    #                        close=df['close'],
-    #                        increasing_line_color='red',
-    #                        decreasing_line_color='green')
-    # _data = [trace]
-    # layout = {'title': '603990'}
-    # fig = dict(data=_data, layout=layout)
-    # po.plot(fig,)
+    df = pd.DataFrame(list(res))
+    trace = go.Candlestick(x=df['date'],
+                           open=df['open'],
+                           high=df['high'],
+                           low=df['low'],
+                           close=df['close'],
+                           increasing_line_color='red',
+                           decreasing_line_color='green')
+    _data = [trace]
+    layout = {'title': '603990'}
+    fig = dict(data=_data, layout=layout)
+    po.plot(fig,)
 
-    data = [(idx,i['open'],i['close'],i['low'],i['high']) for idx,i in enumerate(res)]
-    print(data,res)
-    item = CandlestickItem(data)
-    plt = pg.plot()
-    plt.addItem(item)
-    plt.setWindowTitle('pyqtgraph example: customGraphicsItem')
-    if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-        QtGui.QApplication.instance().exec_()
+    # data = [(idx,i['open'],i['close'],i['low'],i['high']) for idx,i in enumerate(res)]
+    # print(data,res)
+    # item = CandlestickItem(data)
+    # plt = pg.plot()
+    # plt.addItem(item)
+    # plt.setWindowTitle('pyqtgraph example: customGraphicsItem')
+    # if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
+    #     QtGui.QApplication.instance().exec_()
