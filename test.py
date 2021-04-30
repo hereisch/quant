@@ -8,8 +8,7 @@ import pymongo
 import requests
 import time
 import tushare as ts
-import dash_html_components as html
-import dash_core_components as dcc
+import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.offline as po
@@ -32,20 +31,12 @@ if __name__ == '__main__':
     # topN = df[:60 + 1]['pressure'].max()
     # print(df, topN)
 
+    client = pymongo.MongoClient(host="192.168.0.28", port=27017)
+    db = client['quant']
+    result = db.get_collection('today').find()
 
-
-    fig = make_subplots(rows=1, cols=2, column_widths=[0.7, 0.3])
-    fig.add_trace(go.Scatter(x=[1, 2, 3], y=[4, 5, 6]),row=1, col=1)
-    fig.add_trace(go.Scatter(x=[20, 30, 40], y=[50, 60, 70]),row=1, col=2)
-    fig.update_layout(
-        xaxis=dict(
-            # 链接到x2轴
-            scaleanchor="x2",scaleratio = 1))
-    layout = html.Div(
-        children=[
-            dcc.Graph(
-                figure=fig,
-                config=dict(
-                    modeBarButtonsToRemove=["toggleSpikelines","hoverCompareCartesian"],
-                    scrollZoom = True,))])
-    po.plot(fig, )
+    stock = pd.DataFrame(list(result))
+    print(stock.sort_values(by=['changepercent'],ascending=(False)))
+    # for i,r in stock.iterrows():
+    #     print(i,'---',r['code'])
+    print(stock.loc[3])
