@@ -36,7 +36,9 @@ if __name__ == '__main__':
     result = db.get_collection('today').find()
 
     stock = pd.DataFrame(list(result))
-    print(stock.sort_values(by=['changepercent'],ascending=(False)))
+    stock = stock.sort_values(by=['changepercent'],ascending=(False))
+    stock = stock.reset_index(drop=True)
+    print(stock)
     # for i,r in stock.iterrows():
     #     print(i,'---',r['code'])
-    print(stock.loc[3])
+    # print(stock.loc[3])

@@ -27,7 +27,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.showStock()
 
 
-    def showStock(self,sortPricd=False,pChange=True,lowPrice=5,highPrice=100):
+    def showStock(self,sortPrice=False,pChange=True,lowPrice=5,highPrice=100):
         # 设置数据层次结构，4行4列
         self.model = QStandardItemModel(4, 4)
         # 设置水平方向四个头标签文本内容
@@ -36,27 +36,22 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.stockList = pd.DataFrame(list(res))
         if pChange:
             self.stockList = self.stockList.sort_values(by=['changepercent'],ascending=(False))
-        if sortPricd:
+        if sortPrice:
             self.stockList.sort_values(by=['trade'], ascending=(False))
+
         self.stockList = self.stockList.reset_index(drop=True)
-        # print('kkkkkkk',self.stockList)
+
         for idy, itemX in self.stockList.iterrows():
             _trade = itemX['trade']
-            # print('33333333333',idy,itemX)
-            # kk = {}
             for idx, itemY in enumerate(self.header):
-
                 item = QStandardItem(str(itemX[itemY]))
                 if idx > 4 and type(itemX[itemY]) == str:
                     item.setBackground(QColor(255, 153, 153))
                 # 设置每个位置的文本值
                 self.model.setItem(idy, idx, item)
-                print(idy,idx,itemX[itemY])
-                # kk[itemY] = itemX[itemY]
-            # print(idy, kk)
+
 
         self.stockTable.setModel(self.model)
-        self.stockTable.sortByColumn(3, Qt.DescendingOrder)
         # 不可编辑
         self.stockTable.setItemDelegate(EmptyDelegate(self))
         # 双击取值
@@ -79,8 +74,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
 
     def mouseDoubleClickEvent(self, event):
         print('双击事件：',event.row(), event.column())
-        # print(self.stockList)
-        print(self.stockList.loc[event.row()])
+        print(self.stockList.loc[event.row()]['code'],self.stockList.loc[event.row()]['name'])
         return event.row(), event.column()
 
 
