@@ -18,7 +18,6 @@ class StockTable(QWidget):
         self.model = QStandardItemModel(4, 4)
         # 设置水平方向四个头标签文本内容
         self.model.setHorizontalHeaderLabels(self.header)
-
         res = self.initDB()
         for idy,itemX in enumerate(res):
             _trade = itemX['trade']
