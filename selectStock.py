@@ -57,9 +57,9 @@ class Select():
 
 
             # 剔除新股
-            newStock = ts.new_stocks()['code'].tolist()
-            if not newStock:
-                for i in newStock:
+            newStock = ts.new_stocks()
+            if newStock:
+                for i in newStock['code'].tolist():
                     db.get_collection('today').remove({'code':i},multi=True)
 
             # 剔除停牌
