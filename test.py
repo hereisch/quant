@@ -21,11 +21,11 @@ pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 
 
-client = pymongo.MongoClient(host="127.0.0.1", port=27017)
+client = pymongo.MongoClient(host="192.168.0.28", port=27017)
 db = client['quant']
 
 
-def can_vol(dataframe=None, start=0, end=350, name='Candlestick'):
+def can_vol(dataframe=None, start=0, end=250, name='Candlestick'):
 
 
     data1 = dataframe.iloc[start:end, :]  # 区间，这里我只是测试，并没有真正用时间来选
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     # topN = df[:60 + 1]['pressure'].max()
     # print(df, topN)
 
-    client = pymongo.MongoClient(host="127.0.0.1", port=27017)
+    client = pymongo.MongoClient(host="192.168.0.28", port=27017)
     db = client['quant']
     result = db.get_collection('dayK').find({'code':'603990'})
 
