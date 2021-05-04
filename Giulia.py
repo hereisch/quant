@@ -104,9 +104,9 @@ class MainWindow(QMainWindow,Ui_MainWindow):
     def mouseDoubleClickEvent(self, event):
         print('双击事件：',event.row(), event.column())
         print(self.stockList.loc[event.row()]['code'],self.stockList.loc[event.row()]['name'])
-
-        data = ts.get_hist_data(self.stockList.loc[event.row()]['code'])
-        kPath = self.can_vol(dataframe=data)
+        code,name = self.stockList.loc[event.row()]['code'],self.stockList.loc[event.row()]['name']
+        data = ts.get_hist_data(code)
+        kPath = self.can_vol(dataframe=data,name=code+':'+name)
         self.webEngineView_6.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),kPath)))
 
 
