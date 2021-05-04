@@ -19,7 +19,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
 
     def __init__(self,parent=None):
         super(MainWindow,self).__init__(parent)
-        self.client = pymongo.MongoClient(host="192.168.0.28", port=27017)
+        self.client = pymongo.MongoClient(host="127.0.0.1", port=27017)
         self.db = self.client['quant']
         self.stockList = None
         self.header = ['code', 'name', 'industry', 'changepercent', 'trade', 'top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233']
@@ -75,7 +75,11 @@ class MainWindow(QMainWindow,Ui_MainWindow):
     def mouseDoubleClickEvent(self, event):
         print('双击事件：',event.row(), event.column())
         print(self.stockList.loc[event.row()]['code'],self.stockList.loc[event.row()]['name'])
-        return event.row(), event.column()
+        # from test import can_vol
+        # import tushare as ts
+        # data = ts.get_hist_data(self.stockList.loc[event.row()]['code'])
+        # kPath = can_vol(dataframe=data)
+        self.webEngineView_6.load(QUrl.fromLocalFile('/Users/hereisch/Desktop/GitHub/quant/temp-plot.html'))
 
 
 class EmptyDelegate(QItemDelegate):

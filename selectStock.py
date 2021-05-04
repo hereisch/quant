@@ -10,7 +10,6 @@ import time
 import pymongo
 import tushare as ts
 import pandas as pd
-import akshare as ak
 from tqdm import tqdm
 
 
@@ -19,7 +18,7 @@ pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 
-client = pymongo.MongoClient(host="192.168.0.28", port=27017)
+client = pymongo.MongoClient(host="127.0.0.1", port=27017)
 db = client['quant']
 
 
@@ -139,7 +138,7 @@ class Select():
             df = df.sort_values(by='date',ascending=False)
             for d in topday:
                 topN = df[:d+1]['pressure'].max()
-                if i['trade'] > topN:
+                if i['trade'] >= topN:
                     price = str(topN)
                 else:
                     price = topN

@@ -13,6 +13,7 @@ import plotly.graph_objs as go
 import plotly.offline as pyof
 import numpy as np
 import matplotlib.pyplot as plt
+from plotly import subplots
 
 
 
@@ -65,22 +66,28 @@ class CandlestickItem(pg.GraphicsObject):
 ## Start Qt event loop unless running in interactive mode or using pyside.
 if __name__ == '__main__':
 
-    client = pymongo.MongoClient(host="192.168.0.28", port=27017)
+    client = pymongo.MongoClient(host="127.0.0.1", port=27017)
     db = client['quant']
     res = db.get_collection('dayK').find({'code':'603990'})
 
     df = pd.DataFrame(list(res))
-    trace = go.Candlestick(x=df['date'],
+    dayK = go.Candlestick(x=df['date'],
                            open=df['open'],
                            high=df['high'],
                            low=df['low'],
                            close=df['close'],
                            increasing_line_color='red',
                            decreasing_line_color='green')
-    _data = [trace]
+    volume = go.Bar(x=df['date'],y=df['volume']/10000)
+    _data = [dayK,volume]
     layout = {'title': '603990'}
-    fig = dict(data=_data, layout=layout)
-    po.plot(fig,)
+    fig = subplots.make_subplots(rows=1, cols=1,subplot_titles='draw')
+    fig.append_trace(dayK,1,1)
+    fig.append_trace(volume,1,1)
+    fig.update_layout(xaxis={'tickmode':'auto', 'nticks':10,'tickformat':'%Y-%m-%d'})
+    fig.show()
+    # fig = dict(data=_data, layout=layout)
+    # po.plot(fig,)
 
     # data = [(idx,i['open'],i['close'],i['low'],i['high']) for idx,i in enumerate(res)]
     # print(data,res)
