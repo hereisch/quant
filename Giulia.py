@@ -4,7 +4,7 @@ import pandas as pd
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QMainWindow
-
+import os
 from Ui_Giulia import Ui_MainWindow
 from test import can_vol
 import tushare as ts
@@ -79,7 +79,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
 
         data = ts.get_hist_data(self.stockList.loc[event.row()]['code'])
         kPath = can_vol(dataframe=data)
-        self.webEngineView_6.load(QUrl.fromLocalFile('/Users/hereisch/Desktop/GitHub/quant/'+kPath))
+        self.webEngineView_6.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),kPath)))
 
 
 class EmptyDelegate(QItemDelegate):
