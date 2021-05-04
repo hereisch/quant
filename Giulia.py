@@ -6,7 +6,8 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QMainWindow
 
 from Ui_Giulia import Ui_MainWindow
-
+from test import can_vol
+import tushare as ts
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -75,8 +76,10 @@ class MainWindow(QMainWindow,Ui_MainWindow):
     def mouseDoubleClickEvent(self, event):
         print('双击事件：',event.row(), event.column())
         print(self.stockList.loc[event.row()]['code'],self.stockList.loc[event.row()]['name'])
-        self.webEngineView_6.load(QUrl.fromLocalFile('D:\pyProject\Quant\quant/temp-plot.html'))
-        # return event.row(), event.column()
+
+        data = ts.get_hist_data(self.stockList.loc[event.row()]['code'])
+        kPath = can_vol(dataframe=data)
+        self.webEngineView_6.load(QUrl.fromLocalFile('/Users/hereisch/Desktop/GitHub/quant/'+kPath))
 
 
 class EmptyDelegate(QItemDelegate):

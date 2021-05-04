@@ -66,7 +66,7 @@ class CandlestickItem(pg.GraphicsObject):
 ## Start Qt event loop unless running in interactive mode or using pyside.
 if __name__ == '__main__':
 
-    client = pymongo.MongoClient(host="127.0.0.1", port=27017)
+    client = pymongo.MongoClient(host="192.168.0.28", port=27017)
     db = client['quant']
     res = db.get_collection('dayK').find({'code':'603990'})
 
