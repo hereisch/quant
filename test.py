@@ -9,7 +9,6 @@ import requests
 import time
 import tushare as ts
 import pandas as pd
-import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.offline as po
 import plotly
@@ -31,7 +30,6 @@ def can_vol(dataframe=None, start=0, end=250, name='Candlestick'):
     data1 = dataframe.iloc[start:end, :]  # 区间，这里我只是测试，并没有真正用时间来选
     data1 = data1.sort_index(axis=0, ascending=True)
     x_axis = [i[2:] for i in data1.index]
-    print(x_axis)
     # 生成新列，以便后面设置颜色
     data1['diag'] = np.empty(len(data1))
     # 设置涨/跌成交量柱状图的颜色

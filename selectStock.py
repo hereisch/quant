@@ -43,7 +43,7 @@ class Select():
 
             res = db.get_collection('today').find()
             for i in res:
-                if i['trade'] <=9 or i['changepercent'] <0:
+                if i['trade'] <=3 or i['changepercent'] <0:
                     db.get_collection('today').remove({'code': i['code']})
                 kk = db.get_collection('base').find_one({'code': i['code']})
                 if not kk:
