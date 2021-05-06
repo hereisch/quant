@@ -25,7 +25,15 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.stockList = None
         self.header = ['code', 'name', 'industry', 'changepercent', 'trade', 'top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233']
         self.setupUi(self)
+        self.tabK.currentChanged.connect(self.tabShow)
         self.showStock()
+        self.code = None
+        self.name = None
+
+
+    def tabShow(self,x):
+        self.indexK = ['Day','min_30','min_15','min_5','min_1']
+        print('当前标签是:', self.indexK[x])
 
 
     def showStock(self,sortPrice=False,pChange=True,lowPrice=5,highPrice=100):
@@ -66,7 +74,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         layout.addWidget(self.stockTable)
         self.setLayout(layout)
 
-    def can_vol(self,dataframe=None, start=0, end=250, name='Candlestick'):
+    def can_vol(self,dataframe=None, start=0, end=250, name='Candlestick',tabpage=''):
 
         data1 = dataframe.iloc[start:end, :]  # 区间，这里我只是测试，并没有真正用时间来选
         data1 = data1.sort_index(axis=0, ascending=True)
@@ -90,11 +98,10 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         vol = go.Bar(x=x_axis,
                      y=data1.volume, name="Volume", marker_color=data1.diag, opacity=0.5, yaxis='y2')
         # 这里一定要设置yaxis=2, 确保成交量的y轴在右边，不和价格的y轴在一起
-        data = [candle, vol]
+        data = [vol,candle]
         fig = go.Figure(data, layout)
         plotly.offline.plot(fig, filename='dayK.html', auto_open=False)
         return 'dayK.html'
-
 
     def initDB(self):
 
@@ -102,11 +109,11 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         return result
 
     def mouseDoubleClickEvent(self, event):
-        print('双击事件：',event.row(), event.column())
-        print(self.stockList.loc[event.row()]['code'],self.stockList.loc[event.row()]['name'])
-        code,name = self.stockList.loc[event.row()]['code'],self.stockList.loc[event.row()]['name']
-        data = ts.get_hist_data(code)
-        kPath = self.can_vol(dataframe=data,name=code+':'+name)
+        # print('双击事件：',event.row(), event.column())
+        # print(self.stockList.loc[event.row()]['code'],self.stockList.loc[event.row()]['name'])
+        self.code,self.name = self.stockList.loc[event.row()]['code'],self.stockList.loc[event.row()]['name']
+        data = ts.get_hist_data(self.code)
+        kPath = self.can_vol(dataframe=data,name=self.code+':'+self.name)
         self.webEngineView_6.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),kPath)))
 
 

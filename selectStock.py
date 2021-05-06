@@ -56,10 +56,13 @@ class Select():
 
 
             # 剔除新股
-            newStock = ts.new_stocks()
-            if newStock:
-                for i in newStock['code'].tolist():
-                    db.get_collection('today').remove({'code':i},multi=True)
+            try:
+                newStock = ts.new_stocks()
+                if newStock:
+                    for i in newStock['code'].tolist():
+                        db.get_collection('today').remove({'code':i},multi=True)
+            except:
+                pass
 
             # 剔除停牌
             db.get_collection('today').remove({'open': 0})

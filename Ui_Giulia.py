@@ -174,8 +174,8 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabK.setCurrentIndex(4)
-        self.tabStatic.setCurrentIndex(2)
+        self.tabK.setCurrentIndex(0)
+        self.tabStatic.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
         self.splitter_2.setStretchFactor(0,2)
