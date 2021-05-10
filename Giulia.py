@@ -23,26 +23,31 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.client = pymongo.MongoClient(host="192.168.0.28", port=27017)
         self.db = self.client['quant']
         self.stockList = None
-        self.header = ['code', 'name', 'industry', 'changepercent', 'trade', 'top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233']
+        self.header = ['code', 'name', 'industry', 'nmc','changepercent', 'trade', 'top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233']
         self.setupUi(self)
         self.tabK.currentChanged.connect(self.tabShow)
+        self.topList = ts.top_list()['code'].tolist()
         self.showStock()
         self.code = None
         self.name = None
 
 
     def tabShow(self,x):
-        self.indexK = ['Day','min_30','min_15','min_5','min_1']
-        print('当前标签是:', self.indexK[x])
+        indexK = ['Day','min_30','min_15','min_5','min_1']
+        tabEngine = [self.webEngineView_6,]
+        print('当前标签是:', indexK[x])
+        # html = self.can_vol(dataframe=,tabpage=indexK[x])
 
 
-    def showStock(self,sortPrice=False,pChange=True,lowPrice=5,highPrice=100):
+    def showStock(self,sortPrice=False,pChange=True,lowPrice=4,highPrice=100):
         # 设置数据层次结构，4行4列
         self.model = QStandardItemModel(4, 4)
         # 设置水平方向四个头标签文本内容
         self.model.setHorizontalHeaderLabels(self.header)
         res = self.initDB()
         self.stockList = pd.DataFrame(list(res))
+        self.stockList['nmc'] = self.stockList['nmc'] /10000
+        # self.stockList['nmc'].round(2)
         if pChange:
             self.stockList = self.stockList.sort_values(by=['changepercent'],ascending=(False))
         if sortPrice:
@@ -54,7 +59,9 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             _trade = itemX['trade']
             for idx, itemY in enumerate(self.header):
                 item = QStandardItem(str(itemX[itemY]))
-                if idx > 4 and type(itemX[itemY]) == str:
+                if idx ==0 and itemX[itemY] in self.topList:
+                    item.setBackground(QColor(220,102,0))
+                if idx > 5 and type(itemX[itemY]) == str:
                     item.setBackground(QColor(255, 153, 153))
                 # 设置每个位置的文本值
                 self.model.setItem(idy, idx, item)
@@ -82,8 +89,8 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         # 生成新列，以便后面设置颜色
         data1['diag'] = np.empty(len(data1))
         # 设置涨/跌成交量柱状图的颜色
-        data1.diag[data1.close > data1.open] = '#fcf8b3'
-        data1.diag[data1.close <= data1.open] = '#80ef91'
+        data1.diag[data1.close > data1.open] = '#e21de2'
+        data1.diag[data1.close <= data1.open] = '#1de2e2'
         layout = go.Layout(title_text=name, title_font_size=30, autosize=True, margin=go.layout.Margin(l=10, r=1, b=10),
                            xaxis=dict(title_text="Candlesticck", type='category'),
                            yaxis=dict(title_text="<b>Price</b>"),
@@ -93,15 +100,15 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         # 因为如果用自带datetime格式总会显示出周末空格，这个我找了好久才解决周末空格问题。。。
         candle = go.Candlestick(x=x_axis,
                                 open=data1.open, high=data1.high,
-                                low=data1.low, close=data1.close, increasing_line_color='#f6416c',
-                                decreasing_line_color='#7bc0a3', name="Price")
+                                low=data1.low, close=data1.close, increasing_line_color='#e21d1d',
+                                decreasing_line_color='#008000', name="Price")
         vol = go.Bar(x=x_axis,
                      y=data1.volume, name="Volume", marker_color=data1.diag, opacity=0.5, yaxis='y2')
         # 这里一定要设置yaxis=2, 确保成交量的y轴在右边，不和价格的y轴在一起
         data = [vol,candle]
         fig = go.Figure(data, layout)
-        plotly.offline.plot(fig, filename='dayK.html', auto_open=False)
-        return 'dayK.html'
+        plotly.offline.plot(fig, filename=tabpage+'.html', auto_open=False)
+        return tabpage+'.html'
 
     def initDB(self):
 

@@ -72,10 +72,9 @@ if __name__ == '__main__':
     # 先用tushare下载数据
     import tushare as ts
 
-    data = ts.get_hist_data('603222')
-
+    data = ts.top_list()
+    print(data)
 
     # 定义画图函数
 
 
-    can_vol(dataframe=data)
