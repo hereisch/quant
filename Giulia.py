@@ -15,7 +15,7 @@ from TopStock import StockTable
 import plotly
 import numpy as np
 import plotly.graph_objects as go
-from test import intervalStat
+from drawK import intervalStat
 
 class MainWindow(QMainWindow,Ui_MainWindow):
 
@@ -34,14 +34,16 @@ class MainWindow(QMainWindow,Ui_MainWindow):
 
 
     def tabShow(self,x):
-        indexK = ['Day','min_30','min_15','min_5','min_60']
-        typeK = ['D','30','15','5','60']
-        tabEngine = [self.webEngineView_6,self.webEngineView_5,self.webEngineView_4,self.webEngineView,self.webEngineView_3]
+        indexK = ['Day','min_30','min_15','min_5','min_60','tick_time']
+        typeK = ['D','30','15','5','60',]
+        extent = [250,150,150,150,150]
+        tabEngine = [self.webEngineView_6,self.webEngineView_5,self.webEngineView_4,self.webEngineView,self.webEngineView_3,self.webEngineView_9]
         print('当前标签是:', indexK[x])
-        data = ts.get_hist_data(self.code,ktype=typeK[x])
-        pageK = self.can_vol(dataframe=data,tabpage=indexK[x])
-        tabEngine[x].load(QUrl.fromLocalFile(os.path.join(os.getcwd(),pageK)))
-        # todo 异步存入
+        if x !=5:
+            data = ts.get_hist_data(self.code,ktype=typeK[x])
+            pageK = self.can_vol(dataframe=data,tabpage=indexK[x],name=self.code+':'+self.name,end=extent[x])
+            tabEngine[x].load(QUrl.fromLocalFile(os.path.join(os.getcwd(),pageK)))
+            # todo 异步存入
 
     def showStock(self,sortPrice=False,pChange=True,lowPrice=4,highPrice=100):
         # 设置数据层次结构，4行4列
@@ -129,10 +131,11 @@ class MainWindow(QMainWindow,Ui_MainWindow):
 
         # 盘口展示
         try:
-            intervalStat(self.code)
+            intervalStat(self.code,self.name)
             self.webEngineView_2.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'Total.html')))
             self.webEngineView_7.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'Buy.html')))
             self.webEngineView_8.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'Sale.html')))
+            self.webEngineView_9.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'TickTime.html')))
         except:
             print('区间统计错误：',self.code)
 

@@ -131,6 +131,19 @@ class Ui_MainWindow(object):
         self.webEngineView_3.setObjectName("webEngineView_3")
         self.horizontalLayout_7.addWidget(self.webEngineView_3)
         self.tabK.addTab(self.min_60, "")
+
+
+        self.tick_time = QtWidgets.QWidget()
+        self.tick_time.setObjectName("tick_time")
+        self.horizontalLayout_11 = QtWidgets.QHBoxLayout(self.tick_time)
+        self.horizontalLayout_11.setObjectName("horizontalLayout_11")
+        self.webEngineView_9 = QtWebEngineWidgets.QWebEngineView(self.tick_time)
+        self.webEngineView_9.setUrl(QtCore.QUrl("about:blank"))
+        self.webEngineView_9.setObjectName("webEngineView_9")
+        self.horizontalLayout_11.addWidget(self.webEngineView_9)
+        self.tabK.addTab(self.tick_time, "")
+
+
         self.tabStatic = QtWidgets.QTabWidget(self.splitter)
         self.tabStatic.setObjectName("tabStatic")
         self.Total = QtWidgets.QWidget()
@@ -199,6 +212,7 @@ class Ui_MainWindow(object):
         self.tabK.setTabText(self.tabK.indexOf(self.min_15), _translate("MainWindow", "15min"))
         self.tabK.setTabText(self.tabK.indexOf(self.min_5), _translate("MainWindow", "5min"))
         self.tabK.setTabText(self.tabK.indexOf(self.min_60), _translate("MainWindow", "60min"))
+        self.tabK.setTabText(self.tabK.indexOf(self.tick_time), _translate("MainWindow", "分时"))
         self.tabStatic.setTabText(self.tabStatic.indexOf(self.Total), _translate("MainWindow", "Total"))
         self.tabStatic.setTabText(self.tabStatic.indexOf(self.Buy), _translate("MainWindow", "Buy"))
         self.tabStatic.setTabText(self.tabStatic.indexOf(self.Sale), _translate("MainWindow", "Sale"))
