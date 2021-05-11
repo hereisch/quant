@@ -15,6 +15,7 @@ from TopStock import StockTable
 import plotly
 import numpy as np
 import plotly.graph_objects as go
+from test import intervalStat
 
 class MainWindow(QMainWindow,Ui_MainWindow):
 
@@ -33,11 +34,14 @@ class MainWindow(QMainWindow,Ui_MainWindow):
 
 
     def tabShow(self,x):
-        indexK = ['Day','min_30','min_15','min_5','min_1']
-        tabEngine = [self.webEngineView_6,]
+        indexK = ['Day','min_30','min_15','min_5','min_60']
+        typeK = ['D','30','15','5','60']
+        tabEngine = [self.webEngineView_6,self.webEngineView_5,self.webEngineView_4,self.webEngineView,self.webEngineView_3]
         print('当前标签是:', indexK[x])
-        # html = self.can_vol(dataframe=,tabpage=indexK[x])
-
+        data = ts.get_hist_data(self.code,ktype=typeK[x])
+        pageK = self.can_vol(dataframe=data,tabpage=indexK[x])
+        tabEngine[x].load(QUrl.fromLocalFile(os.path.join(os.getcwd(),pageK)))
+        # todo 异步存入
 
     def showStock(self,sortPrice=False,pChange=True,lowPrice=4,highPrice=100):
         # 设置数据层次结构，4行4列
@@ -89,8 +93,8 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         # 生成新列，以便后面设置颜色
         data1['diag'] = np.empty(len(data1))
         # 设置涨/跌成交量柱状图的颜色
-        data1.diag[data1.close > data1.open] = '#e21de2'
-        data1.diag[data1.close <= data1.open] = '#1de2e2'
+        data1.diag[data1.close > data1.open] = '#ff0000'
+        data1.diag[data1.close <= data1.open] = '#00ff00'
         layout = go.Layout(title_text=name, title_font_size=30, autosize=True, margin=go.layout.Margin(l=10, r=1, b=10),
                            xaxis=dict(title_text="Candlesticck", type='category'),
                            yaxis=dict(title_text="<b>Price</b>"),
@@ -122,6 +126,15 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         data = ts.get_hist_data(self.code)
         kPath = self.can_vol(dataframe=data,name=self.code+':'+self.name)
         self.webEngineView_6.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),kPath)))
+
+        # 盘口展示
+        try:
+            intervalStat(self.code)
+            self.webEngineView_2.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'Total.html')))
+            self.webEngineView_7.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'Buy.html')))
+            self.webEngineView_8.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'Sale.html')))
+        except:
+            print('区间统计错误：',self.code)
 
 
 class EmptyDelegate(QItemDelegate):

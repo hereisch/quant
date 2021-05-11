@@ -44,5 +44,5 @@ def stat(code):
 
 if __name__ == '__main__':
 
-    code = input('股票代码：')
+    code = '600059'
     stat(code)
