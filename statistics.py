@@ -15,7 +15,7 @@ pd.set_option('display.max_columns', None)
 def stat(code):
 
     """区间成交量统计"""
-    df = ts.get_today_ticks(code)
+    df = ts.get_today_ticks(code=code,)
     df['amount'] = df['price']* df['vol']*100
     buy = df[df['type']=='买入']
     sale = df[df['type']=='卖出']
@@ -44,5 +44,5 @@ def stat(code):
 
 if __name__ == '__main__':
 
-    code = '600059'
+    code = input('代码：')
     stat(code)

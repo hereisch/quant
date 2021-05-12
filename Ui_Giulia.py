@@ -63,6 +63,7 @@ class Ui_MainWindow(object):
         self.changePercent = QtWidgets.QRadioButton(self.widget)
         self.changePercent.setMaximumSize(QtCore.QSize(100, 50))
         self.changePercent.setObjectName("changePercent")
+        self.changePercent.setChecked(True)
         self.horizontalSearchBar.addWidget(self.changePercent)
         self.DownButton = QtWidgets.QPushButton(self.widget)
         self.DownButton.setMaximumSize(QtCore.QSize(200, 100))
@@ -200,7 +201,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Giulia_V1.0"))
         self.labelPrice.setText(_translate("MainWindow", "价格区间："))
         self.label_.setText(_translate("MainWindow", "-"))
         self.sortPrice.setText(_translate("MainWindow", "价格升序"))

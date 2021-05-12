@@ -11,11 +11,16 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 import sys
-from TopStock import StockTable
 import plotly
 import numpy as np
 import plotly.graph_objects as go
 from drawK import intervalStat
+from selectStock import downStock
+
+pd.set_option('display.width', 5000)
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+
 
 class MainWindow(QMainWindow,Ui_MainWindow):
 
@@ -24,14 +29,15 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.client = pymongo.MongoClient(host="192.168.0.28", port=27017)
         self.db = self.client['quant']
         self.stockList = None
-        self.header = ['code', 'name', 'industry', 'nmc','changepercent', 'trade', 'top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233']
+        self.header = ['code', 'name', 'industry', 'nmc','turnoverratio','changepercent', 'trade', 'top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233']
         self.setupUi(self)
         self.tabK.currentChanged.connect(self.tabShow)
         self.topList = ts.top_list()['code'].tolist()
         self.showStock()
         self.code = None
         self.name = None
-
+        self.SearchButton.clicked.connect(self.showStock)
+        self.DownButton.clicked.connect(downStock)
 
     def tabShow(self,x):
         indexK = ['Day','min_30','min_15','min_5','min_60','tick_time']
@@ -45,19 +51,22 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             tabEngine[x].load(QUrl.fromLocalFile(os.path.join(os.getcwd(),pageK)))
             # todo 异步存入
 
-    def showStock(self,sortPrice=False,pChange=True,lowPrice=4,highPrice=100):
+    def showStock(self,):
         # 设置数据层次结构，4行4列
         self.model = QStandardItemModel(4, 4)
         # 设置水平方向四个头标签文本内容
         self.model.setHorizontalHeaderLabels(self.header)
-        res = self.initDB()
+        highPrice = self.maxPrice.text()
+        lowPrice = self.minPrice.text()
+        res = self.initDB(lowPrice=lowPrice,highPrice=highPrice)
         self.stockList = pd.DataFrame(list(res))
         self.stockList['nmc'] = self.stockList['nmc'] /10000
         # self.stockList['nmc'].round(2)
-        if pChange:
+
+        if self.changePercent.isChecked():
             self.stockList = self.stockList.sort_values(by=['changepercent'],ascending=(False))
-        if sortPrice:
-            self.stockList.sort_values(by=['trade'], ascending=(False))
+        elif self.sortPrice.isChecked():
+            self.stockList.sort_values(by=['trade'], ascending=(True))
 
         self.stockList = self.stockList.reset_index(drop=True)
 
@@ -67,7 +76,8 @@ class MainWindow(QMainWindow,Ui_MainWindow):
                 item = QStandardItem(str(itemX[itemY]))
                 if idx ==0 and itemX[itemY] in self.topList:
                     item.setBackground(QColor(220,102,0))
-                if idx > 5 and type(itemX[itemY]) == str:
+                # 'trade' index in self.header
+                if idx > self.header.index('trade') and type(itemX[itemY]) == str:
                     item.setBackground(QColor(255, 153, 153))
                 # 设置每个位置的文本值
                 self.model.setItem(idy, idx, item)
@@ -116,9 +126,16 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         plotly.offline.plot(fig, filename=tabpage+'.html', auto_open=False)
         return tabpage+'.html'
 
-    def initDB(self):
+    def initDB(self,lowPrice='',highPrice=''):
 
-        result = self.db.get_collection('today').find()
+        if lowPrice.isdigit() and highPrice.isdigit():
+            result = self.db.get_collection('today').find({ "$and" : [{"trade" : { "$gte" : int(lowPrice) }}, {"trade" : { "$lte" : int(highPrice) }}]})
+        elif lowPrice.isdigit():
+            result = self.db.get_collection('today').find({"trade" : { "$gte" : int(lowPrice) }})
+        elif highPrice.isdigit():
+            result = self.db.get_collection('today').find({"trade": {"$lte": int(highPrice)}})
+        else:
+            result = self.db.get_collection('today').find()
         return result
 
     def mouseDoubleClickEvent(self, event):

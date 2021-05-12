@@ -148,10 +148,8 @@ class Select():
                 db.get_collection('today').update({'code':i['code']},{'$set':{'top'+str(d):price}})
         db.get_collection('today').remove({'top3': None})
 
-
-if __name__ == '__main__':
-
-    today = time.strftime('%Y-%m-%d' , time.localtime())
+def downStock():
+    today = time.strftime('%Y-%m-%d', time.localtime())
 
     s = Select(init=True)
     s.download()
@@ -160,3 +158,7 @@ if __name__ == '__main__':
     locale.setlocale(locale.LC_CTYPE, 'chinese')
     print(time.strftime('%Y年%m月%d日%H时%M分%S秒'))
 
+if __name__ == '__main__':
+
+
+    downStock()
