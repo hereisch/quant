@@ -38,6 +38,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.name = None
         self.SearchButton.clicked.connect(self.showStock)
         self.DownButton.clicked.connect(downStock)
+        self.maxPrice.returnPressed.connect(self.showStock)
 
     def tabShow(self,x):
         indexK = ['Day','min_30','min_15','min_5','min_60','tick_time']
@@ -166,9 +167,10 @@ class EmptyDelegate(QItemDelegate):
 
 
 
-
 if __name__ == '__main__':
-
+    """
+    Its For My Dream Car  -----  Alfa Romeo Giulia
+    """
     app = QApplication(sys.argv)
     win = MainWindow()
     win.show()
