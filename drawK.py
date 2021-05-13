@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-#
 import os
 import sys
+import time
+
 import pandas as pd
 import pymongo
 import pyqtgraph as pg
@@ -64,15 +66,26 @@ class CandlestickItem(pg.GraphicsObject):
 
 def intervalStat(code,name):
 
-    """区间成交量统计"""
-    df = ts.get_today_ticks(code)
-    df['amount'] = df['price']* df['vol']*100
-    buy = df[df['type']=='买入']
-    sale = df[df['type']=='卖出']
+    """区间成交量统计,18:00以后改get_tick_data 接口"""
+    if time.localtime().tm_hour >=18:
+        today = time.strftime('%Y-%m-%d',time.localtime(time.time()))
+        df = ts.get_tick_data(code, date=today, src='tt')
+        df.rename(columns={'volume': 'vol'}, inplace=True)
+        df.replace('买盘','买入',inplace=True)
+        df.replace('卖盘','卖出',inplace=True)
+        df.replace('中性盘','-',inplace=True)
+        print(df.head(10))
+    else:
+        df = ts.get_today_ticks(code)
+        df['amount'] = df['price']* df['vol']*100
+
+    buy = df[df['type'] == '买入']
+    sale = df[df['type'] == '卖出']
     mid = df[df['type'] == '-']
+    print(sale.head(10))
     s = sale.groupby(['price'])['vol'].sum()
     b = buy.groupby(['price'])['vol'].sum()
-    t = df.groupby(['price'])['vol'].sum()
+    # t = df.groupby(['price'])['vol'].sum()
 
     print('买入总成交：',buy['vol'].sum(),'手')
     print('卖出总成交：',sale['vol'].sum(),'手')
@@ -99,6 +112,7 @@ def intervalStat(code,name):
                        yaxis=dict(title_text="<b>Price</b>"),
                        yaxis2=dict(title_text="<b>Volume</b>", anchor="x", overlaying="y", side="right"))
     df['color'] = ''
+
     df.color[df.type == '买入'] = 'red'
     df.color[df.type == '卖出'] = 'green'
     df.color[df.type == '-'] = 'gray'

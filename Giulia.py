@@ -15,7 +15,7 @@ import plotly
 import numpy as np
 import plotly.graph_objects as go
 from drawK import intervalStat
-from selectStock import downStock
+from selectStock import downStock,reflash
 
 pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
@@ -38,7 +38,11 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.name = None
         self.SearchButton.clicked.connect(self.showStock)
         self.DownButton.clicked.connect(downStock)
+        self.ReflashButton.clicked.connect(lambda : self.showStock(flash=True))
+        self.minPrice.returnPressed.connect(self.showStock)
         self.maxPrice.returnPressed.connect(self.showStock)
+        self.maxNMC.returnPressed.connect(self.showStock)
+        self.minNMC.returnPressed.connect(self.showStock)
 
     def tabShow(self,x):
         indexK = ['Day','min_30','min_15','min_5','min_60','tick_time']
@@ -52,37 +56,55 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             tabEngine[x].load(QUrl.fromLocalFile(os.path.join(os.getcwd(),pageK)))
             # todo 异步存入
 
-    def showStock(self,):
+    def cleanScreen(self):
+        self.model = QStandardItemModel(4, 4)
+        self.stockTable.setModel(self.model)
+        for idx, itemY in enumerate(self.header):
+            item = QStandardItem(str(itemY))
+            self.model.setItem(0, idx, item)
+        layout = QVBoxLayout()
+        layout.addWidget(self.stockTable)
+        self.setLayout(layout)
+
+    def showStock(self,flash=False):
+        if flash:
+            reflash()
         # 设置数据层次结构，4行4列
         self.model = QStandardItemModel(4, 4)
         # 设置水平方向四个头标签文本内容
         self.model.setHorizontalHeaderLabels(self.header)
         highPrice = self.maxPrice.text()
         lowPrice = self.minPrice.text()
-        res = self.initDB(lowPrice=lowPrice,highPrice=highPrice)
+        highNMC = self.maxNMC.text()
+        lowNMC = self.minNMC.text()
+        res = self.initDB(lowPrice=lowPrice,highPrice=highPrice,highNMC=highNMC,lowNMC=lowNMC)
         self.stockList = pd.DataFrame(list(res))
-        self.stockList['nmc'] = self.stockList['nmc'] /10000
-        # self.stockList['nmc'].round(2)
+        try:
+            self.stockList['nmc'] = self.stockList['nmc'] /10000
+            # self.stockList['nmc'].round(2)
 
-        if self.changePercent.isChecked():
-            self.stockList = self.stockList.sort_values(by=['changepercent'],ascending=(False))
-        elif self.sortPrice.isChecked():
-            self.stockList.sort_values(by=['trade'], ascending=(True))
+            if self.changePercent.isChecked():
+                self.stockList = self.stockList.sort_values(by=['changepercent'],ascending=(False))
+            elif self.sortPrice.isChecked():
+                self.stockList.sort_values(by=['trade'], ascending=(True))
 
-        self.stockList = self.stockList.reset_index(drop=True)
+            self.stockList = self.stockList.reset_index(drop=True)
 
-        for idy, itemX in self.stockList.iterrows():
-            _trade = itemX['trade']
-            for idx, itemY in enumerate(self.header):
-                item = QStandardItem(str(itemX[itemY]))
-                if idx ==0 and itemX[itemY] in self.topList:
-                    item.setBackground(QColor(220,102,0))
-                # 'trade' index in self.header
-                if idx > self.header.index('trade') and type(itemX[itemY]) == str:
-                    item.setBackground(QColor(255, 153, 153))
-                # 设置每个位置的文本值
-                self.model.setItem(idy, idx, item)
+            for idy, itemX in self.stockList.iterrows():
+                _trade = itemX['trade']
+                for idx, itemY in enumerate(self.header):
+                    item = QStandardItem(str(itemX[itemY]))
+                    if idx ==0 and itemX[itemY] in self.topList:
+                        item.setBackground(QColor(220,102,0))
+                    # 'trade' index in self.header
+                    if idx > self.header.index('trade') and type(itemX[itemY]) == str:
+                        item.setBackground(QColor(255, 153, 153))
+                    # 设置每个位置的文本值
+                    self.model.setItem(idy, idx, item)
 
+        except:
+            self.cleanScreen()
+            return
 
         self.stockTable.setModel(self.model)
         # 不可编辑
@@ -127,14 +149,19 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         plotly.offline.plot(fig, filename=tabpage+'.html', auto_open=False)
         return tabpage+'.html'
 
-    def initDB(self,lowPrice='',highPrice=''):
+    def initDB(self,lowPrice='',highPrice='',highNMC='',lowNMC=''):
 
-        if lowPrice.isdigit() and highPrice.isdigit():
-            result = self.db.get_collection('today').find({ "$and" : [{"trade" : { "$gte" : int(lowPrice) }}, {"trade" : { "$lte" : int(highPrice) }}]})
-        elif lowPrice.isdigit():
-            result = self.db.get_collection('today').find({"trade" : { "$gte" : int(lowPrice) }})
-        elif highPrice.isdigit():
-            result = self.db.get_collection('today').find({"trade": {"$lte": int(highPrice)}})
+        query = []
+        if lowPrice.isdigit():
+            query.append({"trade" : { "$gte" : int(lowPrice) }})
+        if highPrice.isdigit():
+            query.append({"trade": {"$lte": int(highPrice)}})
+        if highNMC.isdigit():
+            query.append({"nmc": {"$lte": int(highNMC)*10000}})
+        if lowNMC.isdigit():
+            query.append({"nmc": {"$gte": int(lowNMC)*10000}})
+        if query:
+            result = self.db.get_collection('today').find({ "$and" : query})
         else:
             result = self.db.get_collection('today').find()
         return result
@@ -148,14 +175,14 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.webEngineView_6.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),kPath)))
 
         # 盘口展示
-        try:
-            intervalStat(self.code,self.name)
-            self.webEngineView_2.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'Total.html')))
-            self.webEngineView_7.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'Buy.html')))
-            self.webEngineView_8.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'Sale.html')))
-            self.webEngineView_9.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'TickTime.html')))
-        except:
-            print('区间统计错误：',self.code)
+        # try:
+        intervalStat(self.code,self.name)
+        self.webEngineView_2.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'Total.html')))
+        self.webEngineView_7.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'Buy.html')))
+        self.webEngineView_8.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'Sale.html')))
+        self.webEngineView_9.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'TickTime.html')))
+        # except Exception as e:
+        #     print('区间统计错误：',self.code,e)
 
 
 class EmptyDelegate(QItemDelegate):

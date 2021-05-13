@@ -3,16 +3,17 @@ import json
 import locale
 import os
 import random
-import re
-import requests
+from threading import Thread
 from datetime import datetime,date,timedelta
 import time
 import pymongo
 import tushare as ts
 import pandas as pd
 from tqdm import tqdm
-
-
+from PyQt5.QtWidgets import QMainWindow
+import os
+from Ui_Giulia import Ui_MainWindow
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
@@ -20,6 +21,16 @@ pd.set_option('display.max_columns', None)
 
 client = pymongo.MongoClient(host="192.168.0.28", port=27017)
 db = client['quant']
+
+
+
+
+
+def async(f):
+    def wrapper(*args, **kwargs):
+        thr = Thread(target = f, args = args, kwargs = kwargs)
+        thr.start()
+    return wrapper
 
 
 class Select():
@@ -138,7 +149,10 @@ class Select():
         for i in res:
             kk = db.get_collection('dayK').find({ '$and' : [{"date" : { '$ne' : today }}, {"code" : i['code']}] })
             df = pd.DataFrame(list(kk))
-            df = df.sort_values(by='date',ascending=False)
+            try:
+                df = df.sort_values(by='date',ascending=False)
+            except:
+                continue
             for d in topday:
                 topN = df[:d+1]['pressure'].max()
                 if i['trade'] >= topN:
@@ -148,9 +162,9 @@ class Select():
                 db.get_collection('today').update({'code':i['code']},{'$set':{'top'+str(d):price}})
         db.get_collection('today').remove({'top3': None})
 
-def downStock():
-    today = time.strftime('%Y-%m-%d', time.localtime())
 
+# 不可异步@async
+def downStock():
     s = Select(init=True)
     s.download()
     s.topN()
@@ -158,7 +172,17 @@ def downStock():
     locale.setlocale(locale.LC_CTYPE, 'chinese')
     print(time.strftime('%Y年%m月%d日%H时%M分%S秒'))
 
-if __name__ == '__main__':
 
+@async
+def reflash():
+
+    s = Select(init=True)
+    s.topN()
+    locale.setlocale(locale.LC_CTYPE, 'chinese')
+    print('刷新....',time.strftime('%Y年%m月%d日%H时%M分%S秒'))
+
+
+
+if __name__ == '__main__':
 
     downStock()

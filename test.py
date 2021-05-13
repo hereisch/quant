@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-#
 from datetime import datetime,date,timedelta
 import json
-import os
+import io
 import re
 import pandas as pd
 import pymongo
@@ -15,7 +15,7 @@ import plotly
 import numpy as np
 import plotly.graph_objects as go
 from plotly import subplots
-
+from tqdm import tqdm
 
 pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
@@ -83,6 +83,37 @@ def intervalStat(code,):
     # fig.show()
 
 
+import sys
+from Ui_Giulia import Ui_MainWindow
+import tushare as ts
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+import plotly.graph_objects as go
+from PyQt5 import QtCore, QtGui, QtWidgets
+from selectStock import async
+
+pd.set_option('display.width', 5000)
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+
+
+class MainWindow(QMainWindow, Ui_MainWindow):
+
+    def __init__(self, parent=None):
+        super(MainWindow, self).__init__(parent)
+        self.client = pymongo.MongoClient(host="192.168.0.28", port=27017)
+        self.setupUi(self)
+        self.SearchButton.clicked.connect(self.dumiao)
+        self._translate = QtCore.QCoreApplication.translate
+
+    def dumiao(self):
+        for i in range(30):
+            print(i)
+            QtWidgets.QApplication.processEvents()
+            time.sleep(1)
+            self.DownButton.setText(self._translate("MainWindow", str(i)))
+
 
 if __name__ == '__main__':
     # today = time.strftime("%Y-%m-%d", time.localtime())
@@ -94,8 +125,33 @@ if __name__ == '__main__':
 
     client = pymongo.MongoClient(host="192.168.0.28", port=27017)
     db = client['quant']
-    result = db.get_collection('dayK').find({'code':'603990'})
 
 
+    import mongoengine as mg
+    mg.connect('quant', host='192.168.0.28', port=27017)
 
-    intervalStat('600639')
+
+    # class Users(mg.Document):
+    #     name = mg.StringField(required=True, max_length=200)
+    #     age = mg.IntField(required=True)
+    #
+    #
+    # tmp = Users.objects(name='青海华鼎')
+    # for u in tmp:
+    #     print("name:", u.name, ",age:", u.age)
+
+    import os
+    COUNT = ''
+
+
+    def _random(n=13):
+        from random import randint
+        start = 10 ** (n - 1)
+        end = (10 ** n) - 1
+        print(str(randint(start, end)))
+    _random()
+    # app = QApplication(sys.argv)
+    # win = MainWindow()
+    # win.show()
+    # # win.showMaximized()
+    # app.exec_()
