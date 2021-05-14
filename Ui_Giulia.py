@@ -75,8 +75,6 @@ class Ui_MainWindow(object):
         self.maxNMC.setObjectName("maxNMC")
         self.horizontalSearchBar.addWidget(self.maxNMC)
 
-
-
         self.sortPrice = QtWidgets.QRadioButton(self.widget)
         self.sortPrice.setMaximumSize(QtCore.QSize(100, 50))
         self.sortPrice.setObjectName("sortPrice")
@@ -86,18 +84,25 @@ class Ui_MainWindow(object):
         self.changePercent.setObjectName("changePercent")
         self.changePercent.setChecked(True)
         self.horizontalSearchBar.addWidget(self.changePercent)
+
+        self.comboBox = QtWidgets.QComboBox(self.widget)
+        self.comboBox.setMaximumSize(QtCore.QSize(150, 120))
+        self.comboBox.setCurrentText("行业")
+        self.comboBox.setObjectName("comboBox")
+        self.horizontalSearchBar.addWidget(self.comboBox)
+
         self.DownButton = QtWidgets.QPushButton(self.widget)
-        self.DownButton.setMaximumSize(QtCore.QSize(200, 100))
+        self.DownButton.setMaximumSize(QtCore.QSize(150, 120))
         self.DownButton.setObjectName("DownButton")
         self.horizontalSearchBar.addWidget(self.DownButton)
 
-        self.ReflashButton = QtWidgets.QPushButton(self.widget)
-        self.ReflashButton.setMaximumSize(QtCore.QSize(200, 100))
-        self.ReflashButton.setObjectName("Reflash")
-        self.horizontalSearchBar.addWidget(self.ReflashButton)
+        self.RefreshButton = QtWidgets.QPushButton(self.widget)
+        self.RefreshButton.setMaximumSize(QtCore.QSize(150, 120))
+        self.RefreshButton.setObjectName("Reflash")
+        self.horizontalSearchBar.addWidget(self.RefreshButton)
 
         self.SearchButton = QtWidgets.QPushButton(self.widget)
-        self.SearchButton.setMaximumSize(QtCore.QSize(200, 100))
+        self.SearchButton.setMaximumSize(QtCore.QSize(150, 120))
         self.SearchButton.setIconSize(QtCore.QSize(10, 20))
         self.SearchButton.setObjectName("SearchButton")
         self.horizontalSearchBar.addWidget(self.SearchButton)
@@ -236,7 +241,7 @@ class Ui_MainWindow(object):
         self.sortPrice.setText(_translate("MainWindow", "价格升序"))
         self.changePercent.setText(_translate("MainWindow", "涨幅降序"))
         self.DownButton.setText(_translate("MainWindow", "Download"))
-        self.ReflashButton.setText(_translate("MainWindow", "刷新"))
+        self.RefreshButton.setText(_translate("MainWindow", "刷新"))
         self.SearchButton.setText(_translate("MainWindow", "Search"))
         self.tabK.setTabText(self.tabK.indexOf(self.Day), _translate("MainWindow", "Day"))
         self.tabK.setTabText(self.tabK.indexOf(self.min_30), _translate("MainWindow", "30min"))

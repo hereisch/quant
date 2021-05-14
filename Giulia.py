@@ -15,7 +15,7 @@ import plotly
 import numpy as np
 import plotly.graph_objects as go
 from drawK import intervalStat
-from selectStock import downStock,reflash
+from selectStock import downStock,refresh
 
 pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
@@ -30,6 +30,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.db = self.client['quant']
         self.stockList = None
         self.header = ['code', 'name', 'industry', 'nmc','turnoverratio','changepercent', 'trade', 'top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233']
+        self.headerCN = ['代码', '名称', '行业', '流通市值','换手率','涨幅', '现价', '3日', '5日', '13日', '21日', '34日', '55日', '89日', '144日', '233日']
         self.setupUi(self)
         self.tabK.currentChanged.connect(self.tabShow)
         self.topList = ts.top_list()['code'].tolist()
@@ -37,12 +38,13 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.code = None
         self.name = None
         self.SearchButton.clicked.connect(self.showStock)
-        self.DownButton.clicked.connect(downStock)
-        self.ReflashButton.clicked.connect(lambda : self.showStock(flash=True))
+        self.DownButton.clicked.connect(lambda: self.showStock(download=True))
+        self.RefreshButton.clicked.connect(lambda: self.showStock(flash=True))
         self.minPrice.returnPressed.connect(self.showStock)
         self.maxPrice.returnPressed.connect(self.showStock)
         self.maxNMC.returnPressed.connect(self.showStock)
         self.minNMC.returnPressed.connect(self.showStock)
+        self.comboBox.currentIndexChanged[str].connect(self.showStock)
 
     def tabShow(self,x):
         indexK = ['Day','min_30','min_15','min_5','min_60','tick_time']
@@ -57,31 +59,40 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             # todo 异步存入
 
     def cleanScreen(self):
-        self.model = QStandardItemModel(4, 4)
+        self.model = QStandardItemModel(2, 2)
+        self.model.setHorizontalHeaderLabels(self.headerCN)
         self.stockTable.setModel(self.model)
         for idx, itemY in enumerate(self.header):
-            item = QStandardItem(str(itemY))
+            item = QStandardItem()
             self.model.setItem(0, idx, item)
         layout = QVBoxLayout()
         layout.addWidget(self.stockTable)
         self.setLayout(layout)
 
-    def showStock(self,flash=False):
-        if flash:
-            reflash()
-        # 设置数据层次结构，4行4列
-        self.model = QStandardItemModel(4, 4)
+
+    def showStock(self,fresh=False,download=False):
+        if fresh is True:
+            refresh()
+        if download is True:
+            downStock()
+        # 设置数据层次结构，2行2列
+        self.model = QStandardItemModel(2, 2)
         # 设置水平方向四个头标签文本内容
-        self.model.setHorizontalHeaderLabels(self.header)
+        self.model.setHorizontalHeaderLabels(self.headerCN)
         highPrice = self.maxPrice.text()
         lowPrice = self.minPrice.text()
         highNMC = self.maxNMC.text()
         lowNMC = self.minNMC.text()
-        res = self.initDB(lowPrice=lowPrice,highPrice=highPrice,highNMC=highNMC,lowNMC=lowNMC)
+        industryText = self.comboBox.currentText()
+        res,industry = self.initDB(lowPrice=lowPrice,highPrice=highPrice,highNMC=highNMC,lowNMC=lowNMC,)
+        self.comboBox.addItems(['所有行业']+industry)
         self.stockList = pd.DataFrame(list(res))
+        if industryText != '' and industryText != '所有行业':
+            self.stockList = self.stockList[self.stockList['industry']==industryText]
         try:
-            self.stockList['nmc'] = self.stockList['nmc'] /10000
-            # self.stockList['nmc'].round(2)
+            self.stockList['nmc'] = self.stockList['nmc'] / 10000
+            self.stockList['nmc'] = self.stockList['nmc'].round(2)
+            self.stockList['turnoverratio'] = self.stockList['turnoverratio'].round(3)
 
             if self.changePercent.isChecked():
                 self.stockList = self.stockList.sort_values(by=['changepercent'],ascending=(False))
@@ -152,6 +163,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
     def initDB(self,lowPrice='',highPrice='',highNMC='',lowNMC=''):
 
         query = []
+        industry_all = self.db.get_collection('today').distinct('industry')
         if lowPrice.isdigit():
             query.append({"trade" : { "$gte" : int(lowPrice) }})
         if highPrice.isdigit():
@@ -160,11 +172,12 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             query.append({"nmc": {"$lte": int(highNMC)*10000}})
         if lowNMC.isdigit():
             query.append({"nmc": {"$gte": int(lowNMC)*10000}})
+
         if query:
             result = self.db.get_collection('today').find({ "$and" : query})
         else:
             result = self.db.get_collection('today').find()
-        return result
+        return result,industry_all,
 
     def mouseDoubleClickEvent(self, event):
         # print('双击事件：',event.row(), event.column())
@@ -175,14 +188,14 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.webEngineView_6.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),kPath)))
 
         # 盘口展示
-        # try:
-        intervalStat(self.code,self.name)
-        self.webEngineView_2.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'Total.html')))
-        self.webEngineView_7.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'Buy.html')))
-        self.webEngineView_8.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'Sale.html')))
-        self.webEngineView_9.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'TickTime.html')))
-        # except Exception as e:
-        #     print('区间统计错误：',self.code,e)
+        try:
+            intervalStat(self.code,self.name)
+            self.webEngineView_2.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'Total.html')))
+            self.webEngineView_7.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'Buy.html')))
+            self.webEngineView_8.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'Sale.html')))
+            self.webEngineView_9.load(QUrl.fromLocalFile(os.path.join(os.getcwd(),'TickTime.html')))
+        except Exception as e:
+            print('区间统计错误：',self.code,e)
 
 
 class EmptyDelegate(QItemDelegate):
@@ -193,10 +206,9 @@ class EmptyDelegate(QItemDelegate):
         return None
 
 
-
 if __name__ == '__main__':
     """
-    Its For My Dream Car  -----  Alfa Romeo Giulia
+    For My Dream Car  -----  Alfa Romeo Giulia
     """
     app = QApplication(sys.argv)
     win = MainWindow()

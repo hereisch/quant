@@ -91,7 +91,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 import plotly.graph_objects as go
 from PyQt5 import QtCore, QtGui, QtWidgets
-from selectStock import async
+from selectStock import async_
 
 pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
@@ -125,10 +125,9 @@ if __name__ == '__main__':
 
     client = pymongo.MongoClient(host="192.168.0.28", port=27017)
     db = client['quant']
+    res = db.get_collection('today').find()
+    print(type(res))
 
-
-    import mongoengine as mg
-    mg.connect('quant', host='192.168.0.28', port=27017)
 
 
     # class Users(mg.Document):
@@ -144,12 +143,7 @@ if __name__ == '__main__':
     COUNT = ''
 
 
-    def _random(n=13):
-        from random import randint
-        start = 10 ** (n - 1)
-        end = (10 ** n) - 1
-        print(str(randint(start, end)))
-    _random()
+
     # app = QApplication(sys.argv)
     # win = MainWindow()
     # win.show()

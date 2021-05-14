@@ -22,11 +22,11 @@ pd.set_option('display.max_columns', None)
 client = pymongo.MongoClient(host="192.168.0.28", port=27017)
 db = client['quant']
 
+locale.setlocale(locale.LC_CTYPE, 'chinese')
 
 
 
-
-def async(f):
+def async_(f):
     def wrapper(*args, **kwargs):
         thr = Thread(target = f, args = args, kwargs = kwargs)
         thr.start()
@@ -111,7 +111,7 @@ class Select():
                 nextday = (datetime.strptime(lastday, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d')
                 today = time.strftime("%Y-%m-%d", time.localtime())
                 if nextday < today:
-                    time.sleep(1)
+                    time.sleep(0.5)
                     data = ts.get_hist_data(i,start=nextday)
                     if not data.empty:
                         data['pressure'] = data.apply(lambda x: max(x['open'], x['close']), axis=1)
@@ -125,7 +125,7 @@ class Select():
             else:
                 # 无，全量获取数据
                 # 次新数据少于300天，删除自选 len(index)<300
-                    time.sleep(1)
+                    time.sleep(0.5)
                     data = ts.get_hist_data(i)
                     # 开盘价和收盘价对比取压力值pressure
                     data['pressure'] = data.apply(lambda x:max(x['open'],x['close']),axis=1)
@@ -143,10 +143,11 @@ class Select():
         :param N:
         :return:
         """
+        print('N日新高......')
         today = time.strftime("%Y-%m-%d", time.localtime())
         topday = [3, 5, 13, 21, 34, 55, 89, 144, 233]
         res = db.get_collection('today').find()
-        for i in res:
+        for i in tqdm(res):
             kk = db.get_collection('dayK').find({ '$and' : [{"date" : { '$ne' : today }}, {"code" : i['code']}] })
             df = pd.DataFrame(list(kk))
             try:
@@ -163,23 +164,23 @@ class Select():
         db.get_collection('today').remove({'top3': None})
 
 
-# 不可异步@async
+# @async_
 def downStock():
+
+    print('开始下载数据....', time.strftime('%Y年%m月%d日%H时%M分%S秒'))
     s = Select(init=True)
     s.download()
     s.topN()
     # s.uniqDayK()
-    locale.setlocale(locale.LC_CTYPE, 'chinese')
-    print(time.strftime('%Y年%m月%d日%H时%M分%S秒'))
+    print('数据下载完毕....', time.strftime('%Y年%m月%d日%H时%M分%S秒'))
 
+@async_
+def refresh():
 
-@async
-def reflash():
-
+    print('开始刷新....', time.strftime('%Y年%m月%d日%H时%M分%S秒'))
     s = Select(init=True)
     s.topN()
-    locale.setlocale(locale.LC_CTYPE, 'chinese')
-    print('刷新....',time.strftime('%Y年%m月%d日%H时%M分%S秒'))
+    print('刷新完毕....',time.strftime('%Y年%m月%d日%H时%M分%S秒'))
 
 
 

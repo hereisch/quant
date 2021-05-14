@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 from plotly import subplots
 import tushare as ts
 import plotly
-
+from datetime import datetime, date, timedelta
 
 class CandlestickItem(pg.GraphicsObject):
     def __init__(self, data):
@@ -66,15 +66,17 @@ class CandlestickItem(pg.GraphicsObject):
 
 def intervalStat(code,name):
 
-    """区间成交量统计,18:00以后改get_tick_data 接口"""
-    if time.localtime().tm_hour >=18:
+    """区间成交量统计,18:00以后、开盘前调get_tick_data 接口"""
+
+    now_time = datetime.now()
+    open_time =datetime.strptime(str(datetime.now().date())+'9:30', '%Y-%m-%d%H:%M')
+    if time.localtime().tm_hour >=18 or now_time <= open_time:
         today = time.strftime('%Y-%m-%d',time.localtime(time.time()))
         df = ts.get_tick_data(code, date=today, src='tt')
         df.rename(columns={'volume': 'vol'}, inplace=True)
         df.replace('买盘','买入',inplace=True)
         df.replace('卖盘','卖出',inplace=True)
         df.replace('中性盘','-',inplace=True)
-        print(df.head(10))
     else:
         df = ts.get_today_ticks(code)
         df['amount'] = df['price']* df['vol']*100
@@ -82,7 +84,7 @@ def intervalStat(code,name):
     buy = df[df['type'] == '买入']
     sale = df[df['type'] == '卖出']
     mid = df[df['type'] == '-']
-    print(sale.head(10))
+
     s = sale.groupby(['price'])['vol'].sum()
     b = buy.groupby(['price'])['vol'].sum()
     # t = df.groupby(['price'])['vol'].sum()
