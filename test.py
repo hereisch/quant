@@ -26,10 +26,16 @@ client = pymongo.MongoClient(host="192.168.0.28", port=27017)
 db = client['quant']
 
 
-def intervalStat(code,):
+def intervalStat(code='',):
 
     """区间成交量统计"""
-    df = ts.get_today_ticks(code)
+    # df = ts.get_today_ticks(code)
+    df = ts.get_tick_data('603709', date='2021-03-31', src='tt')
+    df.rename(columns={'volume': 'vol'}, inplace=True)
+    df.replace('买盘', '买入', inplace=True)
+    df.replace('卖盘', '卖出', inplace=True)
+    df.replace('中性盘', '-', inplace=True)
+    print(df)
     df['amount'] = df['price']* df['vol']*100
     buy = df[df['type']=='买入']
     sale = df[df['type']=='卖出']
@@ -115,6 +121,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.DownButton.setText(self._translate("MainWindow", str(i)))
 
 
+
+def cal_volRatio(code):
+    res = db.get_collection('dayK').find({'code':code}).sort('date',-1)
+    df = pd.DataFrame(list(res))
+    df['vr5'] = df['volume'] /df['v_ma5']
+    df['vr10'] = df['volume'] /df['v_ma10']
+    df['vr20'] = df['volume'] /df['v_ma20']
+    df = df.sort_values(by=['vr20'],ascending=False)
+    print(df)
+
 if __name__ == '__main__':
     # today = time.strftime("%Y-%m-%d", time.localtime())
     # kk = db.get_collection('dayK').find({'$and': [{"date": {'$ne': today}}, {"code": '603991'}]})
@@ -125,8 +141,9 @@ if __name__ == '__main__':
 
     client = pymongo.MongoClient(host="192.168.0.28", port=27017)
     db = client['quant']
-    res = db.get_collection('today').find()
-    print(type(res))
+    today = time.strftime("%Y-%m-%d", time.localtime())
+
+    # cal_volRatio('002339')
 
 
 
@@ -141,7 +158,7 @@ if __name__ == '__main__':
 
     import os
     COUNT = ''
-
+    intervalStat()
 
 
     # app = QApplication(sys.argv)

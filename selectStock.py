@@ -136,7 +136,7 @@ class Select():
                         v['code'] = i
                         db.get_collection('dayK').insert(v)
 
-
+    @async_
     def topN(self):
         """
         N日内最高价
@@ -152,17 +152,43 @@ class Select():
             df = pd.DataFrame(list(kk))
             try:
                 df = df.sort_values(by='date',ascending=False)
-            except:
-                continue
+            except Exception as e:
+                print(i,e)
+            count = 0
             for d in topday:
                 topN = df[:d+1]['pressure'].max()
                 if i['trade'] >= topN:
                     price = str(topN)
+                    count += 1
                 else:
                     price = topN
                 db.get_collection('today').update({'code':i['code']},{'$set':{'top'+str(d):price}})
+            db.get_collection('today').update({'code':i['code']},{'$set':{'count':count}})
         db.get_collection('today').remove({'top3': None})
 
+
+    def vol(self):
+        now_time = datetime.now()
+        open_time = datetime.strptime(str(datetime.now().date()) + '9:30', '%Y-%m-%d%H:%M')
+        close_time = datetime.strptime(str(datetime.now().date()) + '15:00', '%Y-%m-%d%H:%M')
+        print('成交量比......')
+        today = time.strftime("%Y-%m-%d", time.localtime())
+        res = db.get_collection('today').find()
+        for i in tqdm(res):
+            kk = db.get_collection('dayK').find({"code" : i['code']}).sort('date',-1)
+
+            df = pd.DataFrame(list(kk))
+            try:
+                df = df.sort_values(by='date', ascending=False)
+                if open_time >= now_time >=close_time:
+                    # 盘中
+                    volRatio = round(i['volume']/df['volume'][0]/100, 2)
+                else:
+                    # 盘后15:00,需下载当日数据
+                    volRatio = round(df['volume'][0] / df['volume'][1], 2)
+                db.get_collection('today').update({'code': i['code']}, {'$set': {'volRatio': volRatio}})
+            except Exception as e:
+                print(i,e)
 
 # @async_
 def downStock():
@@ -171,6 +197,7 @@ def downStock():
     s = Select(init=True)
     s.download()
     s.topN()
+    s.vol()
     # s.uniqDayK()
     print('数据下载完毕....', time.strftime('%Y年%m月%d日%H时%M分%S秒'))
 
@@ -180,10 +207,12 @@ def refresh():
     print('开始刷新....', time.strftime('%Y年%m月%d日%H时%M分%S秒'))
     s = Select(init=True)
     s.topN()
+    s.vol()
     print('刷新完毕....',time.strftime('%Y年%m月%d日%H时%M分%S秒'))
 
 
 
 if __name__ == '__main__':
 
-    downStock()
+    # downStock()
+    refresh()

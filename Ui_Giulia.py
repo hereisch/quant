@@ -79,6 +79,11 @@ class Ui_MainWindow(object):
         self.sortPrice.setMaximumSize(QtCore.QSize(100, 50))
         self.sortPrice.setObjectName("sortPrice")
         self.horizontalSearchBar.addWidget(self.sortPrice)
+        self.sortVol = QtWidgets.QRadioButton(self.widget)
+        self.sortVol.setMaximumSize(QtCore.QSize(100, 50))
+        self.sortVol.setObjectName("sortVol")
+        self.horizontalSearchBar.addWidget(self.sortVol)
+
         self.changePercent = QtWidgets.QRadioButton(self.widget)
         self.changePercent.setMaximumSize(QtCore.QSize(100, 50))
         self.changePercent.setObjectName("changePercent")
@@ -233,15 +238,16 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Giulia_V1.0"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "韭菜_V1.0"))
         self.labelPrice.setText(_translate("MainWindow", "价格区间："))
         self.label_.setText(_translate("MainWindow", "-"))
         self.labelNMC.setText(_translate("MainWindow", "流通市值："))
         self.label_NMC.setText(_translate("MainWindow", "-"))
-        self.sortPrice.setText(_translate("MainWindow", "价格升序"))
-        self.changePercent.setText(_translate("MainWindow", "涨幅降序"))
-        self.DownButton.setText(_translate("MainWindow", "Download"))
-        self.RefreshButton.setText(_translate("MainWindow", "刷新"))
+        self.sortPrice.setText(_translate("MainWindow", "价格↑"))
+        self.sortVol.setText(_translate("MainWindow", "成交量比↓"))
+        self.changePercent.setText(_translate("MainWindow", "涨幅↓"))
+        self.DownButton.setText(_translate("MainWindow", "下载"))
+        self.RefreshButton.setText(_translate("MainWindow", "刷新现价"))
         self.SearchButton.setText(_translate("MainWindow", "Search"))
         self.tabK.setTabText(self.tabK.indexOf(self.Day), _translate("MainWindow", "Day"))
         self.tabK.setTabText(self.tabK.indexOf(self.min_30), _translate("MainWindow", "30min"))

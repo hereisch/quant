@@ -29,8 +29,8 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.client = pymongo.MongoClient(host="192.168.0.28", port=27017)
         self.db = self.client['quant']
         self.stockList = None
-        self.header = ['code', 'name', 'industry', 'nmc','turnoverratio','changepercent', 'trade', 'top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233']
-        self.headerCN = ['代码', '名称', '行业', '流通市值','换手率','涨幅', '现价', '3日', '5日', '13日', '21日', '34日', '55日', '89日', '144日', '233日']
+        self.header = ['code', 'name', 'industry', 'nmc','turnoverratio','volRatio','changepercent', 'trade', 'top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233']
+        self.headerCN = ['代码', '名称', '行业', '流通市值','换手率','成交量比','涨幅', '现价', '3日', '5日', '13日', '21日', '34日', '55日', '89日', '144日', '233日']
         self.setupUi(self)
         self.tabK.currentChanged.connect(self.tabShow)
         self.topList = ts.top_list()['code'].tolist()
@@ -39,7 +39,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.name = None
         self.SearchButton.clicked.connect(self.showStock)
         self.DownButton.clicked.connect(lambda: self.showStock(download=True))
-        self.RefreshButton.clicked.connect(lambda: self.showStock(flash=True))
+        self.RefreshButton.clicked.connect(lambda: self.showStock(fresh=True))
         self.minPrice.returnPressed.connect(self.showStock)
         self.maxPrice.returnPressed.connect(self.showStock)
         self.maxNMC.returnPressed.connect(self.showStock)
@@ -52,7 +52,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         extent = [250,150,150,150,150]
         tabEngine = [self.webEngineView_6,self.webEngineView_5,self.webEngineView_4,self.webEngineView,self.webEngineView_3,self.webEngineView_9]
         print('当前标签是:', indexK[x])
-        if x !=5:
+        if x != 5:
             data = ts.get_hist_data(self.code,ktype=typeK[x])
             pageK = self.can_vol(dataframe=data,tabpage=indexK[x],name=self.code+':'+self.name,end=extent[x])
             tabEngine[x].load(QUrl.fromLocalFile(os.path.join(os.getcwd(),pageK)))
@@ -95,9 +95,12 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             self.stockList['turnoverratio'] = self.stockList['turnoverratio'].round(3)
 
             if self.changePercent.isChecked():
-                self.stockList = self.stockList.sort_values(by=['changepercent'],ascending=(False))
+                self.stockList = self.stockList.sort_values(by=['changepercent',],ascending=(False,))
             elif self.sortPrice.isChecked():
-                self.stockList.sort_values(by=['trade'], ascending=(True))
+                self.stockList = self.stockList.sort_values(by=['trade'], ascending=(True))
+            elif self.sortVol.isChecked():
+                self.stockList = self.stockList.sort_values(by=['volRatio','count','changepercent'],ascending=(False,False,False))
+
 
             self.stockList = self.stockList.reset_index(drop=True)
 
@@ -142,7 +145,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         data1.diag[data1.close > data1.open] = '#ff0000'
         data1.diag[data1.close <= data1.open] = '#00ff00'
         layout = go.Layout(title_text=name, title_font_size=30, autosize=True, margin=go.layout.Margin(l=10, r=1, b=10),
-                           xaxis=dict(title_text="Candlesticck", type='category'),
+                           xaxis=dict( type='category'),
                            yaxis=dict(title_text="<b>Price</b>"),
                            yaxis2=dict(title_text="<b>Volume</b>", anchor="x", overlaying="y", side="right"))
         # layout的参数超级多，因为它用一个字典可以集成所有图的所有格式
