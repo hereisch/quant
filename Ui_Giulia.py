@@ -238,7 +238,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "韭菜_V1.0"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "韭菜助手_V1.0"))
         self.labelPrice.setText(_translate("MainWindow", "价格区间："))
         self.label_.setText(_translate("MainWindow", "-"))
         self.labelNMC.setText(_translate("MainWindow", "流通市值："))

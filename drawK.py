@@ -70,14 +70,29 @@ def intervalStat(code,name):
 
     now_time = datetime.now()
     open_time =datetime.strptime(str(datetime.now().date())+'9:30', '%Y-%m-%d%H:%M')
-    if time.localtime().tm_hour >=18 or now_time <= open_time:
+    if time.localtime().tm_hour >=18 :
+        # 当日数据复盘
         today = time.strftime('%Y-%m-%d',time.localtime(time.time()))
         df = ts.get_tick_data(code, date=today, src='tt')
         df.rename(columns={'volume': 'vol'}, inplace=True)
         df.replace('买盘','买入',inplace=True)
         df.replace('卖盘','卖出',inplace=True)
         df.replace('中性盘','-',inplace=True)
+    elif now_time <= open_time:
+        # 上一个交易日数据
+        pro = ts.pro_api()
+        yesterday = (date.today() + timedelta(-1)).strftime('%Y%m%d')
+        lastTrade = pro.trade_cal(end_date=yesterday)
+        lastTrade = lastTrade[lastTrade['is_open']==1]
+        lastTrade = lastTrade.iloc[-1]['cal_date']
+        print(lastTrade,'上一交易日')
+        df = ts.get_tick_data(code, date=lastTrade, src='tt')
+        df.rename(columns={'volume': 'vol'}, inplace=True)
+        df.replace('买盘', '买入', inplace=True)
+        df.replace('卖盘', '卖出', inplace=True)
+        df.replace('中性盘', '-', inplace=True)
     else:
+        # 开盘
         df = ts.get_today_ticks(code)
         df['amount'] = df['price']* df['vol']*100
 

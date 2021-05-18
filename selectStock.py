@@ -47,33 +47,31 @@ class Select():
             data = data[filt]
             filt = data['name'].str.contains('^(?!S|退市|\*ST)')
             data = data[filt]
+            data = data[data['trade']>=2]
+            data = data[data['changepercent']>0]
             data = data.to_json(orient='records')
             db.get_collection('today').remove()
+            base = db.get_collection('base').find()
+            industry = {i['code']: i['industry'] for i in base}
             for i in eval(data):
                 db.get_collection('today').insert(i)
 
             res = db.get_collection('today').find()
             for i in res:
-                if i['trade'] <=3 or i['changepercent'] <0:
-                    db.get_collection('today').remove({'code': i['code']})
-                kk = db.get_collection('base').find_one({'code': i['code']})
-                if not kk:
-                    db.get_collection('today').remove({'code': i['code']})
+                try:
 
-                # 行业
-                industry = db.get_collection('base').find_one({'code':i['code']})
-                if industry:
-                    db.get_collection('today').update_many({'code':i['code']},{'$set':{'industry':industry['industry']}})
-
+                    db.get_collection('today').update_many({'code':i['code']},{'$set':{'industry':industry[i['code']]}})
+                except :
+                    pass
 
             # 剔除新股
             try:
                 newStock = ts.new_stocks()
-                if newStock:
+                if not newStock.empty:
                     for i in newStock['code'].tolist():
                         db.get_collection('today').remove({'code':i},multi=True)
-            except:
-                pass
+            except Exception as e:
+                print('newStock Error',e)
 
             # 剔除停牌
             db.get_collection('today').remove({'open': 0})
@@ -150,10 +148,10 @@ class Select():
         for i in tqdm(res):
             kk = db.get_collection('dayK').find({ '$and' : [{"date" : { '$ne' : today }}, {"code" : i['code']}] })
             df = pd.DataFrame(list(kk))
-            try:
-                df = df.sort_values(by='date',ascending=False)
-            except Exception as e:
-                print(i,e)
+            # try:
+            #     df = df.sort_values(by='date',ascending=False)
+            # except Exception as e:
+            #     print(i,e)
             count = 0
             for d in topday:
                 topN = df[:d+1]['pressure'].max()
@@ -180,15 +178,17 @@ class Select():
             df = pd.DataFrame(list(kk))
             try:
                 df = df.sort_values(by='date', ascending=False)
-                if open_time >= now_time >=close_time:
+
+                if open_time <= now_time <=close_time:
                     # 盘中
                     volRatio = round(i['volume']/df['volume'][0]/100, 2)
                 else:
-                    # 盘后15:00,需下载当日数据
+                    # 盘后15:00,!!!!!!需先下载当日数据
                     volRatio = round(df['volume'][0] / df['volume'][1], 2)
                 db.get_collection('today').update({'code': i['code']}, {'$set': {'volRatio': volRatio}})
             except Exception as e:
                 print(i,e)
+                continue
 
 # @async_
 def downStock():
@@ -214,5 +214,5 @@ def refresh():
 
 if __name__ == '__main__':
 
-    # downStock()
-    refresh()
+    downStock()
+    # refresh()

@@ -143,7 +143,15 @@ if __name__ == '__main__':
     db = client['quant']
     today = time.strftime("%Y-%m-%d", time.localtime())
 
-    # cal_volRatio('002339')
+    newStock = ts.new_stocks()
+    if newStock:
+        for i in newStock['code'].tolist():
+            print(i,'remove')
+            db.get_collection('today').remove({'code': i}, multi=True)
+    # a = {}
+    # for i in kk:
+    #     a[i['code']] = i['industry']
+
 
 
 
@@ -158,7 +166,7 @@ if __name__ == '__main__':
 
     import os
     COUNT = ''
-    intervalStat()
+    # intervalStat()
 
 
     # app = QApplication(sys.argv)
