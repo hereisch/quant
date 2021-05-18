@@ -9,7 +9,7 @@
 
 import time
 from PyQt5 import QtCore, QtGui, QtWidgets
-from TopStock import StockTable
+from PyQt5.QtGui import QIcon
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
