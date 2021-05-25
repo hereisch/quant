@@ -117,7 +117,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for i in range(30):
             print(i)
             QtWidgets.QApplication.processEvents()
-            time.sleep(1)
             self.DownButton.setText(self._translate("MainWindow", str(i)))
 
 
@@ -131,6 +130,8 @@ def cal_volRatio(code):
     df = df.sort_values(by=['vr20'],ascending=False)
     print(df)
 
+
+
 if __name__ == '__main__':
     # today = time.strftime("%Y-%m-%d", time.localtime())
     # kk = db.get_collection('dayK').find({'$and': [{"date": {'$ne': today}}, {"code": '603991'}]})
@@ -143,26 +144,31 @@ if __name__ == '__main__':
     db = client['quant']
     today = time.strftime("%Y-%m-%d", time.localtime())
 
-    newStock = ts.new_stocks()
-    if newStock:
-        for i in newStock['code'].tolist():
-            print(i,'remove')
-            db.get_collection('today').remove({'code': i}, multi=True)
-    # a = {}
-    # for i in kk:
-    #     a[i['code']] = i['industry']
+    # 语音播报模块
+    import pyttsx3
 
+    msg = ''' here you are ,are you ok
+    '''
+    # 模块初始化
+    engine = pyttsx3.init()
+    volume = engine.getProperty('volume')
 
+    # 标准的粤语发音
+    voices = engine.setProperty('voice', "com.apple.speech.synthesis.voice.sin-ji")
 
+    # 普通话发音
+    # voices = engine.setProperty(
+    #     'voice', "com.apple.speech.synthesis.voice.ting-ting.premium")
 
-    # class Users(mg.Document):
-    #     name = mg.StringField(required=True, max_length=200)
-    #     age = mg.IntField(required=True)
-    #
-    #
-    # tmp = Users.objects(name='青海华鼎')
-    # for u in tmp:
-    #     print("name:", u.name, ",age:", u.age)
+    # 台湾甜美女生普通话发音
+    # voices = engine.setProperty(
+    #     'voice', "com.apple.speech.synthesis.voice.mei-jia")
+    print('准备开始语音播报...')
+    # 输入语音播报词语
+    engine.setProperty('volume', 0.7)
+    engine.say(msg)
+
+    engine.runAndWait()
 
     import os
     COUNT = ''

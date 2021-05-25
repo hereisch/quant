@@ -25,7 +25,6 @@ db = client['quant']
 locale.setlocale(locale.LC_CTYPE, 'chinese')
 
 
-
 def async_(f):
     def wrapper(*args, **kwargs):
         thr = Thread(target = f, args = args, kwargs = kwargs)
@@ -109,7 +108,7 @@ class Select():
                 nextday = (datetime.strptime(lastday, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d')
                 today = time.strftime("%Y-%m-%d", time.localtime())
                 if nextday < today:
-                    time.sleep(0.5)
+                    time.sleep(0.1)
                     data = ts.get_hist_data(i,start=nextday)
                     if not data.empty:
                         data['pressure'] = data.apply(lambda x: max(x['open'], x['close']), axis=1)
@@ -123,7 +122,7 @@ class Select():
             else:
                 # 无，全量获取数据
                 # 次新数据少于300天，删除自选 len(index)<300
-                    time.sleep(0.5)
+                #     time.sleep(0.5)
                     data = ts.get_hist_data(i)
                     # 开盘价和收盘价对比取压力值pressure
                     data['pressure'] = data.apply(lambda x:max(x['open'],x['close']),axis=1)
@@ -179,11 +178,11 @@ class Select():
             try:
                 df = df.sort_values(by='date', ascending=False)
 
-                if open_time <= now_time :
-                    # 当天盘中,盘后
+                if now_time < close_time:
+                    # 当天盘中
                     volRatio = round(i['volume']/df['volume'][0]/100, 2)
                 else:
-                    # 开盘前,!!!!!!需先下载当日数据
+                    # 盘后,!!!!!!需先下载当日数据
                     volRatio = round(df['volume'][0] / df['volume'][1], 2)
                 db.get_collection('today').update({'code': i['code']}, {'$set': {'volRatio': volRatio}})
             except Exception as e:

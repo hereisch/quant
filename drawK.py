@@ -85,7 +85,7 @@ def intervalStat(code,name):
         lastTrade = pro.trade_cal(end_date=yesterday)
         lastTrade = lastTrade[lastTrade['is_open']==1]
         lastTrade = lastTrade.iloc[-1]['cal_date']
-        print(lastTrade,'上一交易日')
+        print(lastTrade,'上一交易日',code)
         df = ts.get_tick_data(code, date=lastTrade, src='tt')
         df.rename(columns={'volume': 'vol'}, inplace=True)
         df.replace('买盘', '买入', inplace=True)

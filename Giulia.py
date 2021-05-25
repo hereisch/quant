@@ -46,6 +46,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.minNMC.returnPressed.connect(self.showStock)
         self.comboBox.currentIndexChanged[str].connect(self.showStock)
 
+
     def tabShow(self,x):
         indexK = ['Day','min_30','min_15','min_5','min_60','tick_time']
         typeK = ['D','30','15','5','60',]
@@ -100,6 +101,8 @@ class MainWindow(QMainWindow,Ui_MainWindow):
                 self.stockList = self.stockList.sort_values(by=['trade'], ascending=(True))
             elif self.sortVol.isChecked():
                 self.stockList = self.stockList.sort_values(by=['volRatio','count','changepercent'],ascending=(False,False,False))
+            elif self.sortCount.isChecked():
+                self.stockList = self.stockList.sort_values(by=['count','volRatio','changepercent'],ascending=(False,False,False))
 
 
             self.stockList = self.stockList.reset_index(drop=True)

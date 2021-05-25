@@ -79,10 +79,16 @@ class Ui_MainWindow(object):
         self.sortPrice.setMaximumSize(QtCore.QSize(100, 50))
         self.sortPrice.setObjectName("sortPrice")
         self.horizontalSearchBar.addWidget(self.sortPrice)
+
         self.sortVol = QtWidgets.QRadioButton(self.widget)
         self.sortVol.setMaximumSize(QtCore.QSize(100, 50))
         self.sortVol.setObjectName("sortVol")
         self.horizontalSearchBar.addWidget(self.sortVol)
+
+        self.sortCount = QtWidgets.QRadioButton(self.widget)
+        self.sortCount.setMaximumSize(QtCore.QSize(100, 50))
+        self.sortCount.setObjectName("sortCount")
+        self.horizontalSearchBar.addWidget(self.sortCount)
 
         self.changePercent = QtWidgets.QRadioButton(self.widget)
         self.changePercent.setMaximumSize(QtCore.QSize(100, 50))
@@ -235,6 +241,7 @@ class Ui_MainWindow(object):
         self.splitter.setStretchFactor(1,2)
         self.splitter_3.setStretchFactor(0,2)
         self.splitter_3.setStretchFactor(1,8)
+        MainWindow.move(200,1200)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -245,6 +252,7 @@ class Ui_MainWindow(object):
         self.label_NMC.setText(_translate("MainWindow", "-"))
         self.sortPrice.setText(_translate("MainWindow", "价格↑"))
         self.sortVol.setText(_translate("MainWindow", "成交量比↓"))
+        self.sortCount.setText(_translate("MainWindow", "突破数↓"))
         self.changePercent.setText(_translate("MainWindow", "涨幅↓"))
         self.DownButton.setText(_translate("MainWindow", "下载"))
         self.RefreshButton.setText(_translate("MainWindow", "刷新现价"))
