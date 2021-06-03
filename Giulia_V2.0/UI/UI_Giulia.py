@@ -46,6 +46,9 @@ class Ui_MainWindow(object):
         self.supervisorBtn = QtWidgets.QPushButton(self.groupBox)
         self.supervisorBtn.setObjectName("supervisorBtn")
         self.verticalLayout.addWidget(self.supervisorBtn)
+        self.NRiseUpBtn = QtWidgets.QPushButton(self.groupBox)
+        self.NRiseUpBtn.setObjectName("NRiseUpBtn")
+        self.verticalLayout.addWidget(self.NRiseUpBtn)
         spacerItem = QtWidgets.QSpacerItem(20, 864, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         self.frame = QtWidgets.QFrame(self.splitter)
@@ -64,10 +67,9 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-
-
         self.splitter.setStretchFactor(0,1)
         self.splitter.setStretchFactor(1,9)
+        MainWindow.move(200, 1200)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -77,3 +79,4 @@ class Ui_MainWindow(object):
         self.impactBoardBtn.setText(_translate("MainWindow", "打板"))
         self.stockPoolBtn.setText(_translate("MainWindow", "自选"))
         self.supervisorBtn.setText(_translate("MainWindow", "监控"))
+        self.NRiseUpBtn.setText(_translate("MainWindow", "N连阳"))

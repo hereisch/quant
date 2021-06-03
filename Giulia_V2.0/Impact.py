@@ -5,7 +5,7 @@ from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QMainWindow
 import os
-from UI.UI_Selector import Ui_Selector
+from UI.UI_Impact import Ui_impactWindow
 import tushare as ts
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -22,28 +22,23 @@ pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 
 
-class SelectorWindow(QMainWindow,Ui_Selector):
+class ImpactWindow(QMainWindow,Ui_impactWindow):
 
     def __init__(self,parent=None):
-        super(SelectorWindow,self).__init__(parent)
+        super(ImpactWindow,self).__init__(parent)
         self.client = pymongo.MongoClient(host="192.168.0.28", port=27017)
         self.db = self.client['quant']
-        self.stockList = None
-        self.header = ['code', 'name', 'industry', 'nmc','turnoverratio','volRatio','changepercent', 'trade', 'top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233','ma5','ma10']
-        self.headerCN = ['代码', '名称', '行业', '流通市值','换手率','成交量比','涨幅', '现价', '3日', '5日', '13日', '21日', '34日', '55日', '89日', '144日', '233日','MA5金叉','MA10金叉']
         self.setupUi(self)
+        self.comboBox.addItems(['二进三','一进二'])
+        self.comboBox.currentIndexChanged[str].connect(self.showStock)
+        self.stockList = None
+        self.header = ['code', 'name', 'date','count','price','contBoard','today','yesterday','day3ago','day4ago','day5ago','day6ago','day7ago']
+        self.headerCN = ['代码', '名称','日期','突破数','现价','连板','今日','昨日','前天','前4日','前5日','前6日','前7日']
         self.tabK.currentChanged.connect(self.tabShow)
         self.topList = ts.top_list()['code'].tolist()
         self.showStock()
         self.code = None
         self.name = None
-        self.SearchButton.clicked.connect(self.showStock)
-        self.DownButton.clicked.connect(lambda: self.showStock(download=True))
-        self.RefreshButton.clicked.connect(lambda: self.showStock(fresh=True))
-        self.minPrice.returnPressed.connect(self.showStock)
-        self.maxPrice.returnPressed.connect(self.showStock)
-        self.maxNMC.returnPressed.connect(self.showStock)
-        self.minNMC.returnPressed.connect(self.showStock)
         self.comboBox.currentIndexChanged[str].connect(self.showStock)
 
 
@@ -71,57 +66,32 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         self.setLayout(layout)
 
 
-    def showStock(self,fresh=False,download=False):
-        if fresh is True:
-            refresh()
-        if download is True:
-            downStock()
+    def showStock(self,):
+        impactDict = {'二进三':'impact2to3','一进二':'impact1to2'}
         # 设置数据层次结构，2行2列
         self.model = QStandardItemModel(2, 2)
         # 设置水平方向四个头标签文本内容
         self.model.setHorizontalHeaderLabels(self.headerCN)
-        highPrice = self.maxPrice.text()
-        lowPrice = self.minPrice.text()
-        highNMC = self.maxNMC.text()
-        lowNMC = self.minNMC.text()
-        industryText = self.comboBox.currentText()
-        res,industry = self.initDB(lowPrice=lowPrice,highPrice=highPrice,highNMC=highNMC,lowNMC=lowNMC,)
-        self.comboBox.addItems(['所有行业']+industry)
+        impactText = self.comboBox.currentText()
+        res = self.initDB(coll=impactDict[impactText])
         self.stockList = pd.DataFrame(list(res))
-        if industryText != '' and industryText != '所有行业':
-            self.stockList = self.stockList[self.stockList['industry']==industryText]
         try:
-            self.stockList['nmc'] = self.stockList['nmc'] / 10000
-            self.stockList['nmc'] = self.stockList['nmc'].round(2)
-            self.stockList['turnoverratio'] = self.stockList['turnoverratio'].round(3)
-
-            if self.changePercent.isChecked():
-                self.stockList = self.stockList.sort_values(by=['changepercent',],ascending=(False,))
-            elif self.sortPrice.isChecked():
-                self.stockList = self.stockList.sort_values(by=['trade'], ascending=(True))
-            elif self.sortVol.isChecked():
-                self.stockList = self.stockList.sort_values(by=['volRatio','count','changepercent'],ascending=(False,False,False))
-            elif self.sortCount.isChecked():
-                self.stockList = self.stockList.sort_values(by=['count','volRatio','changepercent'],ascending=(False,False,False))
-
-
+            self.stockList = self.stockList.sort_values(by=['price','count' ], ascending=(True, False,))
             self.stockList = self.stockList.reset_index(drop=True)
-
+            self.stockList['contBoard'].fillna('',inplace=True)
             for idy, itemX in self.stockList.iterrows():
-                _trade = itemX['trade']
                 for idx, itemY in enumerate(self.header):
                     item = QStandardItem(str(itemX[itemY]))
-                    if idx ==0 and itemX[itemY] in self.topList:
+                    if idx == 0 and itemX[itemY] in self.topList:
                         item.setBackground(QColor(220,102,0))
-                    # 'trade' index in self.header
-                    if idx > self.header.index('trade') and type(itemX[itemY]) == str:
-                        item.setBackground(QColor(255, 153, 153))
-                    if idx >= self.header.index('ma5') and itemX[itemY] >= 0:
+                    if itemX[itemY] is True :
+                        # print(itemX, '55555555555')
                         item.setBackground(QColor(204,102,255))
                     # 设置每个位置的文本值
                     self.model.setItem(idy, idx, item)
 
-        except:
+        except Exception as e:
+            print(e,'清屏...')
             self.cleanScreen()
             return
 
@@ -163,32 +133,16 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         vol = go.Bar(x=x_axis,
                      y=data1.volume, name="Volume", marker_color=data1.diag, opacity=0.5, yaxis='y2')
         MA5 = go.Scatter(x=x_axis,y=data1.ma5,mode='lines', line = dict(color = '#ff9900'),name='ma5')
-        MA10 = go.Scatter(x=x_axis,y=data1.ma10,mode='lines', line = dict(color = '#0066ff'),name='ma10')
-        MA20 = go.Scatter(x=x_axis,y=data1.ma20,mode='lines', line = dict(color = '#ff00ff'),name='ma20')
         # 这里一定要设置yaxis=2, 确保成交量的y轴在右边，不和价格的y轴在一起
-        data = [vol,candle,MA5,MA10,MA20]
+        data = [vol,candle,MA5]
         fig = go.Figure(data, layout)
         plotly.offline.plot(fig, filename=tabpage+'.html', auto_open=False)
         return tabpage+'.html'
 
-    def initDB(self,lowPrice='',highPrice='',highNMC='',lowNMC=''):
+    def initDB(self,coll='impact2to3'):
 
-        query = []
-        industry_all = self.db.get_collection('today').distinct('industry')
-        if lowPrice.isdigit():
-            query.append({"trade" : { "$gte" : int(lowPrice) }})
-        if highPrice.isdigit():
-            query.append({"trade": {"$lte": int(highPrice)}})
-        if highNMC.isdigit():
-            query.append({"nmc": {"$lte": int(highNMC)*10000}})
-        if lowNMC.isdigit():
-            query.append({"nmc": {"$gte": int(lowNMC)*10000}})
-
-        if query:
-            result = self.db.get_collection('today').find({ "$and" : query})
-        else:
-            result = self.db.get_collection('today').find()
-        return result,industry_all,
+        result = self.db.get_collection(coll).find()
+        return result
 
     def mouseDoubleClickEvent(self, event):
         # print('双击事件：',event.row(), event.column())
@@ -224,7 +178,7 @@ if __name__ == '__main__':
     For My Dream Car  -----  Alfa Romeo Giulia
     """
     app = QApplication(sys.argv)
-    win = SelectorWindow()
+    win = ImpactWindow()
     win.show()
     # win.showMaximized()
     app.exec_()

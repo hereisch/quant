@@ -17,6 +17,10 @@ import plotly.graph_objects as go
 from plotly import subplots
 from tqdm import tqdm
 from datetime import datetime, date, timedelta
+import scipy.signal as signal
+
+
+
 
 pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
@@ -146,6 +150,37 @@ def topN(Coll='today'):
     print("cost %s second" % (cost))
 
 
+def support(code='',ktype='30'):
+    # day = 1440 min
+    df = ts.get_k_data('600639', ktype='30')
+    df['support'] = df.apply(lambda x: min(x['open'], x['close']), axis=1)
+    df['pressure'] = df.apply(lambda x: max(x['open'], x['close']), axis=1)
+    sup = df['support'][0:48].values
+    pre = df['pressure'][0:48].values
+    print(sup)
+    print(pre)
+    # x=np.array([
+    #     0, 6, 25, 20, 15, 8, 15, 6, 0, 6, 0, -5, -15, -3, 4, 10, 8, 13, 8, 10, 3,1, 20, 7, 3, 0 ])
+    plt.figure(figsize=(16, 4))
+    plt.plot(np.arange(len(sup)), sup)
+    plt.plot(np.arange(len(pre)), pre)
+    # print(x[signal.argrelextrema(x, np.greater)])
+    # print(signal.argrelextrema(x, np.greater))
+    print('极大值坐标', signal.argrelextrema(pre, np.greater)[0])
+    print('极大值', pre[signal.argrelextrema(pre, np.greater)])
+    print('极小值', sup[signal.argrelextrema(-sup, np.greater)])
+    print('坐标', signal.argrelextrema(-sup, np.greater)[0])
+    plt.plot(signal.argrelextrema(sup, np.greater)[0], sup[signal.argrelextrema(sup, np.greater)], 'o')  # 极大值
+    plt.plot(signal.argrelextrema(-sup, np.greater)[0], sup[signal.argrelextrema(-sup, np.greater)], '+')  # 极小值
+
+    plt.plot(signal.argrelextrema(pre, np.greater)[0], pre[signal.argrelextrema(pre, np.greater)], 'o')  # 极大值
+    plt.plot(signal.argrelextrema(-pre, np.greater)[0], pre[signal.argrelextrema(-pre, np.greater)], '+')  # 极小值
+    # plt.plot(peakutils.index(-x),x[peakutils.index(-x)],'*')
+    plt.show()
+
+
+
+
 
 
 if __name__ == '__main__':
@@ -169,9 +204,13 @@ if __name__ == '__main__':
     # 参考   岳阳林纸， 山东墨龙 三星医疗，汇洁股份，圣济堂，锦鸿集团，小康股份，宜宾纸业
 
     # start_time = time.clock()
-
-    topN()
-
     # stop_time = time.clock()
     # cost = stop_time - start_time
     # print("cost %s second" % (cost))
+
+
+
+
+
+
+

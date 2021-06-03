@@ -141,7 +141,7 @@ class Select():
                         v['code'] = i
                         db.get_collection('dayK').insert(v)
 
-    @async_
+
     def topN(self,Coll='today'):
         """
         N日内最高价
@@ -150,7 +150,10 @@ class Select():
         """
         print('N日新高......')
         today = time.strftime("%Y-%m-%d", time.localtime())
+        yesterday = (date.today() + timedelta(-1)).strftime('%Y-%m-%d')
         topday = [3, 5, 13, 21, 34, 55, 89, 144, 233]
+        res = db.get_collection('dayK').find({'date': yesterday})
+        self.intersect = {i.pop('code'): i for i in res}
         res = db.get_collection(Coll).find()
         for i in tqdm(res):
             self.topN_child(today=today,i=i,topday=topday,Coll=Coll)
@@ -164,14 +167,22 @@ class Select():
         count = 0
         topItem = {}
         for d in topday:
-            topN = df[:d + 1]['pressure'].max()
-            if i['trade'] >= topN:
-                price = str(topN)
-                count += 1
-            else:
-                price = topN
-            topItem['top' + str(d)] = price
+            try:
+                topN = df[:d + 1]['pressure'].max()
+                if i['trade'] >= topN:
+                    price = str(topN)
+                    count += 1
+                else:
+                    price = topN
+                topItem['top' + str(d)] = price
+            except :
+                pass
         topItem['count'] = count
+        try:
+            topItem['ma5'] = round(self.intersect[i['code']]['ma5'] / self.intersect[i['code']]['ma10']-1,3)
+            topItem['ma10'] = round(self.intersect[i['code']]['ma10'] / self.intersect[i['code']]['ma20']-1,3)
+        except:
+            pass
         db.get_collection(Coll).update({'code': i['code']}, {'$set': topItem})
 
     @async_
@@ -202,8 +213,10 @@ class Select():
             print(i, e)
 
 
-    def impactPool(self):
-        time.sleep(60)   # 等topN执行完毕
+
+    def impactPool(self,debug=False):
+        if not debug:
+            time.sleep(60)   # 等topN执行完毕
         calendar = ['today', 'yesterday', 'day3ago', 'day4ago', 'day5ago', 'day6ago', 'day7ago', ]
         today = time.strftime("%Y-%m-%d", time.localtime())
         limitUp = db.get_collection('today').find({'changepercent': {'$gte': 9}}).sort('changepercent', -1)
@@ -214,7 +227,7 @@ class Select():
             # 当日盘后
             res = db.get_collection('dayK').find({'code': i['code']}).sort('date', -1)
             markUp = [j['p_change'] for j in res[:7]]
-            item = {'code': i['code'], 'name': i['name'],'count':i['count'],'date': today}
+            item = {'code': i['code'], 'name': i['name'],'count':i['count'],'date': today,'price':i['trade'],'contBoard':''}
             item.update(dict(zip(calendar, markUp)))
             # 二进三
             if markUp[0] > 9 and markUp[1] > 9:
@@ -224,26 +237,32 @@ class Select():
                 db.get_collection('impact1to2').insert(item)
 
     @async_
-    def riseN(self,N=10):
-        """N日内主升浪,默认10日,每日盘后更新，复盘用"""
+    def riseN(self,N=10,p_change=0,coll='riseN'):
+        """
+        N日内主升浪,默认10日,每日盘后更新，复盘用
+        :param N:  N日内
+        :param p_change: 强势/小阳线
+        :param coll:
+        riseN : 小连阳,p > 0
+        strong : 强势票, p > 9
+        :return:
+        """
         if type(N) != int or N < 3:
             print('日期错误,N大于3...')
             return
         print(N,'日主升浪...')
         today = time.strftime("%Y-%m-%d", time.localtime())
-        db.get_collection('riseN').remove()
+        db.get_collection(coll).remove()
         ago10 = (date.today() + timedelta(-N)).strftime('%Y-%m-%d')
         baseMap = db.get_collection('base').find()
         baseMap = {j['code']: j['name'] for j in baseMap}
-        rise = db.get_collection("dayK").aggregate([{'$match': {'p_change': {'$gte': 0}, 'date': {'$gte': ago10}}}, {'$group': {'_id': '$code', 'riseNum': {'$sum': 1}}}, {'$sort': {'riseNum': -1}}])
+        rise = db.get_collection("dayK").aggregate([{'$match': {'p_change': {'$gte': p_change}, 'date': {'$gte': ago10}}}, {'$group': {'_id': '$code', 'riseNum': {'$sum': 1}}}, {'$sort': {'riseNum': -1}}])
         for i in rise:
             if i['riseNum'] > 2:
                 trade = self.data[self.data['code'] == i['_id']]
                 trade = trade['open'].iloc[0]
-                db.get_collection('riseN').insert({'date':today,'code': i['_id'], 'name': baseMap[i['_id']], 'riseNum': i['riseNum'],'trade':trade})
-        self.topN(Coll='riseN')
-
-
+                db.get_collection(coll).insert({'date':today,'code': i['_id'], 'name': baseMap[i['_id']], 'riseNum': i['riseNum'],'trade':trade})
+        self.topN(Coll=coll)
 
 
 # @async_
@@ -261,6 +280,7 @@ def downStock():
     close_time =datetime.strptime(str(datetime.now().date())+'15:30', '%Y-%m-%d%H:%M')
     if now_time > close_time:
         s.riseN()
+        s.riseN(p_change=9,coll='strong')  # N日内强势票
         s.impactPool()
 
 
@@ -290,6 +310,10 @@ if __name__ == '__main__':
     downStock()
     # refresh()
 
+#################################################################
+
+
     # print('Debug....')
     # s = Select(init=False)
-    # s.impactPool()
+    # # s.impactPool(debug=True)
+    # s.topN()

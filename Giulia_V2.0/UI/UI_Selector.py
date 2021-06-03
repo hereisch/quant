@@ -213,6 +213,8 @@ class Ui_Selector(object):
         self.tabStatic.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
+
+        self.changePercent.setChecked(True)
         self.splitter_2.setStretchFactor(0, 2)
         self.splitter_2.setStretchFactor(1, 7)
         self.splitter.setStretchFactor(0, 7)

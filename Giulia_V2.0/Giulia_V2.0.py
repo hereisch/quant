@@ -15,11 +15,9 @@ import sys
 import plotly
 import numpy as np
 import plotly.graph_objects as go
-from drawK import intervalStat
 from selectStock import downStock,refresh
 from Selector import SelectorWindow
-
-
+from Impact import ImpactWindow
 
 
 
@@ -29,6 +27,14 @@ pd.set_option('display.max_columns', None)
 
 
 
+# from UI.UI_Impact import Ui_impactWindow
+# class impactWindow(QMainWindow,Ui_impactWindow):
+#
+#     def __init__(self):
+#         super(impactWindow, self).__init__()
+#         self.setupUi(self)
+#         self.splitter_2.setStretchFactor(0,2)
+#         self.splitter_2.setStretchFactor(1,7)
 
 
 class MainWindow(QMainWindow,Ui_MainWindow):
@@ -39,6 +45,28 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.qsl = QStackedLayout(self.frame)
         self.selectorWindow = SelectorWindow()
         self.qsl.addWidget(self.selectorWindow)
+        self.impact = ImpactWindow()
+        self.qsl.addWidget(self.impact)
+
+
+        self.selectStockBtn.clicked.connect(self.switch)
+        self.impactBoardBtn.clicked.connect(self.switch)
+        self.stockPoolBtn.clicked.connect(self.switch)
+        self.supervisorBtn.clicked.connect(self.switch)
+        self.NRiseUpBtn.clicked.connect(self.switch)
+
+
+    def switch(self):
+        sender = self.sender().objectName()
+        index = {
+            "selectStockBtn":0,
+            "impactBoardBtn":1,
+            "stockPoolBtn":2,
+            "supervisorBtn":3,
+            "NRiseUpBtn":4,
+        }
+
+        self.qsl.setCurrentIndex(index[sender])
 
 
 
