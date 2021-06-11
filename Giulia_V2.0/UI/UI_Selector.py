@@ -106,7 +106,7 @@ class Ui_Selector(object):
         self.splitter_2.setOpaqueResize(True)
         self.splitter_2.setObjectName("splitter_2")
         self.stockTable = QtWidgets.QTableView(self.splitter_2)
-        self.stockTable.setMinimumSize(QtCore.QSize(0, 250))
+        self.stockTable.setMinimumSize(QtCore.QSize(0, 100))
         self.stockTable.setObjectName("stockTable")
         self.splitter = QtWidgets.QSplitter(self.splitter_2)
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
@@ -214,7 +214,7 @@ class Ui_Selector(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
 
-        self.changePercent.setChecked(True)
+        self.sortCount.setChecked(True)
         self.splitter_2.setStretchFactor(0, 2)
         self.splitter_2.setStretchFactor(1, 7)
         self.splitter.setStretchFactor(0, 7)

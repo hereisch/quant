@@ -216,8 +216,8 @@ if __name__ == '__main__':
     # print(df[(df['type']=='卖出') & (df['vol']>=500)])
     # df = ts.get_tick_data('600539', date='2021-06-04', src='tt')
 
-    df = ts.get_tick_data('002547', date='2021-06-09', src='tt')
-    # print(df)
+    df = ts.get_tick_data('002547', date='2021-06-10', src='tt')
+    print(df)
     buy = df[df['type'] == '买盘']
     sale = df[df['type'] == '卖盘']
     s = sale.groupby(['price'])['volume'].sum()
