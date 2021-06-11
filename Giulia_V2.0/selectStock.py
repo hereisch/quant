@@ -163,7 +163,6 @@ class Select():
         else:
             res = db.get_collection('dayK').find({'date': lastTrade})
         self.intersect = {i.pop('code'): i for i in res}
-        # print(self.intersect,'88888888888888888888888888')
         res = db.get_collection(Coll).find()
         for i in tqdm(res):
             self.topN_child(today=today,i=i,topday=topday,Coll=Coll)
