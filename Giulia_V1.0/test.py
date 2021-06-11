@@ -3,6 +3,8 @@ from datetime import datetime,date,timedelta
 import json
 import io
 import re
+from threading import Thread
+import matplotlib.pyplot as plt
 import pandas as pd
 import pymongo
 import requests
@@ -207,7 +209,26 @@ if __name__ == '__main__':
     # stop_time = time.clock()
     # cost = stop_time - start_time
     # print("cost %s second" % (cost))
+    # df = ts.get_today_ticks('002547')
+    # df = ts.get_tick_data('002346',date='2021-06-04',src='tt')
+    # print(df[df['type']=='买入'])
+    # print(df[(df['type']=='买入') & (df['vol']>=500)])
+    # print(df[(df['type']=='卖出') & (df['vol']>=500)])
+    # df = ts.get_tick_data('600539', date='2021-06-04', src='tt')
 
+    df = ts.get_tick_data('002547', date='2021-06-09', src='tt')
+    # print(df)
+    buy = df[df['type'] == '买盘']
+    sale = df[df['type'] == '卖盘']
+    s = sale.groupby(['price'])['volume'].sum()
+    b = buy.groupby(['price'])['volume'].sum()
+    t = df.groupby(['price'])['volume'].sum()
+    print('买入总成交：', buy['volume'].sum(), '手')
+    print('卖出总成交：', sale['volume'].sum(), '手')
+    print('总买入：', buy['amount'].sum())
+    print('总卖出：', sale['amount'].sum())
+    print('净买入额：', (buy['amount'].sum() - sale['amount'].sum()) / 10000, '万')
+    # print(df)
 
 
 

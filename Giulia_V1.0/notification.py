@@ -162,7 +162,7 @@ if __name__ == '__main__':
         if open_time < now_time <forenoon or afternoon < now_time < close_time:
             supervisory(label=23)
             supervisory(label=12)
-            supervisory(label=99)
+            # supervisory(label=99)
             time.sleep(120)
         elif open_time > now_time:
             print('未开盘，等待...')

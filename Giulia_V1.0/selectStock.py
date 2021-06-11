@@ -41,7 +41,7 @@ class Select():
         if init:
             self.data = ts.get_today_all() #今日复盘
             # data = ts.get_day_all(date='2021-02-18')   #历史复盘
-            filt = self.data['code'].str.contains('^(?!688|300)')
+            filt = self.data['code'].str.contains('^(?!688|605|300)')
             self.data = self.data[filt]
             filt = self.data['name'].str.contains('^(?!S|退市|\*ST)')
             self.data = self.data[filt]
@@ -52,6 +52,7 @@ class Select():
             db.get_collection('today').remove()
             base = db.get_collection('base').find()
             industry = {i['code']: i['industry'] for i in base}
+            self.intersect = {}
             for i in eval(data):
                 db.get_collection('today').insert(i)
             res = db.get_collection('today').find()
@@ -150,10 +151,19 @@ class Select():
         """
         print('N日新高......')
         today = time.strftime("%Y-%m-%d", time.localtime())
-        yesterday = (date.today() + timedelta(-1)).strftime('%Y-%m-%d')
+        yesterday = (date.today() + timedelta(-1)).strftime('%Y%m%d')
+        pro = ts.pro_api()
+        lastTrade = pro.trade_cal(exchange='', start_date='20210601', end_date=yesterday)
+        lastTrade = lastTrade[lastTrade['is_open']==1]
+        lastTrade = lastTrade['cal_date'].iloc[-1]
+        lastTrade = lastTrade[:4] +'-'+ lastTrade[4:6] +'-'+ lastTrade[6:]
         topday = [3, 5, 13, 21, 34, 55, 89, 144, 233]
-        res = db.get_collection('dayK').find({'date': yesterday})
+        if time.localtime().tm_hour >= 15:
+            res = db.get_collection('dayK').find({'date': today})
+        else:
+            res = db.get_collection('dayK').find({'date': lastTrade})
         self.intersect = {i.pop('code'): i for i in res}
+        # print(self.intersect,'88888888888888888888888888')
         res = db.get_collection(Coll).find()
         for i in tqdm(res):
             self.topN_child(today=today,i=i,topday=topday,Coll=Coll)
@@ -179,13 +189,16 @@ class Select():
                 pass
         topItem['count'] = count
         try:
-            topItem['ma5'] = round(self.intersect[i['code']]['ma5'] / self.intersect[i['code']]['ma10']-1,3)
-            topItem['ma10'] = round(self.intersect[i['code']]['ma10'] / self.intersect[i['code']]['ma20']-1,3)
-        except:
-            pass
+            # topItem['ma5'] = round(self.intersect[i['code']]['ma5'] / self.intersect[i['code']]['ma10']-1,3)
+            topItem['ma5'] = str(self.intersect[i['code']]['ma5']) if self.intersect[i['code']]['ma5'] > self.intersect[i['code']]['ma10'] else self.intersect[i['code']]['ma5']
+            # topItem['ma10'] = round(self.intersect[i['code']]['ma10'] / self.intersect[i['code']]['ma20']-1,3)
+            topItem['ma10'] = str(self.intersect[i['code']]['ma10']) if self.intersect[i['code']]['ma10'] > self.intersect[i['code']]['ma20'] else self.intersect[i['code']]['ma10']
+        except Exception as e:
+            print('MA5 error',Coll,e)
+
         db.get_collection(Coll).update({'code': i['code']}, {'$set': topItem})
 
-    @async_
+
     def vol(self):
         now_time = datetime.now()
         # open_time = datetime.strptime(str(datetime.now().date()) + '9:30', '%Y-%m-%d%H:%M')
@@ -211,7 +224,6 @@ class Select():
             db.get_collection('today').update({'code': i['code']}, {'$set': {'volRatio': volRatio}})
         except Exception as e:
             print(i, e)
-
 
 
     def impactPool(self,debug=False):
@@ -258,7 +270,7 @@ class Select():
         baseMap = {j['code']: j['name'] for j in baseMap}
         rise = db.get_collection("dayK").aggregate([{'$match': {'p_change': {'$gte': p_change}, 'date': {'$gte': ago10}}}, {'$group': {'_id': '$code', 'riseNum': {'$sum': 1}}}, {'$sort': {'riseNum': -1}}])
         for i in rise:
-            if i['riseNum'] > 2:
+            if i['riseNum'] > 2 :
                 trade = self.data[self.data['code'] == i['_id']]
                 trade = trade['open'].iloc[0]
                 db.get_collection(coll).insert({'date':today,'code': i['_id'], 'name': baseMap[i['_id']], 'riseNum': i['riseNum'],'trade':trade})
@@ -315,5 +327,7 @@ if __name__ == '__main__':
 
     # print('Debug....')
     # s = Select(init=False)
-    # # s.impactPool(debug=True)
     # s.topN()
+    # s.riseN()
+    # s.impactPool(debug=True)
+    # s.riseN()

@@ -30,7 +30,7 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         self.db = self.client['quant']
         self.stockList = None
         self.header = ['code', 'name', 'industry', 'nmc','turnoverratio','volRatio','changepercent', 'trade', 'top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233','ma5','ma10']
-        self.headerCN = ['代码', '名称', '行业', '流通市值','换手率','成交量比','涨幅', '现价', '3日', '5日', '13日', '21日', '34日', '55日', '89日', '144日', '233日','MA5金叉','MA10金叉']
+        self.headerCN = ['代码', '名称', '行业', '流通市值','换手率','成交量比','涨幅', '现价', '3日', '5日', '13日', '21日', '34日', '55日', '89日', '144日', '233日','5日线','10日线']
         self.setupUi(self)
         self.tabK.currentChanged.connect(self.tabShow)
         self.topList = ts.top_list()['code'].tolist()
@@ -58,6 +58,7 @@ class SelectorWindow(QMainWindow,Ui_Selector):
             pageK = self.can_vol(dataframe=data,tabpage=indexK[x],name=self.code+':'+self.name,end=extent[x])
             tabEngine[x].load(QUrl.fromLocalFile(os.path.join(os.getcwd(),pageK)))
             # todo 异步存入
+
 
     def cleanScreen(self):
         self.model = QStandardItemModel(2, 2)
@@ -90,23 +91,25 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         self.stockList = pd.DataFrame(list(res))
         if industryText != '' and industryText != '所有行业':
             self.stockList = self.stockList[self.stockList['industry']==industryText]
+
+
+        self.stockList['nmc'] = self.stockList['nmc'] / 10000
+        self.stockList['nmc'] = self.stockList['nmc'].round(2)
+        self.stockList['turnoverratio'] = self.stockList['turnoverratio'].round(3)
+
+        if self.changePercent.isChecked():
+            self.stockList = self.stockList.sort_values(by=['changepercent',],ascending=(False,))
+        elif self.sortPrice.isChecked():
+            self.stockList = self.stockList.sort_values(by=['trade'], ascending=(True))
+        elif self.sortVol.isChecked():
+            self.stockList = self.stockList.sort_values(by=['volRatio','count','changepercent'],ascending=(False,False,False))
+        elif self.sortCount.isChecked():
+            self.stockList = self.stockList.sort_values(by=['count','volRatio','changepercent'],ascending=(False,False,False))
+
+
+        self.stockList = self.stockList.reset_index(drop=True)
+
         try:
-            self.stockList['nmc'] = self.stockList['nmc'] / 10000
-            self.stockList['nmc'] = self.stockList['nmc'].round(2)
-            self.stockList['turnoverratio'] = self.stockList['turnoverratio'].round(3)
-
-            if self.changePercent.isChecked():
-                self.stockList = self.stockList.sort_values(by=['changepercent',],ascending=(False,))
-            elif self.sortPrice.isChecked():
-                self.stockList = self.stockList.sort_values(by=['trade'], ascending=(True))
-            elif self.sortVol.isChecked():
-                self.stockList = self.stockList.sort_values(by=['volRatio','count','changepercent'],ascending=(False,False,False))
-            elif self.sortCount.isChecked():
-                self.stockList = self.stockList.sort_values(by=['count','volRatio','changepercent'],ascending=(False,False,False))
-
-
-            self.stockList = self.stockList.reset_index(drop=True)
-
             for idy, itemX in self.stockList.iterrows():
                 _trade = itemX['trade']
                 for idx, itemY in enumerate(self.header):
@@ -116,14 +119,14 @@ class SelectorWindow(QMainWindow,Ui_Selector):
                     # 'trade' index in self.header
                     if idx > self.header.index('trade') and type(itemX[itemY]) == str:
                         item.setBackground(QColor(255, 153, 153))
-                    if idx >= self.header.index('ma5') and itemX[itemY] >= 0:
+                    if idx >= self.header.index('ma5') and type(itemX[itemY]) == str:
                         item.setBackground(QColor(204,102,255))
                     # 设置每个位置的文本值
                     self.model.setItem(idy, idx, item)
 
-        except:
+        except Exception as e:
             self.cleanScreen()
-            return
+            print(e)
 
         self.stockTable.setModel(self.model)
         # 不可编辑
