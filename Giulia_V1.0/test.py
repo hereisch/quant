@@ -114,42 +114,6 @@ def sendMSG(msg='test'):
     print(resp.json())
 
 
-@async_
-def topN_child(Coll,topday,i,today):
-    kk = db.get_collection('dayK').find({'$and': [{"date": {'$ne': today}}, {"code": i['code']}]}).sort('date', -1)
-    df = pd.DataFrame(list(kk))
-    count = 0
-    topItem = {}
-    for d in topday:
-        topN = df[:d + 1]['pressure'].max()
-        if i['trade'] >= topN:
-            price = str(topN)
-            count += 1
-        else:
-            price = topN
-        topItem['top' + str(d)] = price
-    topItem['count'] = count
-    db.get_collection(Coll).update({'code': i['code']}, {'$set': topItem})
-
-
-def topN(Coll='today'):
-    """
-    N日内最高价
-    :param N:
-    :return:
-    """
-    print('N日新高......')
-    today = time.strftime("%Y-%m-%d", time.localtime())
-    topday = [3, 5, 13, 21, 34, 55, 89, 144, 233]
-    res = db.get_collection(Coll).find()
-    start_time = time.clock()
-
-    for i in tqdm(res):
-        topN_child(Coll,topday,i,today)
-    db.get_collection(Coll).remove({'top3': None})
-    stop_time = time.clock()
-    cost = stop_time - start_time
-    print("cost %s second" % (cost))
 
 
 def support(code='',ktype='30'):
@@ -182,8 +146,42 @@ def support(code='',ktype='30'):
 
 
 
+def MA(df, n,ksgn='close'):
+    '''
+    def MA(df, n,ksgn='close'):
+    #Moving Average
+    MA是简单平均线，也就是平常说的均线
+    【输入】
+        df, pd.dataframe格式数据源
+        n，时间长度
+        ksgn，列名，一般是：close收盘价
+    【输出】
+        df, pd.dataframe格式数据源,
+        增加了一栏：ma_{n}，均线数据
+    '''
+    xnam='ma{n}'.format(n=n)
+    #ds5 = pd.Series(pd.rolling_mean(df[ksgn], n), name =xnam)
+    ds2=pd.Series(df[ksgn], name =xnam,index=df.index);
+    ds5 = ds2.rolling(center=False,window=n).mean()
+    #print(ds5.head()); print(df.head())
+    #
+    df = df.join(ds5)
+    #
+    return df
 
-
+def stat():
+    df = ts.get_tick_data('002547', date='2021-06-10', src='tt')
+    print(df)
+    buy = df[df['type'] == '买盘']
+    sale = df[df['type'] == '卖盘']
+    s = sale.groupby(['price'])['volume'].sum()
+    b = buy.groupby(['price'])['volume'].sum()
+    t = df.groupby(['price'])['volume'].sum()
+    print('买入总成交：', buy['volume'].sum(), '手')
+    print('卖出总成交：', sale['volume'].sum(), '手')
+    print('总买入：', buy['amount'].sum())
+    print('总卖出：', sale['amount'].sum())
+    print('净买入额：', (buy['amount'].sum() - sale['amount'].sum()) / 10000, '万')
 
 if __name__ == '__main__':
 
@@ -216,19 +214,10 @@ if __name__ == '__main__':
     # print(df[(df['type']=='卖出') & (df['vol']>=500)])
     # df = ts.get_tick_data('600539', date='2021-06-04', src='tt')
 
-    df = ts.get_tick_data('002547', date='2021-06-10', src='tt')
+    df = ts.get_hist_data('002547')
+    # df = df.sort_index(ascending=True)
+    df = MA(df,30,'close')
     print(df)
-    buy = df[df['type'] == '买盘']
-    sale = df[df['type'] == '卖盘']
-    s = sale.groupby(['price'])['volume'].sum()
-    b = buy.groupby(['price'])['volume'].sum()
-    t = df.groupby(['price'])['volume'].sum()
-    print('买入总成交：', buy['volume'].sum(), '手')
-    print('卖出总成交：', sale['volume'].sum(), '手')
-    print('总买入：', buy['amount'].sum())
-    print('总卖出：', sale['amount'].sum())
-    print('净买入额：', (buy['amount'].sum() - sale['amount'].sum()) / 10000, '万')
-    # print(df)
 
 
 

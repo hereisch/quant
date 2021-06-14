@@ -29,8 +29,8 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         self.client = pymongo.MongoClient(host="192.168.0.28", port=27017)
         self.db = self.client['quant']
         self.stockList = None
-        self.header = ['code', 'name', 'industry', 'nmc','turnoverratio','volRatio','changepercent', 'trade', 'top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233','ma5','ma10']
-        self.headerCN = ['代码', '名称', '行业', '流通市值','换手率','成交量比','涨幅', '现价', '3日', '5日', '13日', '21日', '34日', '55日', '89日', '144日', '233日','5日线','10日线']
+        self.header = ['code', 'name', 'industry', 'nmc','turnoverratio','volRatio','changepercent', 'trade', 'top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233','profit','ma5','ma10','ma20']
+        self.headerCN = ['代码', '名称', '行业', '流通市值','换手率','成交量比','涨幅', '现价', '3日', '5日', '13日', '21日', '34日', '55日', '89日', '144日', '233日','获利盘','5日线','10日线','20日线']
         self.setupUi(self)
         self.tabK.currentChanged.connect(self.tabShow)
         self.topList = ts.top_list()['code'].tolist()
@@ -105,6 +105,9 @@ class SelectorWindow(QMainWindow,Ui_Selector):
             self.stockList = self.stockList.sort_values(by=['volRatio','count','changepercent'],ascending=(False,False,False))
         elif self.sortCount.isChecked():
             self.stockList = self.stockList.sort_values(by=['count','volRatio','changepercent'],ascending=(False,False,False))
+        elif self.profit.isChecked():
+            self.stockList = self.stockList.sort_values(by=['profit', 'count', 'changepercent'], ascending=(False, False, False))
+
 
 
         self.stockList = self.stockList.reset_index(drop=True)
@@ -117,10 +120,13 @@ class SelectorWindow(QMainWindow,Ui_Selector):
                     if idx ==0 and itemX[itemY] in self.topList:
                         item.setBackground(QColor(220,102,0))
                     # 'trade' index in self.header
-                    if idx > self.header.index('trade') and type(itemX[itemY]) == str:
+                    if idx == self.header.index('trade') and itemX['open'] <= itemX['ma5'] <= _trade and itemX['open'] <= itemX['ma10'] <= _trade and itemX['open'] <= itemX['ma20'] <= _trade:
+                        # item.setForeground(QColor(255,0,0))
+                        item.setBackground(QColor(204, 102, 255))
+                    if self.header.index('ma5') > idx > self.header.index('trade') and type(itemX[itemY]) == str:
                         item.setBackground(QColor(255, 153, 153))
-                    if idx >= self.header.index('ma5') and type(itemX[itemY]) == str:
-                        item.setBackground(QColor(204,102,255))
+                    # if idx >= self.header.index('ma5') and type(itemX[itemY]) == str:
+                    #     item.setBackground(QColor(204,102,255))
                     # 设置每个位置的文本值
                     self.model.setItem(idy, idx, item)
 
@@ -136,7 +142,7 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         # 设置tableview所有列的默认行高为10
         self.stockTable.verticalHeader().setDefaultSectionSize(20)
         # 设置tableview所有行的默认列宽为15
-        self.stockTable.horizontalHeader().setDefaultSectionSize(100)
+        self.stockTable.horizontalHeader().setDefaultSectionSize(80)
 
         layout = QVBoxLayout()
         layout.addWidget(self.stockTable)

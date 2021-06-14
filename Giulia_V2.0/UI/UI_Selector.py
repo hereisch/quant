@@ -80,6 +80,10 @@ class Ui_Selector(object):
         self.changePercent.setMaximumSize(QtCore.QSize(100, 50))
         self.changePercent.setObjectName("changePercent")
         self.horizontalLayout.addWidget(self.changePercent)
+        self.profit = QtWidgets.QRadioButton(self.scrollAreaWidgetContents)
+        self.profit.setMaximumSize(QtCore.QSize(100, 50))
+        self.profit.setObjectName("profit")
+        self.horizontalLayout.addWidget(self.profit)
         spacerItem2 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem2)
         self.comboBox = QtWidgets.QComboBox(self.scrollAreaWidgetContents)
@@ -216,7 +220,7 @@ class Ui_Selector(object):
 
         self.sortCount.setChecked(True)
         self.splitter_2.setStretchFactor(0, 2)
-        self.splitter_2.setStretchFactor(1, 7)
+        self.splitter_2.setStretchFactor(1, 9)
         self.splitter.setStretchFactor(0, 7)
         self.splitter.setStretchFactor(1, 2)
 
@@ -232,6 +236,7 @@ class Ui_Selector(object):
         self.sortVol.setText(_translate("MainWindow", "成交量比↓"))
         self.sortCount.setText(_translate("MainWindow", "突破数↓"))
         self.changePercent.setText(_translate("MainWindow", "涨幅↓"))
+        self.profit.setText(_translate("MainWindow", "获利盘↓"))
         self.DownButton.setText(_translate("MainWindow", "下载"))
         self.RefreshButton.setText(_translate("MainWindow", "刷新现价"))
         self.SearchButton.setText(_translate("MainWindow", "Search"))

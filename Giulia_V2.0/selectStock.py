@@ -15,6 +15,10 @@ import os
 from Ui_Giulia import Ui_MainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+from jetton import jetton
+
+
+
 pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
@@ -189,11 +193,12 @@ class Select():
         topItem['count'] = count
         try:
             # topItem['ma5'] = round(self.intersect[i['code']]['ma5'] / self.intersect[i['code']]['ma10']-1,3)
-            topItem['ma5'] = str(self.intersect[i['code']]['ma5']) if self.intersect[i['code']]['ma5'] > self.intersect[i['code']]['ma10'] else self.intersect[i['code']]['ma5']
+            topItem['ma5'] = self.intersect[i['code']]['ma5']
             # topItem['ma10'] = round(self.intersect[i['code']]['ma10'] / self.intersect[i['code']]['ma20']-1,3)
-            topItem['ma10'] = str(self.intersect[i['code']]['ma10']) if self.intersect[i['code']]['ma10'] > self.intersect[i['code']]['ma20'] else self.intersect[i['code']]['ma10']
+            topItem['ma10'] = self.intersect[i['code']]['ma10']
+            topItem['ma20'] = self.intersect[i['code']]['ma20']
         except Exception as e:
-            print('MA5 error',Coll,e)
+            print('MA error',Coll,e)
 
         db.get_collection(Coll).update({'code': i['code']}, {'$set': topItem})
 
@@ -276,6 +281,8 @@ class Select():
         self.topN(Coll=coll)
 
 
+
+
 # @async_
 def downStock():
     # 每日15:30后
@@ -284,6 +291,7 @@ def downStock():
     s.download()
     s.topN()
     s.vol()
+    jetton()
     # s.uniqDayK()
     print('数据下载完毕....', time.strftime('%Y年%m月%d日%H时%M分%S秒'))
     # 收盘前不可用
@@ -318,15 +326,15 @@ if __name__ == '__main__':
     统计某段时间涨停票个数
     """
 
-    downStock()
+    # downStock()
     # refresh()
 
 #################################################################
 
 
-    # print('Debug....')
-    # s = Select(init=False)
-    # s.topN()
+    print('Debug....')
+    s = Select(init=False)
+    s.topN()
     # s.riseN()
     # s.impactPool(debug=True)
     # s.riseN()
