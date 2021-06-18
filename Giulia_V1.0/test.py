@@ -208,16 +208,14 @@ if __name__ == '__main__':
     # cost = stop_time - start_time
     # print("cost %s second" % (cost))
     # df = ts.get_today_ticks('002547')
-    # df = ts.get_tick_data('002346',date='2021-06-04',src='tt')
-    # print(df[df['type']=='买入'])
-    # print(df[(df['type']=='买入') & (df['vol']>=500)])
-    # print(df[(df['type']=='卖出') & (df['vol']>=500)])
+    df = ts.get_tick_data('002346',date='2021-06-15',src='tt')
+    print(df[df['type']=='买入'])
+    print(df[(df['type']=='买入') & (df['vol']>=500)])
+    print(df[(df['type']=='卖出') & (df['vol']>=500)])
     # df = ts.get_tick_data('600539', date='2021-06-04', src='tt')
 
-    df = ts.get_hist_data('002547')
-    # df = df.sort_index(ascending=True)
-    df = MA(df,30,'close')
-    print(df)
+
+
 
 
 

@@ -45,7 +45,7 @@ class Select():
         if init:
             self.data = ts.get_today_all() #今日复盘
             # data = ts.get_day_all(date='2021-02-18')   #历史复盘
-            filt = self.data['code'].str.contains('^(?!688|605|300)')
+            filt = self.data['code'].str.contains('^(?!688|605|300|301)')
             self.data = self.data[filt]
             filt = self.data['name'].str.contains('^(?!S|退市|\*ST)')
             self.data = self.data[filt]
@@ -70,6 +70,7 @@ class Select():
             try:
                 newStock = ts.new_stocks()
                 if not newStock.empty:
+                    newStock = newStock[newStock.ipo_date>'2020-01-01']
                     for i in newStock['code'].tolist():
                         db.get_collection('today').remove({'code':i},multi=True)
             except Exception as e:
@@ -136,15 +137,15 @@ class Select():
                 # 无，全量获取数据
                 # 次新数据少于300天，删除自选 len(index)<300
                 #     time.sleep(0.5)
-                    data = ts.get_hist_data(i)
-                    # 开盘价和收盘价对比取压力值pressure
-                    data['pressure'] = data.apply(lambda x:max(x['open'],x['close']),axis=1)
-                    data = json.loads(data.to_json(orient='index'))
-                    for k,v in data.items():
-                        # print(k,v)
-                        v['date'] = k
-                        v['code'] = i
-                        db.get_collection('dayK').insert(v)
+                data = ts.get_hist_data(i)
+                # 开盘价和收盘价对比取压力值pressure
+                data['pressure'] = data.apply(lambda x:max(x['open'],x['close']),axis=1)
+                data = json.loads(data.to_json(orient='index'))
+                for k,v in data.items():
+                    # print(k,v)
+                    v['date'] = k
+                    v['code'] = i
+                    db.get_collection('dayK').insert(v)
 
 
     def topN(self,Coll='today'):
@@ -310,13 +311,13 @@ def refresh():
     s = Select(init=True)
     s.topN()
     s.vol()
+    jetton()
     print('刷新完毕....',time.strftime('%Y年%m月%d日%H时%M分%S秒'))
     # 收盘前不可用
     # now_time = datetime.now()
     # close_time = datetime.strptime(str(datetime.now().date()) + '15:30', '%Y-%m-%d%H:%M')
     # if now_time > close_time:
     #     s.impactPool()
-
 
 
 if __name__ == '__main__':
@@ -326,15 +327,15 @@ if __name__ == '__main__':
     统计某段时间涨停票个数
     """
 
-    # downStock()
+    downStock()
     # refresh()
 
 #################################################################
 
 
-    print('Debug....')
-    s = Select(init=False)
-    s.topN()
+    # print('Debug....')
+    # s = Select(init=False)
+    # s.topN()
     # s.riseN()
     # s.impactPool(debug=True)
     # s.riseN()
