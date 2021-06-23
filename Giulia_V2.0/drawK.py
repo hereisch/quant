@@ -19,6 +19,9 @@ from plotly import subplots
 import tushare as ts
 import plotly
 from datetime import datetime, date, timedelta
+from CONSTANT import MONGOHOST
+
+
 
 class CandlestickItem(pg.GraphicsObject):
     def __init__(self, data):
@@ -148,7 +151,7 @@ def intervalStat(code,name):
 ## Start Qt event loop unless running in interactive mode or using pyside.
 if __name__ == '__main__':
 
-    client = pymongo.MongoClient(host="192.168.0.28", port=27017)
+    client = pymongo.MongoClient(host=MONGOHOST, port=27017)
     db = client['quant']
     res = db.get_collection('dayK').find({'code':'603990'})
 

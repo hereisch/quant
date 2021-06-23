@@ -8,7 +8,7 @@ import pymongo
 import requests
 import time
 import tushare as ts
-
+from CONSTANT import MONGOHOST
 
 
 def async_(f):
@@ -137,7 +137,7 @@ def stockPool():
 
 if __name__ == '__main__':
 
-    client = pymongo.MongoClient(host="192.168.0.28", port=27017)
+    client = pymongo.MongoClient(host= MONGOHOST , port=27017)
     db = client['quant']
     print('开板预警....')
     open_time = datetime.strptime(str(datetime.now().date()) + '9:30', '%Y-%m-%d%H:%M')

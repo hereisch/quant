@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import QMainWindow
 import os
 from Ui_Giulia import Ui_MainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+from CONSTANT import MONGOHOST
 from jetton import jetton
 
 
@@ -23,7 +23,7 @@ pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 
-client = pymongo.MongoClient(host="192.168.0.28", port=27017)
+client = pymongo.MongoClient(host=MONGOHOST, port=27017)
 db = client['quant']
 
 locale.setlocale(locale.LC_CTYPE, 'chinese')

@@ -16,6 +16,9 @@ import numpy as np
 import plotly.graph_objects as go
 from drawK import intervalStat
 from selectStock import downStock,refresh
+from CONSTANT import MONGOHOST
+
+
 
 pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
@@ -26,7 +29,7 @@ class ImpactWindow(QMainWindow,Ui_impactWindow):
 
     def __init__(self,parent=None):
         super(ImpactWindow,self).__init__(parent)
-        self.client = pymongo.MongoClient(host="192.168.0.28", port=27017)
+        self.client = pymongo.MongoClient(host=MONGOHOST, port=27017)
         self.db = self.client['quant']
         self.setupUi(self)
         self.comboBox.addItems(['二进三','一进二'])

@@ -16,17 +16,20 @@ import numpy as np
 import plotly.graph_objects as go
 from drawK import intervalStat
 from selectStock import downStock,refresh
+from CONSTANT import MONGOHOST
+
 
 pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 
 
+
 class SelectorWindow(QMainWindow,Ui_Selector):
 
     def __init__(self,parent=None):
         super(SelectorWindow,self).__init__(parent)
-        self.client = pymongo.MongoClient(host="192.168.0.28", port=27017)
+        self.client = pymongo.MongoClient(host=MONGOHOST, port=27017)
         self.db = self.client['quant']
         self.stockList = None
         self.header = ['code', 'name', 'industry', 'nmc','turnoverratio','volRatio','changepercent', 'trade','coverage', 'top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233','ma5','ma10','ma20']

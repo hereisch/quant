@@ -42,7 +42,9 @@ data =  {
         'uuid': 18369,
 }
 
-client = pymongo.MongoClient(host="192.168.0.28", port=27017)
+
+from CONSTANT import MONGOHOST
+client = pymongo.MongoClient(host=MONGOHOST, port=27017)
 db = client['quant']
 
 
