@@ -201,6 +201,13 @@ class Select():
         except Exception as e:
             print('MA error',Coll,e)
 
+
+        # 上涨趋势 & 10日内回踩阳包阴阳包阴
+        if df[:11]['pressure'].max() == df[:61]['pressure'].max() and i['trade'] >= df['pressure'].iloc[1] and df['open'].iloc[1] > df['close'].iloc[1]:
+            topItem['coverage'] = 1
+        else:
+            topItem['coverage'] = 0
+
         db.get_collection(Coll).update({'code': i['code']}, {'$set': topItem})
 
 
