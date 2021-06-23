@@ -178,6 +178,7 @@ class Select():
     def topN_child(self,today=None,i=None,topday=None,Coll=None):
         kk = db.get_collection('dayK').find({'$and': [{"date": {'$ne': today}}, {"code": i['code']}]}).sort('date', -1)
         df = pd.DataFrame(list(kk))
+
         count = 0
         topItem = {}
         for d in topday:
@@ -202,7 +203,7 @@ class Select():
             print('MA error',Coll,e)
 
 
-        # 上涨趋势 & 10日内回踩阳包阴阳包阴
+        # 上涨趋势 & 60日内新高，10日内回踩阳包阴
         if df[:11]['pressure'].max() == df[:61]['pressure'].max() and i['trade'] >= df['pressure'].iloc[1] and df['open'].iloc[1] > df['close'].iloc[1]:
             topItem['coverage'] = 1
         else:
@@ -240,7 +241,7 @@ class Select():
 
     def impactPool(self,debug=False):
         if not debug:
-            time.sleep(60)   # 等topN执行完毕
+            time.sleep(180)   # 等topN执行完毕
         calendar = ['today', 'yesterday', 'day3ago', 'day4ago', 'day5ago', 'day6ago', 'day7ago', ]
         today = time.strftime("%Y-%m-%d", time.localtime())
         limitUp = db.get_collection('today').find({'changepercent': {'$gte': 9}}).sort('changepercent', -1)
@@ -292,14 +293,17 @@ class Select():
 
 
 # @async_
-def downStock():
+def downStock(init=True):
     # 每日15:30后
     print('开始下载数据....', time.strftime('%Y年%m月%d日%H时%M分%S秒'))
-    s = Select(init=True)
-    s.download()
+    if init:
+        s = Select(init=True)
+        s.download()
+    else:
+        s = Select(init=False)
     s.topN()
     s.vol()
-    jetton()
+    # jetton()
     # s.uniqDayK()
     print('数据下载完毕....', time.strftime('%Y年%m月%d日%H时%M分%S秒'))
     # 收盘前不可用
@@ -334,7 +338,7 @@ if __name__ == '__main__':
     统计某段时间涨停票个数
     """
 
-    downStock()
+    downStock(init=False)
     # refresh()
 
 #################################################################

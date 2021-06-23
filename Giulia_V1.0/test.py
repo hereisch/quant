@@ -217,6 +217,8 @@ if __name__ == '__main__':
     kk = db.get_collection('dayK').find({'$and': [{"date": {'$ne': today}}, {"code": '600639'}]}).sort('date', -1)
     df = pd.DataFrame(list(kk))
     print(df['pressure'].iloc[1])
+    print(df[:11]['pressure'].max())
+    print(df[:61]['pressure'].max())
 
 
 
