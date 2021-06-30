@@ -338,7 +338,7 @@ if __name__ == '__main__':
     统计某段时间涨停票个数
     """
 
-    downStock(init=False)
+    downStock(init=True)
     # refresh()
 
 #################################################################

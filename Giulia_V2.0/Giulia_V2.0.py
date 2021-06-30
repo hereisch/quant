@@ -18,6 +18,7 @@ import plotly.graph_objects as go
 from selectStock import downStock,refresh
 from Selector import SelectorWindow
 from Impact import ImpactWindow
+from RiseN import RiseNWindow
 
 
 
@@ -27,14 +28,6 @@ pd.set_option('display.max_columns', None)
 
 
 
-# from UI.UI_Impact import Ui_impactWindow
-# class impactWindow(QMainWindow,Ui_impactWindow):
-#
-#     def __init__(self):
-#         super(impactWindow, self).__init__()
-#         self.setupUi(self)
-#         self.splitter_2.setStretchFactor(0,2)
-#         self.splitter_2.setStretchFactor(1,7)
 
 
 class MainWindow(QMainWindow,Ui_MainWindow):
@@ -47,6 +40,12 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.qsl.addWidget(self.selectorWindow)
         self.impact = ImpactWindow()
         self.qsl.addWidget(self.impact)
+        self.pool = QMainWindow()
+        self.qsl.addWidget(self.pool)
+        self.notification = QMainWindow()
+        self.qsl.addWidget(self.notification)
+        self.riseN = RiseNWindow()
+        self.qsl.addWidget(self.riseN)
 
 
         self.selectStockBtn.clicked.connect(self.switch)
@@ -65,7 +64,6 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             "supervisorBtn":3,
             "NRiseUpBtn":4,
         }
-
         self.qsl.setCurrentIndex(index[sender])
 
 
