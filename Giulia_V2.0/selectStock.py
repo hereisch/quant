@@ -79,6 +79,13 @@ class Select():
             # 剔除停牌
             db.get_collection('today').remove({'open': 0})
 
+            # 龙虎榜
+            db.get_collection('topList').remove()
+            longhu  = ts.top_list()
+            longhu = longhu.to_json(orient='index', )
+            longhu = json.loads(longhu)
+            for k,v in longhu.items():
+                db.get_collection('topList').insert(v)
 
     def uniqDayK(self):
         """

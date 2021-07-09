@@ -36,7 +36,7 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         self.headerCN = ['代码', '名称', '行业', '流通市值','换手率','成交量比','涨幅', '现价','阳包阴', '3日', '5日', '13日', '21日', '34日', '55日', '89日', '144日', '233日','5日线','10日线','20日线']
         self.setupUi(self)
         self.tabK.currentChanged.connect(self.tabShow)
-        self.topList = ts.top_list()['code'].tolist()
+        self.topList = self.db.get_collection('topList').distinct('code')
         self.showStock()
         self.code = None
         self.name = None
