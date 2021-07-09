@@ -329,7 +329,7 @@ def refresh():
     s = Select(init=True)
     s.topN()
     s.vol()
-    jetton()
+    # jetton()
     print('刷新完毕....',time.strftime('%Y年%m月%d日%H时%M分%S秒'))
     # 收盘前不可用
     # now_time = datetime.now()

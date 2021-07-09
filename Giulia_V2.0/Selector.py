@@ -82,6 +82,7 @@ class SelectorWindow(QMainWindow,Ui_Selector):
             refresh()
         if download is True:
             downStock()
+        self.topList = self.db.get_collection('topList').distinct('code')
         # 设置数据层次结构，2行2列
         self.model = QStandardItemModel(2, 2)
         # 设置水平方向四个头标签文本内容
