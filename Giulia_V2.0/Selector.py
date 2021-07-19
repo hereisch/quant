@@ -112,7 +112,7 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         elif self.sortVol.isChecked():
             self.stockList = self.stockList.sort_values(by=['volRatio','count','changepercent'],ascending=(False,False,False))
         elif self.sortCount.isChecked():
-            self.stockList = self.stockList.sort_values(by=['count','volRatio','changepercent'],ascending=(False,False,False))
+            self.stockList = self.stockList.sort_values(by=['count','changepercent','volRatio'],ascending=(False,False,False))
         elif self.profit.isChecked():
             self.stockList = self.stockList.sort_values(by=['profit', 'count', 'changepercent'], ascending=(False, False, False))
         elif self.coverage.isChecked():

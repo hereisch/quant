@@ -257,7 +257,7 @@ class Ui_Selector(object):
         self.label_Change.setText(_translate("MainWindow", "-"))
         self.sortPrice.setText(_translate("MainWindow", "价格↑"))
         self.sortVol.setText(_translate("MainWindow", "成交量比↓"))
-        self.sortCount.setText(_translate("MainWindow", "突破数↓"))
+        self.sortCount.setText(_translate("MainWindow", "创新高↓"))
         self.changePercent.setText(_translate("MainWindow", "涨幅↓"))
         self.profit.setText(_translate("MainWindow", "获利盘↓"))
         self.coverage.setText(_translate("MainWindow", "阳包阴↓"))

@@ -38,7 +38,7 @@ class RiseNWindow(QMainWindow,Ui_impactWindow):
         self.header = ['code','name','riseNum','trade','date']
         self.headerCN = ['代码', '名称','连阳数','现价','日期']
         self.tabK.currentChanged.connect(self.tabShow)
-        self.topList = ts.top_list()['code'].tolist()
+        self.topList = self.db.get_collection('topList').distinct('code')
         self.showStock()
         self.code = None
         self.name = None

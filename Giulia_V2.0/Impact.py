@@ -38,7 +38,7 @@ class ImpactWindow(QMainWindow,Ui_impactWindow):
         self.header = ['code', 'name', 'date','count','price','contBoard','today','yesterday','day3ago','day4ago','day5ago','day6ago','day7ago']
         self.headerCN = ['代码', '名称','日期','突破数','现价','连板','今日','昨日','前天','前4日','前5日','前6日','前7日']
         self.tabK.currentChanged.connect(self.tabShow)
-        self.topList = ts.top_list()['code'].tolist()
+        self.topList = self.db.get_collection('topList').distinct('code')
         self.showStock()
         self.code = None
         self.name = None
