@@ -135,9 +135,11 @@ class SelectorWindow(QMainWindow,Ui_Selector):
                         item.setBackground(QColor(204, 102, 255))
                     if self.header.index('ma5') > idx > self.header.index('trade') and type(itemX[itemY]) == str:
                         item.setBackground(QColor(255, 153, 153))
-                    if idx == self.header.index('ma5')  and  _trade <= itemX['ma5']:
+                    if idx == self.header.index('ma5') and _trade <= itemX['ma5']:
                         # 跌破5日线
                         item.setBackground(QColor(0, 255, 0))
+                    if idx == self.header.index('changepercent') and itemX['open'] == itemX['high'] and itemX['changepercent'] > 9:
+                        item.setBackground(QColor(255, 10, 10))
 
                     # if idx >= self.header.index('ma5') and type(itemX[itemY]) == str:
                     #     item.setBackground(QColor(204,102,255))

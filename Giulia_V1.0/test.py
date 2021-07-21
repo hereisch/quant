@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-#
+import random
 from datetime import datetime,date,timedelta
 import json
 import io
@@ -32,6 +33,17 @@ pd.set_option('display.max_columns', None)
 client = pymongo.MongoClient(host="192.168.0.28", port=27017)
 db = client['quant']
 
+
+headers = {
+    'Accept': '*/*',
+    'Accept-Encoding': 'gzip, deflate',
+    'Accept-Language': 'zh-CN,zh;q=0.9',
+    'Cookie': '__51cke__=; Hm_lvt_34e0d77f0c897023357dcfa7daa006f3=1626846961; d_ddx=1626846965; Hm_lpvt_34e0d77f0c897023357dcfa7daa006f3=1626846985; __tins__1523105=%7B%22sid%22%3A%201626849104630%2C%20%22vd%22%3A%202%2C%20%22expires%22%3A%201626851989983%7D; __51laig__=11',
+    'Host': 'ddx.gubit.cn',
+    'Referer': 'http://ddx.gubit.cn/xg/ddx.html',
+    'X-Requested-With': 'XMLHttpRequest',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36',
+}
 
 
 def async_(f):
@@ -203,24 +215,26 @@ if __name__ == '__main__':
     # 打板池轮询开板，通知
     # 参考   岳阳林纸， 山东墨龙 三星医疗，汇洁股份，圣济堂，锦鸿集团，小康股份，宜宾纸业
 
-    # start_time = time.clock()
-    # stop_time = time.clock()
-    # cost = stop_time - start_time
-    # print("cost %s second" % (cost))
-    # df = ts.get_today_ticks('002547')
-    # df = ts.get_tick_data('002346',date='2021-06-15',src='tt')
-    # print(df[df['type']=='买入'])
-    # print(df[(df['type']=='买入') & (df['vol']>=500)])
-    # print(df[(df['type']=='卖出') & (df['vol']>=500)])
-    # df = ts.get_tick_data('600539', date='2021-06-04', src='tt')
-
-    kk = db.get_collection('dayK').find({'$and': [{"date": {'$ne': today}}, {"code": '600639'}]}).sort('date', -1)
-    df = pd.DataFrame(list(kk))
-    print(df['pressure'].iloc[1])
-    print(df[:11]['pressure'].max())
-    print(df[:61]['pressure'].max())
 
 
+
+    # 补0占位
+    # print('{:0>2d}'.format(3))
+    ddx_config = ['代码','最新价', '涨幅', '换手率', '量比', 'DDX1日', 'DDY1日', 'DDZ', 'DDX3日', 'DDX5日', 'DDX10日', 'DDX60日', 'DDX5红', 'DDX10红', 'DDX连红', 'DDX连增', '涨幅3日', '涨幅5日', '涨幅10日', 'DDY3日', 'DDY5日', 'DDY10日',
+                  'DDY60日', '成交量(万元)', 'BBD(万元)', '通吃率1日', '通吃率5日', '通吃率10日', '通吃率20日', '单数比', '特大差', '大单差', '中单差', '小单差', '主动率1日', '主动率5日', '主动率10日', '流通盘(万股)','未知']
+
+    abcddx_config = ['code','spj', 'zf', 'huanshou', 'liangbi', 'ddx', 'ddy', 'ddz', 'ddx3', 'ddx5', 'ddx10', 'ddx60', '5ddx', '10ddx', 'ddxlh', 'ddxlz', 'zf3', 'zf5', 'zf10', 'ddy3', 'ddy5', 'ddy10',
+                     'ddy60', 'cjl', 'bbd', 'tcl1', 'tcl5', 'tcl10', 'tcl20', 'dsb', 'tdc', 'ddc', 'zdc', 'xdc', 'zdl1', 'zdl5', 'zdl10', 'wtp','unknow']
+
+    url_sz = 'http://ddx.gubit.cn/xg/ddxlist.php?gtype=sz0&page={}&t={}'.format(1,random.random())
+    url_sh = 'http://ddx.gubit.cn/xg/ddxlist.php?gtype=sh&page={}&t={}'.format(15,random.random())
+    resp = requests.get(url_sz,headers=headers)
+    for i in resp.json()['data']:
+        print(len(i),i)
+    print(len(ddx_config))
+    # print(resp.json()['data'])
+    # li = pd.DataFrame(resp.json()['data'])
+    # print(li[0])
 
 
 
