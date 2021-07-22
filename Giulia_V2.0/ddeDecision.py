@@ -107,9 +107,10 @@ class DDEWindow(QMainWindow,Ui_DDE):
         self.showStock()
         self.code = None
         self.name = None
+        self.autoRefresh = False
         self.SearchButton.clicked.connect(self.showStock)
-        self.DownButton.clicked.connect(lambda: self.showStock(download=True))
-        self.RefreshButton.clicked.connect(lambda: self.showStock(fresh=True))
+        self.Stop.clicked.connect(lambda: self.showStock(autoRresh=False))
+        self.RefreshButton.clicked.connect(lambda: self.showStock(autoRresh=True))
         self.minPrice.returnPressed.connect(self.showStock)
         self.maxPrice.returnPressed.connect(self.showStock)
         self.maxNMC.returnPressed.connect(self.showStock)
@@ -143,11 +144,11 @@ class DDEWindow(QMainWindow,Ui_DDE):
         self.setLayout(layout)
 
 
-    def showStock(self,fresh=False,download=False):
-        if fresh is True:
-            refresh()
-        if download is True:
-            downStock()
+    def showStock(self,autoRresh=False,):
+        if autoRresh is True:
+            self.autoRefresh = True
+
+
 
         # 设置数据层次结构，2行2列
         self.model = QStandardItemModel(2, 2)
