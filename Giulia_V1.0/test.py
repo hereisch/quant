@@ -220,21 +220,37 @@ if __name__ == '__main__':
 
     # 补0占位
     # print('{:0>2d}'.format(3))
-    ddx_config = ['代码','最新价', '涨幅', '换手率', '量比', 'DDX1日', 'DDY1日', 'DDZ', 'DDX3日', 'DDX5日', 'DDX10日', 'DDX60日', 'DDX5红', 'DDX10红', 'DDX连红', 'DDX连增', '涨幅3日', '涨幅5日', '涨幅10日', 'DDY3日', 'DDY5日', 'DDY10日',
-                  'DDY60日', '成交量(万元)', 'BBD(万元)', '通吃率1日', '通吃率5日', '通吃率10日', '通吃率20日', '单数比', '特大差', '大单差', '中单差', '小单差', '主动率1日', '主动率5日', '主动率10日', '流通盘(万股)','未知']
 
-    abcddx_config = ['code','spj', 'zf', 'huanshou', 'liangbi', 'ddx', 'ddy', 'ddz', 'ddx3', 'ddx5', 'ddx10', 'ddx60', '5ddx', '10ddx', 'ddxlh', 'ddxlz', 'zf3', 'zf5', 'zf10', 'ddy3', 'ddy5', 'ddy10',
-                     'ddy60', 'cjl', 'bbd', 'tcl1', 'tcl5', 'tcl10', 'tcl20', 'dsb', 'tdc', 'ddc', 'zdc', 'xdc', 'zdl1', 'zdl5', 'zdl10', 'wtp','unknow']
+    base = db.get_collection('base').find()
+    industry = {i['code']: i['name'] for i in base}
 
-    url_sz = 'http://ddx.gubit.cn/xg/ddxlist.php?gtype=sz0&page={}&t={}'.format(1,random.random())
-    url_sh = 'http://ddx.gubit.cn/xg/ddxlist.php?gtype=sh&page={}&t={}'.format(15,random.random())
-    resp = requests.get(url_sz,headers=headers)
-    for i in resp.json()['data']:
-        print(len(i),i)
-    print(len(ddx_config))
-    # print(resp.json()['data'])
-    # li = pd.DataFrame(resp.json()['data'])
-    # print(li[0])
+
+    # ddx_config = ['代码','最新价', '涨幅', '换手率', '量比', 'DDX1日', 'DDY1日', 'DDZ', 'DDX3日', 'DDX5日', 'DDX10日', 'DDX60日', 'DDX5红', 'DDX10红', 'DDX连红', 'DDX连增', '涨幅3日', '涨幅5日', '涨幅10日', 'DDY3日', 'DDY5日', 'DDY10日',
+    #               'DDY60日', '成交量(万元)', 'BBD(万元)', '通吃率1日', '通吃率5日', '通吃率10日', '通吃率20日', '单数比', '特大差', '大单差', '中单差', '小单差', '主动率1日', '主动率5日', '主动率10日', '流通盘(万股)','未知']
+    #
+    # abcddx_config = ['code','spj', 'zf', 'huanshou', 'liangbi', 'ddx', 'ddy', 'ddz', 'ddx3', 'ddx5', 'ddx10', 'ddx60', '5ddx', '10ddx', 'ddxlh', 'ddxlz', 'zf3', 'zf5', 'zf10', 'ddy3', 'ddy5', 'ddy10',
+    #                  'ddy60', 'cjl', 'bbd', 'tcl1', 'tcl5', 'tcl10', 'tcl20', 'dsb', 'tdc', 'ddc', 'zdc', 'xdc', 'zdl1', 'zdl5', 'zdl10', 'wtp','unknow']
+    #
+    # url_sz = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=5&gtype=sz0&isdesc=1&page={}&t={}'.format(1,random.random())
+    # url_sh = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=5&gtype=sh&isdesc=1&page={}&t={}'.format(1,random.random())
+    # respSZ = requests.get(url_sz,headers=headers)
+    # respSH = requests.get(url_sh,headers=headers)
+    # count = respSZ.json()['data'] + respSH.json()['data']
+    # df = pd.DataFrame(count,columns=ddx_config)
+    # df['代码'] = df['代码'].apply(lambda x: str('{:0>6d}'.format(x)))
+    # filt = df['代码'].str.contains('^(?!688|605|300|301)')
+    # df = df[filt]
+    # df = df.drop_duplicates()
+    # df['名称'] = df['代码'].apply(lambda x:industry[x])
+    # df = df.sort_values(by=['DDX1日'],ascending=(False))
+    # print(df)
+    db.get_collection('base').remove()
+    pro = ts.pro_api()
+    data = pro.stock_basic()
+    data.rename(columns={'symbol': 'code'}, inplace=True)
+    for idx, i in data.iterrows():
+        print(dict(i))
+        db.get_collection('base').insert(dict(i))
 
 
 
