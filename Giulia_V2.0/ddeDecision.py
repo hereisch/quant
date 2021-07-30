@@ -74,18 +74,28 @@ def ddxData():
     abcddx_config = ['code', 'spj', 'zf', 'huanshou', 'liangbi', 'ddx', 'ddy', 'ddz', 'ddx3', 'ddx5', 'ddx10', 'ddx60', '5ddx', '10ddx', 'ddxlh', 'ddxlz', 'zf3', 'zf5', 'zf10', 'ddy3', 'ddy5',
                      'ddy10',
                      'ddy60', 'cjl', 'bbd', 'tcl1', 'tcl5', 'tcl10', 'tcl20', 'dsb', 'tdc', 'ddc', 'zdc', 'xdc', 'zdl1', 'zdl5', 'zdl10', 'wtp', 'unknow']
+    data = []
+    for i in tqdm(range(1,26)):
+        url_sz = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=8&gtype=sz0&isdesc=1&page={}&t={}'.format(i, random.random())
+        url_sh = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=8&gtype=sh&isdesc=1&page={}&t={}'.format(i, random.random())
+        respSZ = requests.get(url_sz, headers=headers)
+        respSH = requests.get(url_sh, headers=headers)
+        try:
+            data += respSH.json()['data']
+            data += respSZ.json()['data']
+        except Exception as e:
+            print(e)
+            print('SH...',respSH.text)
+            print('SZ...',respSZ.text)
 
-    url_sz = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=5&gtype=sz0&isdesc=1&page={}&t={}'.format(1, random.random())
-    url_sh = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=5&gtype=sh&isdesc=1&page={}&t={}'.format(1, random.random())
-    respSZ = requests.get(url_sz, headers=headers)
-    respSH = requests.get(url_sh, headers=headers)
-    count = respSZ.json()['data'] + respSH.json()['data']
-    df = pd.DataFrame(count, columns=ddx_config)
+        time.sleep(0.2)
+
+    df = pd.DataFrame(data, columns=ddx_config)
     df['代码'] = df['代码'].apply(lambda x: str('{:0>6d}'.format(x)))
     filt = df['代码'].str.contains('^(?!688|605|300|301)')
     df = df[filt]
     df = df.drop_duplicates()
-    df['名称'] = df['代码'].apply(lambda x: industry[x])
+    df['名称'] = df['代码'].apply(lambda x: industry[x] if x in industry else '新股')
     df = df.sort_values(by=['DDX1日'], ascending=(False))
     print('实时刷新：',time.strftime('%Y年%m月%d日%H时%M分%S秒'))
     return df
@@ -104,19 +114,19 @@ class DDEWindow(QMainWindow,Ui_DDE):
         self.setupUi(self)
         self.tabK.currentChanged.connect(self.tabShow)
         self.topList = self.db.get_collection('topList').distinct('code')
-        self.showStock()
+        self.showStock(autoRresh=99)
         self.code = None
         self.name = None
         self.autoRefresh = False
-        self.SearchButton.clicked.connect(self.showStock)
-        self.Stop.clicked.connect(lambda: self.showStock(autoRresh=False))
+        self.SearchButton.clicked.connect(lambda: self.showStock(autoRresh=99,))
+        self.Stop.clicked.connect(lambda: self.showStock(autoRresh=False,))
         self.RefreshButton.clicked.connect(lambda: self.showStock(autoRresh=True))
-        self.minPrice.returnPressed.connect(self.showStock)
-        self.maxPrice.returnPressed.connect(self.showStock)
-        self.maxNMC.returnPressed.connect(self.showStock)
-        self.minNMC.returnPressed.connect(self.showStock)
-        self.minChange.returnPressed.connect(self.showStock)
-        self.maxChange.returnPressed.connect(self.showStock)
+        self.minPrice.returnPressed.connect(lambda: self.showStock(autoRresh=99,))
+        self.maxPrice.returnPressed.connect(lambda: self.showStock(autoRresh=99,))
+        # self.maxNMC.returnPressed.connect(lambda: self.showStock(autoRresh=99,filter=True))
+        # self.minNMC.returnPressed.connect(lambda: self.showStock(autoRresh=99,filter=True))
+        self.minChange.returnPressed.connect(lambda: self.showStock(autoRresh=99))
+        self.maxChange.returnPressed.connect(lambda: self.showStock(autoRresh=99,))
 
 
     def tabShow(self,x):
@@ -143,26 +153,37 @@ class DDEWindow(QMainWindow,Ui_DDE):
         layout.addWidget(self.stockTable)
         self.setLayout(layout)
 
-
-    def showStock(self,autoRresh=False,):
+    @async_
+    def showStock(self,autoRresh=True):
         if autoRresh is True:
-            self.autoRefresh = True
+            self.stockList = ddxData()
+        elif autoRresh is False:
+            self.cleanScreen()
+            return 0
+        elif autoRresh == 99:
+            if self.stockList is None:
+                self.stockList = ddxData()
 
+        highPrice = self.maxPrice.text()
+        lowPrice = self.minPrice.text()
+        # highNMC = self.maxNMC.text()
+        # lowNMC = self.minNMC.text()
+        highChange = self.maxChange.text()
+        lowChange = self.minChange.text()
+        if highPrice.isdigit():
+            self.stockList = self.stockList[self.stockList['最新价'] <= float(highPrice)]
+        if lowPrice.isdigit():
+            self.stockList = self.stockList[self.stockList['最新价'] >= float(lowPrice)]
+        if highChange.isdigit():
+            self.stockList = self.stockList[self.stockList['涨幅'] <= float(highChange)]
+        if lowChange.isdigit():
+            self.stockList = self.stockList[self.stockList['涨幅'] >= float(lowChange)]
 
 
         # 设置数据层次结构，2行2列
         self.model = QStandardItemModel(2, 2)
         # 设置水平方向四个头标签文本内容
         self.model.setHorizontalHeaderLabels(self.headerCN)
-        highPrice = self.maxPrice.text()
-        lowPrice = self.minPrice.text()
-        highNMC = self.maxNMC.text()
-        lowNMC = self.minNMC.text()
-        highChange = self.maxChange.text()
-        lowChange = self.minChange.text()
-        self.stockList = ddxData()
-
-
 
         if self.sortDDX1.isChecked():
             self.stockList = self.stockList.sort_values(by=['DDX1日','DDX3日','DDX5日','DDX10日'],ascending=(False,False,False,False))
@@ -173,11 +194,13 @@ class DDEWindow(QMainWindow,Ui_DDE):
         elif self.sortDDX10.isChecked():
             self.stockList = self.stockList.sort_values(by=['DDX10日','DDX1日','DDX3日','DDX5日'],ascending=(False,False,False,False))
         elif self.dsb.isChecked():
-            self.stockList = self.stockList.sort_values(by=['单数比','DDX1日','DDX3日','DDX5日'],ascending=(False,False,False,False))
+            self.stockList = self.stockList.sort_values(by=['单数比','特大差','大单差',],ascending=(False,False,False))
         elif self.BBD.isChecked():
             self.stockList = self.stockList.sort_values(by=['BBD(万)','DDX1日','DDX3日','DDX5日'],ascending=(False,False,False,False))
-
-
+        elif self.sortChange.isChecked():
+            self.stockList = self.stockList.sort_values(by=['涨幅','DDX1日','DDX3日','DDX5日'],ascending=(False,False,False,False))
+        elif self.sortCapitcal.isChecked():
+            self.stockList = self.stockList.sort_values(by=['特大差','大单差','通吃率1日','主动率1日'],ascending=(False,False,False,False))
 
         self.stockList = self.stockList.reset_index(drop=True)
 

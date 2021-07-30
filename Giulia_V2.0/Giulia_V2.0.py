@@ -19,7 +19,7 @@ from selectStock import downStock,refresh
 from Selector import SelectorWindow
 from Impact import ImpactWindow
 from RiseN import RiseNWindow
-
+from ddeDecision import DDEWindow
 
 
 pd.set_option('display.width', 5000)
@@ -46,6 +46,8 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.qsl.addWidget(self.notification)
         self.riseN = RiseNWindow()
         self.qsl.addWidget(self.riseN)
+        self.dde = DDEWindow()
+        self.qsl.addWidget(self.dde)
 
 
         self.selectStockBtn.clicked.connect(self.switch)
@@ -53,6 +55,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.stockPoolBtn.clicked.connect(self.switch)
         self.supervisorBtn.clicked.connect(self.switch)
         self.NRiseUpBtn.clicked.connect(self.switch)
+        self.DDEBtn.clicked.connect(self.switch)
 
 
     def switch(self):
@@ -63,6 +66,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             "stockPoolBtn":2,
             "supervisorBtn":3,
             "NRiseUpBtn":4,
+            "DDEBtn":5,
         }
         self.qsl.setCurrentIndex(index[sender])
 

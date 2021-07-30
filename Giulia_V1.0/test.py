@@ -221,8 +221,8 @@ if __name__ == '__main__':
     # 补0占位
     # print('{:0>2d}'.format(3))
 
-    base = db.get_collection('base').find()
-    industry = {i['code']: i['name'] for i in base}
+    # base = db.get_collection('base').find()
+    # industry = {i['code']: i['name'] for i in base}
 
 
     # ddx_config = ['代码','最新价', '涨幅', '换手率', '量比', 'DDX1日', 'DDY1日', 'DDZ', 'DDX3日', 'DDX5日', 'DDX10日', 'DDX60日', 'DDX5红', 'DDX10红', 'DDX连红', 'DDX连增', '涨幅3日', '涨幅5日', '涨幅10日', 'DDY3日', 'DDY5日', 'DDY10日',
@@ -244,14 +244,22 @@ if __name__ == '__main__':
     # df['名称'] = df['代码'].apply(lambda x:industry[x])
     # df = df.sort_values(by=['DDX1日'],ascending=(False))
     # print(df)
-    db.get_collection('base').remove()
-    pro = ts.pro_api()
-    data = pro.stock_basic()
-    data.rename(columns={'symbol': 'code'}, inplace=True)
-    for idx, i in data.iterrows():
-        print(dict(i))
-        db.get_collection('base').insert(dict(i))
+    # url_sz = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=5&gtype=sz0&isdesc=1&page={}&t={}'.format(1, random.random())
+    # url_sh = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=5&gtype=sh&isdesc=1&page={}&t={}'.format(1, random.random())
+    # respSZ = requests.get(url_sz, headers=headers)
+    # respSH = requests.get(url_sh, headers=headers)
+    # count = respSZ.json()['data'] + respSH.json()['data']
+    # ddx_config = ['代码', '最新价', '涨幅', '换手率', '量比', 'DDX1日', 'DDY1日', 'DDZ', 'DDX3日', 'DDX5日', 'DDX10日', 'DDX60日', 'DDX5红', 'DDX10红', 'DDX连红', 'DDX连增', '涨幅3日', '涨幅5日', '涨幅10日', 'DDY3日', 'DDY5日',
+    #               'DDY10日',
+    #               'DDY60日', '成交量(万)', 'BBD(万)', '通吃率1日', '通吃率5日', '通吃率10日', '通吃率20日', '单数比', '特大差', '大单差', '中单差', '小单差', '主动率1日', '主动率5日', '主动率10日', '流通盘(万股)', '未知']
+    # count = []
+    # count += respSZ.json()['data']
+    # count += respSH.json()['data']
+    # print(respSZ.json()['data'])
 
+
+    df = ts.new_stocks()
+    print(df.head(100))
 
 
 

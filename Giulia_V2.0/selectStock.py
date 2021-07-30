@@ -47,7 +47,7 @@ class Select():
             # data = ts.get_day_all(date='2021-02-18')   #历史复盘
             filt = self.data['code'].str.contains('^(?!688|605|300|301)')
             self.data = self.data[filt]
-            filt = self.data['name'].str.contains('^(?!S|退市|\*ST)')
+            filt = self.data['name'].str.contains('^(?!S|退市|\*ST|N)')
             self.data = self.data[filt]
             self.data = self.data.drop_duplicates()
             data = self.data[self.data['trade']>=2]
@@ -107,7 +107,7 @@ class Select():
         data = pro.stock_basic()
         data.rename(columns={'symbol': 'code'}, inplace=True)
         for idx, i in data.iterrows():
-            print(dict(i))
+            # print(dict(i))
             db.get_collection('base').insert(dict(i))
 
 
@@ -311,7 +311,7 @@ def downStock(init=True):
         s = Select(init=False)
     s.topN()
     s.vol()
-    # jetton()
+    # s.updBase()
     # s.uniqDayK()
     print('数据下载完毕....', time.strftime('%Y年%m月%d日%H时%M分%S秒'))
     # 收盘前不可用

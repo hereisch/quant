@@ -139,6 +139,7 @@ class SelectorWindow(QMainWindow,Ui_Selector):
                         # 跌破5日线
                         item.setBackground(QColor(0, 255, 0))
                     if idx == self.header.index('changepercent') and itemX['open'] == itemX['high'] and itemX['changepercent'] > 9:
+                        # 涨停高开一字板
                         item.setBackground(QColor(255, 10, 10))
 
                     # if idx >= self.header.index('ma5') and type(itemX[itemY]) == str:

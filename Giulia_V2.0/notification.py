@@ -51,7 +51,7 @@ def supervisory(label=0):
             if eval(df['price'][0]) < eval(df['open'][0]):
                 scope = round((eval(df['price'][0])/eval(df['open'][0])-1)*100,2)
                 # 开板幅度大于-2%
-                if scope > -1:
+                if scope > -3:
                     msg = '一进二开板：\n代码：{}\n名称：{}\n现价：{}\n涨幅：{}\n{}'.format(code, name[code],df['price'][0], scope, time.strftime('%m-%d  %H:%M:%S'))
                     sendMSG(msg=msg)
                 time.sleep(200)
@@ -63,7 +63,7 @@ def supervisory(label=0):
 
             if eval(df['price'][0]) < eval(df['open'][0]):
                 scope = round((eval(df['price'][0]) / eval(df['open'][0]) - 1) * 100, 2)
-                if scope >-1:
+                if scope >-3:
                     msg = '二进三开板：\n代码：{}\n名称：{}\n现价：{}\n涨幅：{}\n{}'.format(code, name[code],df['price'][0], scope, time.strftime('%m-%d  %H:%M:%S'))
                     sendMSG(msg=msg)
                 time.sleep(200)
