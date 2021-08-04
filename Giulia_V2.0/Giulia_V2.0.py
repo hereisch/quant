@@ -20,6 +20,7 @@ from Selector import SelectorWindow
 from Impact import ImpactWindow
 from RiseN import RiseNWindow
 from ddeDecision import DDEWindow
+from absorb import AbsorbWindow
 
 
 pd.set_option('display.width', 5000)
@@ -42,8 +43,8 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.qsl.addWidget(self.impact)
         self.pool = QMainWindow()
         self.qsl.addWidget(self.pool)
-        self.notification = QMainWindow()
-        self.qsl.addWidget(self.notification)
+        self.absorb = AbsorbWindow()
+        self.qsl.addWidget(self.absorb)
         self.riseN = RiseNWindow()
         self.qsl.addWidget(self.riseN)
         self.dde = DDEWindow()
@@ -53,7 +54,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.selectStockBtn.clicked.connect(self.switch)
         self.impactBoardBtn.clicked.connect(self.switch)
         self.stockPoolBtn.clicked.connect(self.switch)
-        self.supervisorBtn.clicked.connect(self.switch)
+        self.absorbBtn.clicked.connect(self.switch)
         self.NRiseUpBtn.clicked.connect(self.switch)
         self.DDEBtn.clicked.connect(self.switch)
 
@@ -64,7 +65,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             "selectStockBtn":0,
             "impactBoardBtn":1,
             "stockPoolBtn":2,
-            "supervisorBtn":3,
+            "absorbBtn":3,
             "NRiseUpBtn":4,
             "DDEBtn":5,
         }

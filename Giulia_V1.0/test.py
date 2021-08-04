@@ -40,7 +40,7 @@ headers = {
     'Accept-Language': 'zh-CN,zh;q=0.9',
     'Cookie': '__51cke__=; Hm_lvt_34e0d77f0c897023357dcfa7daa006f3=1626846961; d_ddx=1626846965; Hm_lpvt_34e0d77f0c897023357dcfa7daa006f3=1626846985; __tins__1523105=%7B%22sid%22%3A%201626849104630%2C%20%22vd%22%3A%202%2C%20%22expires%22%3A%201626851989983%7D; __51laig__=11',
     'Host': 'ddx.gubit.cn',
-    'Referer': 'http://ddx.gubit.cn/xg/ddx.html',
+    'Referer': 'http://ddx.gubit.cn/xg/xuangu2.html',
     'X-Requested-With': 'XMLHttpRequest',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36',
 }
@@ -244,9 +244,10 @@ if __name__ == '__main__':
     # df['名称'] = df['代码'].apply(lambda x:industry[x])
     # df = df.sort_values(by=['DDX1日'],ascending=(False))
     # print(df)
-    # url_sz = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=5&gtype=sz0&isdesc=1&page={}&t={}'.format(1, random.random())
+    url_sz = 'http://ddx.gubit.cn/xg/zhddxlist2.php?&t={}&zh19=1'.format(random.random())
     # url_sh = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=5&gtype=sh&isdesc=1&page={}&t={}'.format(1, random.random())
-    # respSZ = requests.get(url_sz, headers=headers)
+    respSZ = requests.get(url_sz, headers=headers)
+    print(respSZ.text)
     # respSH = requests.get(url_sh, headers=headers)
     # count = respSZ.json()['data'] + respSH.json()['data']
     # ddx_config = ['代码', '最新价', '涨幅', '换手率', '量比', 'DDX1日', 'DDY1日', 'DDZ', 'DDX3日', 'DDX5日', 'DDX10日', 'DDX60日', 'DDX5红', 'DDX10红', 'DDX连红', 'DDX连增', '涨幅3日', '涨幅5日', '涨幅10日', 'DDY3日', 'DDY5日',
@@ -258,8 +259,6 @@ if __name__ == '__main__':
     # print(respSZ.json()['data'])
 
 
-    df = ts.new_stocks()
-    print(df.head(100))
 
 
 

@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 from datetime import datetime, date, timedelta
-from UI.UI_DDE import Ui_DDE
+from UI.UI_Absorb import Ui_Absorb
 import tushare as ts
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -56,7 +56,7 @@ headers = {
     'Accept-Language': 'zh-CN,zh;q=0.9',
     'Cookie': '__51cke__=; Hm_lvt_34e0d77f0c897023357dcfa7daa006f3=1626846961; d_ddx=1626846965; Hm_lpvt_34e0d77f0c897023357dcfa7daa006f3=1626846985; __tins__1523105=%7B%22sid%22%3A%201626849104630%2C%20%22vd%22%3A%202%2C%20%22expires%22%3A%201626851989983%7D; __51laig__=11',
     'Host': 'ddx.gubit.cn',
-    'Referer': 'http://ddx.gubit.cn/xg/ddx.html',
+    'Referer': 'http://ddx.gubit.cn/xg/xuangu2.html',
     'X-Requested-With': 'XMLHttpRequest',
     'User-Agent': random.choice(User_Agent),
 }
@@ -75,18 +75,15 @@ def ddxData():
                      'ddy10',
                      'ddy60', 'cjl', 'bbd', 'tcl1', 'tcl5', 'tcl10', 'tcl20', 'dsb', 'tdc', 'ddc', 'zdc', 'xdc', 'zdl1', 'zdl5', 'zdl10', 'wtp', 'unknow']
     data = []
-    for i in tqdm(range(1,26)):
-        url_sz = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=8&gtype=sz0&isdesc=1&page={}&t={}'.format(i, random.random())
-        url_sh = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=8&gtype=sh&isdesc=1&page={}&t={}'.format(i, random.random())
-        respSZ = requests.get(url_sz, headers=headers)
-        respSH = requests.get(url_sh, headers=headers)
+    for i in tqdm(range(1,16)):
+        url = 'http://ddx.gubit.cn/xg/zhddxlist2.php?&t={}&zh19=1'.format(random.random())
+        resp = requests.get(url, headers=headers)
         try:
-            data += respSH.json()['data']
-            data += respSZ.json()['data']
+            data += resp.json()['data']
         except Exception as e:
             print(e)
-            print('SH...',respSH.text)
-            print('SZ...',respSZ.text)
+            print('SH...',resp.text)
+
 
         time.sleep(0.2)
 
@@ -97,14 +94,14 @@ def ddxData():
     df = df.drop_duplicates()
     df['名称'] = df['代码'].apply(lambda x: industry[x] if x in industry else '新股')
     df = df.sort_values(by=['DDX1日'], ascending=(False))
-    print('实时刷新：',respSH.json()['updatetime'])
+    print('实时刷新：',resp.json()['updatetime'])
     return df
 
 
-class DDEWindow(QMainWindow,Ui_DDE):
+class AbsorbWindow(QMainWindow,Ui_Absorb):
 
     def __init__(self,parent=None):
-        super(DDEWindow,self).__init__(parent)
+        super(AbsorbWindow,self).__init__(parent)
         self.client = pymongo.MongoClient(host=MONGOHOST, port=27017)
         self.db = self.client['quant']
         self.stockList = None
@@ -318,7 +315,7 @@ if __name__ == '__main__':
     For My Dream Car  -----  Alfa Romeo Giulia
     """
     app = QApplication(sys.argv)
-    win = DDEWindow()
+    win = AbsorbWindow()
     win.show()
     # win.showMaximized()
     app.exec_()
