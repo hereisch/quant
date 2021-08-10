@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-#
+import time
+
 import pymongo
 import pandas as pd
 from PyQt5 import QtCore, QtGui
@@ -41,6 +43,7 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         self.code = None
         self.name = None
         self.SearchButton.clicked.connect(self.showStock)
+        self.AddStockButton.clicked.connect(self.AddStockPool)
         self.DownButton.clicked.connect(lambda: self.showStock(download=True))
         self.RefreshButton.clicked.connect(lambda: self.showStock(fresh=True))
         self.minPrice.returnPressed.connect(self.showStock)
@@ -219,6 +222,18 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         else:
             result = self.db.get_collection('today').find()
         return result,industry_all,
+
+
+    def AddStockPool(self):
+        today = time.strftime("%Y-%m-%d", time.localtime())
+        res = self.db.get_collection('today').find({"$and": [{"changepercent": {"$gte": 8}}, {"count": {"$gte": 4}}]})
+        r = self.db.get_collection('newTop').find({'date':today})
+        if not r:
+            for i in res:
+                i.pop('_id')
+                i['date'] = today
+                self.db.get_collection('newTop').insert(i)
+
 
     def mouseDoubleClickEvent(self, event):
         # print('双击事件：',event.row(), event.column())

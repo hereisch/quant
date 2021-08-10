@@ -125,6 +125,13 @@ class Ui_Selector(object):
         self.SearchButton.setIconSize(QtCore.QSize(10, 20))
         self.SearchButton.setObjectName("SearchButton")
         self.horizontalLayout.addWidget(self.SearchButton)
+
+        self.AddStockButton = QtWidgets.QPushButton(self.scrollAreaWidgetContents)
+        self.AddStockButton.setMaximumSize(QtCore.QSize(200, 100))
+        self.AddStockButton.setIconSize(QtCore.QSize(10, 20))
+        self.AddStockButton.setObjectName("AddStockButton")
+        self.horizontalLayout.addWidget(self.AddStockButton)
+
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.splitter_2 = QtWidgets.QSplitter(self.scrollAreaWidgetContents)
         self.splitter_2.setOrientation(QtCore.Qt.Vertical)
@@ -264,6 +271,7 @@ class Ui_Selector(object):
         self.DownButton.setText(_translate("MainWindow", "下载"))
         self.RefreshButton.setText(_translate("MainWindow", "刷新现价"))
         self.SearchButton.setText(_translate("MainWindow", "Search"))
+        self.AddStockButton.setText(_translate("MainWindow", "加自选"))
         self.tabK.setTabText(self.tabK.indexOf(self.Day), _translate("MainWindow", "Day"))
         self.tabK.setTabText(self.tabK.indexOf(self.min_30), _translate("MainWindow", "30min"))
         self.tabK.setTabText(self.tabK.indexOf(self.min_15), _translate("MainWindow", "15min"))

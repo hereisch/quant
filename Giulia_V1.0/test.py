@@ -258,6 +258,11 @@ if __name__ == '__main__':
     # count += respSH.json()['data']
     # print(respSZ.json()['data'])
 
+    res = db.get_collection('today').find({ "$and" : [{"changepercent" : { "$gte" : 8 }}, {"count" : { "$gte" : 4 }}] })
+    for i in res:
+        i.pop('_id')
+        i['date'] = time.strftime("%Y-%m-%d", time.localtime())
+        db.get_collection('newTop').insert(i)
 
 
 

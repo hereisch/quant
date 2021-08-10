@@ -35,7 +35,7 @@ pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 
 
-client = pymongo.MongoClient(host="192.168.0.28", port=27017)
+client = pymongo.MongoClient(host=MONGOHOST, port=27017)
 db = client['quant']
 
 User_Agent = [

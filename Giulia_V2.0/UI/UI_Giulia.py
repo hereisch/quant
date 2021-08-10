@@ -78,7 +78,7 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "韭菜助手_V2.0"))
         self.groupBox.setTitle(_translate("MainWindow", "功能列表"))
-        self.selectStockBtn.setText(_translate("MainWindow", "选股"))
+        self.selectStockBtn.setText(_translate("MainWindow", "创新高"))
         self.impactBoardBtn.setText(_translate("MainWindow", "打板"))
         self.stockPoolBtn.setText(_translate("MainWindow", "自选"))
         self.absorbBtn.setText(_translate("MainWindow", "阳包阴"))
