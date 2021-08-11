@@ -48,7 +48,7 @@ class StockPoolWindow(QMainWindow,Ui_StockPool):
         caldate_all = self.db.get_collection('newTop').distinct('date')
         caldate_all.sort(reverse=True)
         self.comboBox.addItems(['所有交易日']+caldate_all)
-        self.SearchButton.clicked.connect(self.showStock)
+        self.SearchButton.clicked.connect(lambda: self.showStock(msg='Search Button'))
         self.BeforeButton.clicked.connect(lambda: self.showStock(next=-1))
         self.NextButton.clicked.connect(lambda: self.showStock(next=1))
         self.NearButton.clicked.connect(lambda: self.showStock(near=True))
@@ -86,7 +86,8 @@ class StockPoolWindow(QMainWindow,Ui_StockPool):
         self.setLayout(layout)
 
 
-    def showStock(self,next=0,near=False):
+    def showStock(self,next=0,near=False,msg='000'):
+        print('Msg:',msg)
         if near:
             self.page=0
         self.topList = self.db.get_collection('topList').distinct('code')
@@ -101,6 +102,7 @@ class StockPoolWindow(QMainWindow,Ui_StockPool):
         highChange = self.maxChange.text()
         lowChange = self.minChange.text()
         caldateText = self.comboBox.currentText()
+
         res = self.initDB(lowPrice=lowPrice,highPrice=highPrice,highNMC=highNMC,lowNMC=lowNMC,highChange=highChange,lowChange=lowChange,page=next,)
         self.stockList = pd.DataFrame(res[0])
         # if caldateText != '' and caldateText != '所有交易日':

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-#
 import time
-
+from datetime import datetime, date, timedelta
 import pymongo
 import pandas as pd
 from PyQt5 import QtCore, QtGui
@@ -224,8 +224,13 @@ class SelectorWindow(QMainWindow,Ui_Selector):
 
 
     def AddStockPool(self):
-
+        """
+        添加自选，保存10日自选
+        :return:
+        """
         today = time.strftime("%Y-%m-%d", time.localtime())
+        day10 = (date.today() + timedelta(-10)).strftime('%Y%m%d')
+        self.db.get_collection('newTop').remove({'date':{'$lte':day10}})
         res = self.db.get_collection('today').find({"$or": [{"changepercent": {"$gte": 8}}, {"count": {"$gte": 7}}]})
         r = self.db.get_collection('newTop').find_one({'date':today})
         if not r:

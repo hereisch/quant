@@ -208,7 +208,8 @@ class Select():
             topItem['ma10'] = self.intersect[i['code']]['ma10']
             topItem['ma20'] = self.intersect[i['code']]['ma20']
         except Exception as e:
-            print('MA error',Coll,e)
+            # print('MA error',Coll,e)
+            pass
 
 
         # 上涨趋势 & 60日内新高，10日内回踩阳包阴
