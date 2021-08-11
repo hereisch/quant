@@ -7,7 +7,7 @@ from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QMainWindow
 import os
-from UI.UI_Selector import Ui_Selector
+from UI.UI_StockPool import Ui_StockPool
 import tushare as ts
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -27,26 +27,31 @@ pd.set_option('display.max_columns', None)
 
 
 
-class SelectorWindow(QMainWindow,Ui_Selector):
+class StockPoolWindow(QMainWindow,Ui_StockPool):
 
     def __init__(self,parent=None):
-        super(SelectorWindow,self).__init__(parent)
+        super(StockPoolWindow,self).__init__(parent)
         self.client = pymongo.MongoClient(host=MONGOHOST, port=27017)
         self.db = self.client['quant']
         self.stockList = None
-        self.header = ['code', 'name', 'industry', 'nmc','turnoverratio','volRatio','changepercent', 'trade','coverage', 'top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233','ma5','ma10','ma20']
-        self.headerCN = ['代码', '名称', '行业', '流通市值','换手率','成交量比','涨幅', '现价','阳包阴', '3日', '5日', '13日', '21日', '34日', '55日', '89日', '144日', '233日','5日线','10日线','20日线']
+        self.header = ['date','code', 'name', 'industry', 'nmc','turnoverratio','volRatio','changepercent', 'trade','coverage', 'top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233','ma5','ma10','ma20']
+        self.headerCN = ['日期','代码', '名称', '行业', '流通市值','换手率','成交量比','涨幅', '现价','阳包阴', '3日', '5日', '13日', '21日', '34日', '55日', '89日', '144日', '233日','5日线','10日线','20日线']
         self.setupUi(self)
         self.tabK.currentChanged.connect(self.tabShow)
         self.topList = self.db.get_collection('topList').distinct('code')
+        self.cal = self.db.get_collection('newTop').distinct('date')
+        self.cal.sort(reverse=True)
+        self.page = 0
         self.showStock()
         self.code = None
         self.name = None
-        self.comboBox.addItems(['所有行业'] + self.db.get_collection('today').distinct('industry'))
+        caldate_all = self.db.get_collection('newTop').distinct('date')
+        caldate_all.sort(reverse=True)
+        self.comboBox.addItems(['所有交易日']+caldate_all)
         self.SearchButton.clicked.connect(self.showStock)
-        self.AddStockButton.clicked.connect(self.AddStockPool)
-        self.DownButton.clicked.connect(lambda: self.showStock(download=True))
-        self.RefreshButton.clicked.connect(lambda: self.showStock(fresh=True))
+        self.BeforeButton.clicked.connect(lambda: self.showStock(next=-1))
+        self.NextButton.clicked.connect(lambda: self.showStock(next=1))
+        self.NearButton.clicked.connect(lambda: self.showStock(near=True))
         self.minPrice.returnPressed.connect(self.showStock)
         self.maxPrice.returnPressed.connect(self.showStock)
         self.maxNMC.returnPressed.connect(self.showStock)
@@ -81,11 +86,9 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         self.setLayout(layout)
 
 
-    def showStock(self,fresh=False,download=False):
-        if fresh is True:
-            refresh()
-        if download is True:
-            downStock()
+    def showStock(self,next=0,near=False):
+        if near:
+            self.page=0
         self.topList = self.db.get_collection('topList').distinct('code')
         # 设置数据层次结构，2行2列
         self.model = QStandardItemModel(2, 2)
@@ -97,28 +100,28 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         lowNMC = self.minNMC.text()
         highChange = self.maxChange.text()
         lowChange = self.minChange.text()
-        industryText = self.comboBox.currentText()
-        res = self.initDB(lowPrice=lowPrice,highPrice=highPrice,highNMC=highNMC,lowNMC=lowNMC,highChange=highChange,lowChange=lowChange)
-        self.stockList = pd.DataFrame(list(res))
-        if industryText != '' and industryText != '所有行业':
-            self.stockList = self.stockList[self.stockList['industry']==industryText]
+        caldateText = self.comboBox.currentText()
+        res = self.initDB(lowPrice=lowPrice,highPrice=highPrice,highNMC=highNMC,lowNMC=lowNMC,highChange=highChange,lowChange=lowChange,page=next,)
+        self.stockList = pd.DataFrame(res[0])
+        # if caldateText != '' and caldateText != '所有交易日':
+        #     self.stockList = self.stockList[self.stockList['date']==caldateText]
 
         self.stockList['nmc'] = self.stockList['nmc'] / 10000
         self.stockList['nmc'] = self.stockList['nmc'].round(2)
         self.stockList['turnoverratio'] = self.stockList['turnoverratio'].round(3)
 
         if self.changePercent.isChecked():
-            self.stockList = self.stockList.sort_values(by=['changepercent',],ascending=(False,))
+            self.stockList = self.stockList.sort_values(by=['date','changepercent',],ascending=(False,False,))
         elif self.sortPrice.isChecked():
-            self.stockList = self.stockList.sort_values(by=['trade'], ascending=(True))
+            self.stockList = self.stockList.sort_values(by=['date','trade'], ascending=(False,True))
         elif self.sortVol.isChecked():
-            self.stockList = self.stockList.sort_values(by=['volRatio','count','changepercent'],ascending=(False,False,False))
+            self.stockList = self.stockList.sort_values(by=['date','volRatio','count','changepercent'],ascending=(False,False,False,False))
         elif self.sortCount.isChecked():
-            self.stockList = self.stockList.sort_values(by=['count','changepercent','volRatio'],ascending=(False,False,False))
+            self.stockList = self.stockList.sort_values(by=['date','count','changepercent','volRatio'],ascending=(False,False,False,False))
         elif self.profit.isChecked():
-            self.stockList = self.stockList.sort_values(by=['profit', 'count', 'changepercent'], ascending=(False, False, False))
+            self.stockList = self.stockList.sort_values(by=['date','profit', 'count', 'changepercent'], ascending=(False,False, False, False))
         elif self.coverage.isChecked():
-            self.stockList = self.stockList.sort_values(by=['coverage','changepercent'], ascending=(False, False))
+            self.stockList = self.stockList.sort_values(by=['date','coverage','changepercent'], ascending=(False,False, False))
 
 
 
@@ -161,7 +164,7 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         # 设置tableview所有列的默认行高为10
         self.stockTable.verticalHeader().setDefaultSectionSize(20)
         # 设置tableview所有行的默认列宽为15
-        self.stockTable.horizontalHeader().setDefaultSectionSize(80)
+        self.stockTable.horizontalHeader().setDefaultSectionSize(100)
 
         layout = QVBoxLayout()
         layout.addWidget(self.stockTable)
@@ -199,9 +202,15 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         plotly.offline.plot(fig, filename=tabpage+'.html', auto_open=False)
         return tabpage+'.html'
 
-    def initDB(self,lowPrice='',highPrice='',highNMC='',lowNMC='',highChange='',lowChange=''):
-
+    def initDB(self,lowPrice='',highPrice='',highNMC='',lowNMC='',highChange='',lowChange='',page=0,):
         query = []
+        if type(page) is int:
+            self.page += page
+            caldate = self.cal[abs(self.page) % len(self.cal)]
+        else:
+            caldate=page
+
+        query.append({"date": caldate})
 
         if lowPrice.isdigit():
             query.append({"trade" : { "$gte" : int(lowPrice) }})
@@ -217,22 +226,14 @@ class SelectorWindow(QMainWindow,Ui_Selector):
             query.append({"changepercent" : { "$lte" : int(highChange) }})
 
         if query:
-            result = self.db.get_collection('today').find({ "$and" : query})
+            result = self.db.get_collection('newTop').find({ "$and" : query})
         else:
-            result = self.db.get_collection('today').find()
-        return result
+            result = self.db.get_collection('newTop').find()
 
 
-    def AddStockPool(self):
+        return list(result),
 
-        today = time.strftime("%Y-%m-%d", time.localtime())
-        res = self.db.get_collection('today').find({"$or": [{"changepercent": {"$gte": 8}}, {"count": {"$gte": 7}}]})
-        r = self.db.get_collection('newTop').find_one({'date':today})
-        if not r:
-            for i in res:
-                i.pop('_id')
-                i['date'] = today
-                self.db.get_collection('newTop').insert(i)
+
 
 
     def mouseDoubleClickEvent(self, event):
@@ -269,7 +270,7 @@ if __name__ == '__main__':
     For My Dream Car  -----  Alfa Romeo Giulia
     """
     app = QApplication(sys.argv)
-    win = SelectorWindow()
+    win = StockPoolWindow()
     win.show()
     # win.showMaximized()
     app.exec_()

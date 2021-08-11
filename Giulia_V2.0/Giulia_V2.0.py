@@ -21,7 +21,7 @@ from Impact import ImpactWindow
 from RiseN import RiseNWindow
 from ddeDecision import DDEWindow
 from absorb import AbsorbWindow
-
+from StockPool import StockPoolWindow
 
 pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
@@ -41,8 +41,8 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.qsl.addWidget(self.selectorWindow)
         self.impact = ImpactWindow()
         self.qsl.addWidget(self.impact)
-        self.pool = QMainWindow()
-        self.qsl.addWidget(self.pool)
+        self.stockpool = StockPoolWindow()
+        self.qsl.addWidget(self.stockpool)
         self.absorb = AbsorbWindow()
         self.qsl.addWidget(self.absorb)
         self.riseN = RiseNWindow()

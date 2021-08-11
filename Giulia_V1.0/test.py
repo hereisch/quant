@@ -244,10 +244,12 @@ if __name__ == '__main__':
     # df['名称'] = df['代码'].apply(lambda x:industry[x])
     # df = df.sort_values(by=['DDX1日'],ascending=(False))
     # print(df)
+
+
     url_sz = 'http://ddx.gubit.cn/xg/zhddxlist2.php?&t={}&zh19=1'.format(random.random())
     # url_sh = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=5&gtype=sh&isdesc=1&page={}&t={}'.format(1, random.random())
-    respSZ = requests.get(url_sz, headers=headers)
-    print(respSZ.text)
+    # respSZ = requests.get(url_sz, headers=headers)
+    # print(respSZ.text)
     # respSH = requests.get(url_sh, headers=headers)
     # count = respSZ.json()['data'] + respSH.json()['data']
     # ddx_config = ['代码', '最新价', '涨幅', '换手率', '量比', 'DDX1日', 'DDY1日', 'DDZ', 'DDX3日', 'DDX5日', 'DDX10日', 'DDX60日', 'DDX5红', 'DDX10红', 'DDX连红', 'DDX连增', '涨幅3日', '涨幅5日', '涨幅10日', 'DDY3日', 'DDY5日',
@@ -258,11 +260,9 @@ if __name__ == '__main__':
     # count += respSH.json()['data']
     # print(respSZ.json()['data'])
 
-    res = db.get_collection('today').find({ "$and" : [{"changepercent" : { "$gte" : 8 }}, {"count" : { "$gte" : 4 }}] })
-    for i in res:
-        i.pop('_id')
-        i['date'] = time.strftime("%Y-%m-%d", time.localtime())
-        db.get_collection('newTop').insert(i)
+    res = db.get_collection('newTop').distinct('date')
+    res.sort(reverse=True)
+    print(res)
 
 
 
