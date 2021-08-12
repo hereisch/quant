@@ -26,7 +26,8 @@ pd.set_option('display.max_columns', None)
 client = pymongo.MongoClient(host=MONGOHOST, port=27017)
 db = client['quant']
 
-locale.setlocale(locale.LC_CTYPE, 'chinese')
+if os.name == 'nt':
+    locale.setlocale(locale.LC_CTYPE, 'chinese')
 
 
 def async_(f):

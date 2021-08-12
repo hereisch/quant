@@ -58,7 +58,7 @@ class StockPoolWindow(QMainWindow,Ui_StockPool):
         self.minNMC.returnPressed.connect(self.showStock)
         self.minChange.returnPressed.connect(self.showStock)
         self.maxChange.returnPressed.connect(self.showStock)
-        self.comboBox.currentIndexChanged[str].connect(self.showStock)
+        self.comboBox.currentIndexChanged.connect(self.showStock)
 
 
     def tabShow(self,x):
@@ -86,10 +86,11 @@ class StockPoolWindow(QMainWindow,Ui_StockPool):
         self.setLayout(layout)
 
 
-    def showStock(self,next=0,near=False,msg='000'):
+    def showStock(self,next=0,near=False,msg='StockPool'):
         print('Msg:',msg)
         if near:
             self.page=0
+
         self.topList = self.db.get_collection('topList').distinct('code')
         # 设置数据层次结构，2行2列
         self.model = QStandardItemModel(2, 2)
