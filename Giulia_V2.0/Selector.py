@@ -228,16 +228,27 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         添加自选，保存10日自选
         :return:
         """
+        now_time = datetime.now()
+        close_time = datetime.strptime(str(datetime.now().date()) + '15:00', '%Y-%m-%d%H:%M')
+        open_time = datetime.strptime(str(datetime.now().date()) + '9:30', '%Y-%m-%d%H:%M')
         today = time.strftime("%Y-%m-%d", time.localtime())
-        day10 = (date.today() + timedelta(-10)).strftime('%Y%m%d')
+        yesterday = (date.today() + timedelta(-1)).strftime('%Y-%m-%d')
+        day10 = (date.today() + timedelta(-10)).strftime('%Y-%m-%d')
+        print(now_time,day10)
         self.db.get_collection('newTop').remove({'date':{'$lte':day10}})
         res = self.db.get_collection('today').find({"$or": [{"changepercent": {"$gte": 8}}, {"count": {"$gte": 7}}]})
-        r = self.db.get_collection('newTop').find_one({'date':today})
-        if not r:
-            for i in res:
-                i.pop('_id')
+        for i in res:
+            i.pop('_id')
+
+            if now_time < open_time:
+                r = self.db.get_collection('newTop').find_one({'date':yesterday,'code':i['code']})
+                i['date'] = yesterday
+            else:
+                r = self.db.get_collection('newTop').find_one({'date':today,'code':i['code']})
                 i['date'] = today
+            if not r:
                 self.db.get_collection('newTop').insert(i)
+                print('Add StockPool:',i)
 
 
     def mouseDoubleClickEvent(self, event):
