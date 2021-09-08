@@ -46,7 +46,7 @@ class Select():
         if init:
             self.data = ts.get_today_all() #今日复盘
             # data = ts.get_day_all(date='2021-02-18')   #历史复盘
-            filt = self.data['code'].str.contains('^(?!688|605|300|301)')
+            filt = self.data['code'].str.contains('^(?!688|605|300|301|000792)')
             self.data = self.data[filt]
             filt = self.data['name'].str.contains('^(?!S|退市|\*ST|N)')
             self.data = self.data[filt]
@@ -202,6 +202,11 @@ class Select():
             except :
                 pass
         topItem['count'] = count
+
+        if df['p_change'][0] > -2 and df['p_change'][1] >-2 and df['p_change'][2] <0 :
+            topItem['red3day'] = round(df[:3]['p_change'].mean(),2)
+        else:
+            topItem['red3day'] = -1
         try:
             # topItem['ma5'] = round(self.intersect[i['code']]['ma5'] / self.intersect[i['code']]['ma10']-1,3)
             topItem['ma5'] = self.intersect[i['code']]['ma5']

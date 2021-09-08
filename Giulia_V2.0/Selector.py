@@ -34,8 +34,8 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         self.client = pymongo.MongoClient(host=MONGOHOST, port=27017)
         self.db = self.client['quant']
         self.stockList = None
-        self.header = ['code', 'name', 'industry', 'nmc','turnoverratio','volRatio','changepercent', 'trade','coverage', 'top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233','ma5','ma10','ma20']
-        self.headerCN = ['代码', '名称', '行业', '流通市值','换手率','成交量比','涨幅', '现价','阳包阴', '3日', '5日', '13日', '21日', '34日', '55日', '89日', '144日', '233日','5日线','10日线','20日线']
+        self.header = ['code', 'name', 'industry', 'nmc','turnoverratio','volRatio','changepercent', 'trade','coverage', 'red3day','top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233','ma5','ma10','ma20']
+        self.headerCN = ['代码', '名称', '行业', '流通市值','换手率','成交量比','涨幅', '现价','阳包阴', '三连阳','3日', '5日', '13日', '21日', '34日', '55日', '89日', '144日', '233日','5日线','10日线','20日线']
         self.setupUi(self)
         self.tabK.currentChanged.connect(self.tabShow)
         self.topList = self.db.get_collection('topList').distinct('code')
@@ -118,7 +118,7 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         elif self.profit.isChecked():
             self.stockList = self.stockList.sort_values(by=['profit', 'count', 'changepercent'], ascending=(False, False, False))
         elif self.coverage.isChecked():
-            self.stockList = self.stockList.sort_values(by=['coverage','changepercent'], ascending=(False, False))
+            self.stockList = self.stockList.sort_values(by=['red3day','coverage'], ascending=(False, False))
 
 
 
@@ -143,6 +143,9 @@ class SelectorWindow(QMainWindow,Ui_Selector):
                     if idx == self.header.index('changepercent') and itemX['open'] == itemX['high'] and itemX['changepercent'] > 9:
                         # 涨停高开一字板
                         item.setBackground(QColor(255, 10, 10))
+                    if idx == self.header.index('red3day') and itemX[itemY] >=0:
+                        # 三红兵
+                        item.setBackground(QColor(230, 30, 30))
 
                     # if idx >= self.header.index('ma5') and type(itemX[itemY]) == str:
                     #     item.setBackground(QColor(204,102,255))
@@ -162,7 +165,8 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         self.stockTable.verticalHeader().setDefaultSectionSize(20)
         # 设置tableview所有行的默认列宽为15
         self.stockTable.horizontalHeader().setDefaultSectionSize(80)
-
+        # self.stockTable.resizeRowsToContents()
+        # self.stockTable.resizeColumnsToContents()
         layout = QVBoxLayout()
         layout.addWidget(self.stockTable)
         self.setLayout(layout)
@@ -225,7 +229,7 @@ class SelectorWindow(QMainWindow,Ui_Selector):
 
     def AddStockPool(self):
         """
-        添加自选，保存10日自选
+        添加自选，保存15日自选
         :return:
         """
         now_time = datetime.now()
@@ -233,7 +237,7 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         open_time = datetime.strptime(str(datetime.now().date()) + '9:30', '%Y-%m-%d%H:%M')
         today = time.strftime("%Y-%m-%d", time.localtime())
         yesterday = (date.today() + timedelta(-1)).strftime('%Y-%m-%d')
-        day10 = (date.today() + timedelta(-10)).strftime('%Y-%m-%d')
+        day10 = (date.today() + timedelta(-15)).strftime('%Y-%m-%d')
         print(now_time,day10)
         self.db.get_collection('newTop').remove({'date':{'$lte':day10}})
         res = self.db.get_collection('today').find({"$or": [{"changepercent": {"$gte": 8}}, {"count": {"$gte": 7}}]})

@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Selector(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1610, 1051)
+        MainWindow.resize(2000,1200)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.centralwidget)
@@ -267,7 +267,7 @@ class Ui_Selector(object):
         self.sortCount.setText(_translate("MainWindow", "创新高↓"))
         self.changePercent.setText(_translate("MainWindow", "涨幅↓"))
         self.profit.setText(_translate("MainWindow", "获利盘↓"))
-        self.coverage.setText(_translate("MainWindow", "阳包阴↓"))
+        self.coverage.setText(_translate("MainWindow", "三连阳↓"))
         self.DownButton.setText(_translate("MainWindow", "下载"))
         self.RefreshButton.setText(_translate("MainWindow", "刷新现价"))
         self.SearchButton.setText(_translate("MainWindow", "Search"))

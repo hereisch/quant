@@ -49,8 +49,8 @@ class StockPoolWindow(QMainWindow,Ui_StockPool):
         caldate_all.sort(reverse=True)
         self.comboBox.addItems(['所有交易日']+caldate_all)
         self.SearchButton.clicked.connect(lambda: self.showStock(msg='Search Button'))
-        self.BeforeButton.clicked.connect(lambda: self.showStock(next=-1))
-        self.NextButton.clicked.connect(lambda: self.showStock(next=1))
+        self.BeforeButton.clicked.connect(lambda: self.showStock(next=1))
+        self.NextButton.clicked.connect(lambda: self.showStock(next=-1))
         self.NearButton.clicked.connect(lambda: self.showStock(near=True))
         self.minPrice.returnPressed.connect(self.showStock)
         self.maxPrice.returnPressed.connect(self.showStock)
@@ -90,7 +90,8 @@ class StockPoolWindow(QMainWindow,Ui_StockPool):
         print('Msg:',msg)
         if near:
             self.page=0
-
+        self.cal = self.db.get_collection('newTop').distinct('date')
+        self.cal.sort(reverse=True)
         self.topList = self.db.get_collection('topList').distinct('code')
         # 设置数据层次结构，2行2列
         self.model = QStandardItemModel(2, 2)
@@ -168,6 +169,8 @@ class StockPoolWindow(QMainWindow,Ui_StockPool):
         self.stockTable.verticalHeader().setDefaultSectionSize(20)
         # 设置tableview所有行的默认列宽为15
         self.stockTable.horizontalHeader().setDefaultSectionSize(100)
+        # self.stockTable.resizeRowsToContents()
+        # self.stockTable.resizeColumnsToContents()
 
         layout = QVBoxLayout()
         layout.addWidget(self.stockTable)

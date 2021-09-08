@@ -243,9 +243,11 @@ class DDEWindow(QMainWindow,Ui_DDE):
         # 双击取值
         self.stockTable.doubleClicked.connect(self.mouseDoubleClickEvent)
         # 设置tableview所有列的默认行高为10
-        self.stockTable.verticalHeader().setDefaultSectionSize(20)
+        # self.stockTable.verticalHeader().setDefaultSectionSize(20)
         # 设置tableview所有行的默认列宽为15
-        self.stockTable.horizontalHeader().setDefaultSectionSize(80)
+        # self.stockTable.horizontalHeader().setDefaultSectionSize(80)
+        self.stockTable.resizeRowsToContents()
+        self.stockTable.resizeColumnsToContents()
 
         layout = QVBoxLayout()
         layout.addWidget(self.stockTable)
