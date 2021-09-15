@@ -112,6 +112,33 @@ class Select():
             db.get_collection('base').insert(dict(i))
 
 
+    def AddStockPool(self):
+        """
+        添加自选，保存15日自选
+        :return:
+        """
+        now_time = datetime.now()
+        close_time = datetime.strptime(str(datetime.now().date()) + '15:00', '%Y-%m-%d%H:%M')
+        open_time = datetime.strptime(str(datetime.now().date()) + '9:30', '%Y-%m-%d%H:%M')
+        today = time.strftime("%Y-%m-%d", time.localtime())
+        yesterday = (date.today() + timedelta(-1)).strftime('%Y-%m-%d')
+        day10 = (date.today() + timedelta(-15)).strftime('%Y-%m-%d')
+        print(now_time,day10)
+        db.get_collection('newTop').remove({'date':{'$lte':day10}})
+        res = db.get_collection('today').find({"$or": [{"changepercent": {"$gte": 8}}, {"count": {"$gte": 7}}]})
+        for i in res:
+            i.pop('_id')
+            if now_time < open_time:
+                r = db.get_collection('newTop').find_one({'date':yesterday,'code':i['code']})
+                i['date'] = yesterday
+            elif now_time > close_time:
+                r = db.get_collection('newTop').find_one({'date':today,'code':i['code']})
+                i['date'] = today
+            if not r:
+                db.get_collection('newTop').insert(i)
+                print('Add StockPool:',i)
+
+
     def download(self,):
         """
         增量获取数据
@@ -327,6 +354,7 @@ def downStock(init=True):
         s.riseN()
         s.riseN(p_change=9,coll='strong')  # N日内强势票
         s.impactPool()
+        s.AddStockPool()
 
 
 @async_
