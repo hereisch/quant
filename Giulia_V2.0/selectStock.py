@@ -349,7 +349,7 @@ def downStock(init=True):
     print('数据下载完毕....', time.strftime('%Y年%m月%d日%H时%M分%S秒'))
     # 收盘前不可用
     now_time = datetime.now()
-    close_time =datetime.strptime(str(datetime.now().date())+'15:30', '%Y-%m-%d%H:%M')
+    close_time =datetime.strptime(str(datetime.now().date())+'15:00', '%Y-%m-%d%H:%M')
     if now_time > close_time:
         s.riseN()
         s.riseN(p_change=9,coll='strong')  # N日内强势票
