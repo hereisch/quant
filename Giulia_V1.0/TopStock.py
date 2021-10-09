@@ -5,7 +5,7 @@ import pymongo
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
-
+from CONSTANT import MONGOHOST
 
 class StockTable(QWidget):
     def __init__(self, parent=None):
@@ -56,7 +56,7 @@ class StockTable(QWidget):
         self.setLayout(layout)
 
     def initDB(self):
-        client = pymongo.MongoClient(host="192.168.0.28", port=27017)
+        client = pymongo.MongoClient(host=MONGOHOST, port=27017)
         db = client['quant']
         result = db.get_collection('today').find()
         return result

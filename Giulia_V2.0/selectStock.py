@@ -16,7 +16,7 @@ from Ui_Giulia import Ui_MainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets
 from CONSTANT import MONGOHOST
 from jetton import jetton
-
+from BK_fund import fundBK
 
 
 pd.set_option('display.width', 5000)
@@ -46,7 +46,7 @@ class Select():
         if init:
             self.data = ts.get_today_all() #今日复盘
             # data = ts.get_day_all(date='2021-02-18')   #历史复盘
-            filt = self.data['code'].str.contains('^(?!688|605|300|301|000792)')
+            filt = self.data['code'].str.contains('^(?!688|605|300|301|000792|601868)')
             self.data = self.data[filt]
             filt = self.data['name'].str.contains('^(?!S|退市|\*ST|N)')
             self.data = self.data[filt]
@@ -351,6 +351,7 @@ def downStock(init=True):
     now_time = datetime.now()
     close_time =datetime.strptime(str(datetime.now().date())+'15:00', '%Y-%m-%d%H:%M')
     if now_time > close_time:
+        fundBK()
         s.riseN()
         s.riseN(p_change=9,coll='strong')  # N日内强势票
         s.impactPool()
