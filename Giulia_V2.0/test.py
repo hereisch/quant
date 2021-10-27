@@ -71,16 +71,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
-        self.client = pymongo.MongoClient(host="192.168.0.28", port=27017)
-        self.setupUi(self)
-        self.SearchButton.clicked.connect(self.dumiao)
-        self._translate = QtCore.QCoreApplication.translate
+        client = pymongo.MongoClient(host="192.168.0.28", port=27017)
+        setupUi(self)
+        SearchButton.clicked.connect(dumiao)
+        _translate = QtCore.QCoreApplication.translate
 
     def dumiao(self):
         for i in range(30):
             print(i)
             QtWidgets.QApplication.processEvents()
-            self.DownButton.setText(self._translate("MainWindow", str(i)))
+            DownButton.setText(_translate("MainWindow", str(i)))
 
 
 
@@ -260,14 +260,26 @@ if __name__ == '__main__':
     # count += respSH.json()['data']
     # print(respSZ.json()['data'])
 
-    kk = db.get_collection('dayK').find({'code':'002498'}).sort('date', -1)
-    df = pd.DataFrame(list(kk))
-    print(df[:3]['p_change'])
-    # print(df[:3]['p_change'].mean())
-    print(df['p_change'][1])
-    print(df['p_change'][2])
-    print(df['p_change'][3])
-
+    # data = ts.get_today_all()  # 今日复盘
+    # # data = ts.get_day_all(date='2021-02-18')   #历史复盘
+    # filt = data['code'].str.contains('^(?!688|605|300|301|000792|601868)')
+    # data = data[filt]
+    # filt = data['name'].str.contains('^(?!S|退市|\*ST|N)')
+    # data = data[filt]
+    # data = data.drop_duplicates()
+    # # data = data[data['trade'] >= 2]
+    # # data = data[data['changepercent'] > 0]
+    # data = data.to_json(orient='records')
+    # for i in eval(data):
+    #     db.get_collection('temp').insert(i)
+    base = db.get_collection('base').find()
+    industry = {i['code']: i['industry'] for i in base}
+    res = db.get_collection('temp').find()
+    for i in res:
+        try:
+            db.get_collection('temp').update_many({'code': i['code']}, {'$set': {'industry': industry[i['code']]}})
+        except:
+            pass
 
 
 

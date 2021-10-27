@@ -45,4 +45,4 @@ def stat(code):
 if __name__ == '__main__':
 
     # code = input('代码：')
-    stat('600642')
+    stat('603488')

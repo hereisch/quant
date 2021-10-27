@@ -174,11 +174,16 @@ class DDEWindow(QMainWindow,Ui_DDE):
             self.stockList = self.stockList[self.stockList['最新价'] <= float(highPrice)]
         if lowPrice.isdigit():
             self.stockList = self.stockList[self.stockList['最新价'] >= float(lowPrice)]
-        if highChange.isdigit():
+        try:
+            highChange = eval(highChange)
             self.stockList = self.stockList[self.stockList['涨幅'] <= float(highChange)]
-        if lowChange.isdigit():
+        except:
+            pass
+        try:
+            lowChange = eval(lowChange)
             self.stockList = self.stockList[self.stockList['涨幅'] >= float(lowChange)]
-
+        except:
+            pass
 
         # 设置数据层次结构，2行2列
         self.model = QStandardItemModel(2, 2)

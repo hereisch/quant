@@ -52,7 +52,7 @@ class Select():
             self.data = self.data[filt]
             self.data = self.data.drop_duplicates()
             data = self.data[self.data['trade']>=2]
-            data = data[data['changepercent']>0]
+            data = data[data['changepercent']>-3]
             data = data.to_json(orient='records')
             db.get_collection('today').remove()
             base = db.get_collection('base').find()

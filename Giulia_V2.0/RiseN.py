@@ -36,7 +36,7 @@ class RiseNWindow(QMainWindow,Ui_impactWindow):
         self.comboBox.currentIndexChanged[str].connect(self.showStock)
         self.stockList = None
         self.header = ['code','name','riseNum','trade','date']
-        self.headerCN = ['代码', '名称','连阳数','现价','日期']
+        self.headerCN = ['代码', '名称','10日连阳数','现价','日期']
         self.tabK.currentChanged.connect(self.tabShow)
         self.topList = self.db.get_collection('topList').distinct('code')
         self.showStock()

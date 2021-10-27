@@ -183,7 +183,7 @@ def fundBK():
                         '大单净额': i['f72'], '大单净占比': i['f75'], '中单净额': i['f78'], '中单净占比': i['f81'], '小单净额': i['f84'], '小单净占比': i['f87'], 'date': today}
                 if not db.get_collection('BK_stock').find_one(item) and i['f2'] != '-':
                     db.get_collection('BK_stock').insert(item)
-                    print(item)
+                    # print(item)
 
 
 
