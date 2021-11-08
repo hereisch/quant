@@ -374,6 +374,15 @@ def refresh():
     #     s.impactPool()
 
 
+def longhu():
+    db.get_collection('topList').remove()
+    longhu = ts.top_list()
+    longhu = longhu.to_json(orient='index', )
+    longhu = json.loads(longhu)
+    for k, v in longhu.items():
+        db.get_collection('topList').insert(v)
+
+
 if __name__ == '__main__':
 
     """
@@ -383,6 +392,7 @@ if __name__ == '__main__':
 
     downStock(init=True)
     # refresh()
+
 
 #################################################################
 

@@ -15,8 +15,8 @@ class Ui_DDE(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(2000, 1200)
-        MainWindow.setWindowOpacity(0.5)
-        MainWindow.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+        # MainWindow.setWindowOpacity(0.5)
+        # MainWindow.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.centralwidget)

@@ -272,16 +272,10 @@ if __name__ == '__main__':
     # data = data.to_json(orient='records')
     # for i in eval(data):
     #     db.get_collection('temp').insert(i)
-    base = db.get_collection('base').find()
-    industry = {i['code']: i['industry'] for i in base}
-    res = db.get_collection('temp').find()
-    for i in res:
-        try:
-            db.get_collection('temp').update_many({'code': i['code']}, {'$set': {'industry': industry[i['code']]}})
-        except:
-            pass
 
-
+    df = ts.get_sina_dd('600023',date='2021-10-28')
+    print(df)
+    a = 'http://vip.stock.finance.sina.com.cn/quotes_service/view/cn_bill_all.php?num=100&page=1&sort=ticktime&asc=0&volume=40000&type=0&symbol=sh600023'
 
 
 
