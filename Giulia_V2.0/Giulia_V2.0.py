@@ -22,6 +22,8 @@ from RiseN import RiseNWindow
 from ddeDecision import DDEWindow
 from absorb import AbsorbWindow
 from StockPool import StockPoolWindow
+from HSfund import HSfundWindow
+
 
 pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
@@ -49,6 +51,8 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.qsl.addWidget(self.riseN)
         self.dde = DDEWindow()
         self.qsl.addWidget(self.dde)
+        self.HSfund = HSfundWindow()
+        self.qsl.addWidget(self.HSfund)
 
 
         self.selectStockBtn.clicked.connect(self.switch)
@@ -57,6 +61,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         self.absorbBtn.clicked.connect(self.switch)
         self.NRiseUpBtn.clicked.connect(self.switch)
         self.DDEBtn.clicked.connect(self.switch)
+        self.HSfundBtn.clicked.connect(self.switch)
 
 
     def switch(self):
@@ -68,6 +73,7 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             "absorbBtn":3,
             "NRiseUpBtn":4,
             "DDEBtn":5,
+            "HSfundBtn":6
         }
         self.qsl.setCurrentIndex(index[sender])
 
