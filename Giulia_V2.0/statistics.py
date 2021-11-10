@@ -175,9 +175,9 @@ def fundStock(code:str):
         # tb_market.add_row([sh,sh_percent,deal_detail['name'][0],deal_detail['price'][0],round((float(deal_detail['price'][0])-float(deal_detail['pre_close'][0]))/float(deal_detail['pre_close'][0])*100,2),deal_detail['pre_close'][0]])
         
         if market['price'][0] > market['pre_close'][0]:
-            title = color.red('{}/{}%'.format(sh,sh_percent))  
+            title = color.red('{}/{}%↑'.format(sh,sh_percent))  
         else:
-            title = color.green('{}/{}%'.format(sh,sh_percent))
+            title = color.green('{}/{}%↓'.format(sh,sh_percent))
 
         if deal_detail['price'][0] > deal_detail['pre_close'][0]:
             p = color.red(str(deal_detail['price'][0])+'↑')
@@ -189,7 +189,7 @@ def fundStock(code:str):
             c = color.green('{}%↓'.format(data['f170']/100))
         
         print('上证:',title)
-        print('{}\t现价:{}\t涨幅:{}%\t昨收:{}'.format(deal_detail['name'][0],p,c,deal_detail['pre_close'][0]))
+        print('{}\t现价:{}\t涨幅:{}\t昨收:{}'.format(deal_detail['name'][0],p,c,deal_detail['pre_close'][0]))
         print(ptb)
         # print(tb_deal)
         # print(tb)
