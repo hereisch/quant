@@ -130,7 +130,7 @@ class Ui_HSfund(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "HSfund"))
         self.labelPrice.setText(_translate("MainWindow", "价格区间："))
         self.label_.setText(_translate("MainWindow", "-"))
         self.labelChange.setText(_translate("MainWindow", "涨幅："))

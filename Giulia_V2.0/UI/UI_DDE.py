@@ -253,7 +253,7 @@ class Ui_DDE(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "DDE"))
         self.labelPrice.setText(_translate("MainWindow", "价格区间："))
         self.label_.setText(_translate("MainWindow", "-"))
         self.labelNMC.setText(_translate("MainWindow", "待定："))

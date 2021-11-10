@@ -198,7 +198,9 @@ def fundHS():
     now_time = datetime.now()
     data = []
     for page in tqdm(range(1,4)):
-        """主力净额排序前300"""
+
+
+        # 主力净额排序前300
         url = 'http://push2.eastmoney.com/api/qt/clist/get?' \
               'fid=f62&po=1&pz=100&pn={}&np=1&fltt=2&invt=2&ut=b2884a393a59ad64002292a3e90d46a5' \
               '&fs=m%3A0%2Bt%3A6%2Bf%3A!2%2Cm%3A0%2Bt%3A13%2Bf%3A!2%2Cm%3A0%2Bt%3A80%2Bf%3A!2%2Cm%3A1%2Bt%3A2%2Bf%3A!2%2Cm%3A1%2Bt%3A23%2Bf%3A!2%2Cm%3A0%2Bt%3A7%2Bf%3A!2%2Cm%3A1%2Bt%3A3%2Bf%3A!2' \
@@ -208,24 +210,25 @@ def fundHS():
         for i in js['data']['diff']:
             # print(i)
             data.append(i)
-        time.sleep(2)
-        """主力净占比排序前300"""
+        time.sleep(1)
 
+
+        # 主力净占比排序前300
         url2 = 'http://push2.eastmoney.com/api/qt/clist/get?' \
                'fid=f184&po=1&pz=100&pn={}&np=1&fltt=2&invt=2&ut=b2884a393a59ad64002292a3e90d46a5' \
                '&fs=m%3A0%2Bt%3A6%2Bf%3A!2%2Cm%3A0%2Bt%3A13%2Bf%3A!2%2Cm%3A0%2Bt%3A80%2Bf%3A!2%2Cm%3A1%2Bt%3A2%2Bf%3A!2%2Cm%3A1%2Bt%3A23%2Bf%3A!2%2Cm%3A0%2Bt%3A7%2Bf%3A!2%2Cm%3A1%2Bt%3A3%2Bf%3A!2' \
                '&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'.format(page)
         resp2 = requests.get(url2, headers=headers)
-        js2 = resp.json()
+        js2 = resp2.json()
         for i in js2['data']['diff']:
             # print(i)
             data.append(i)
-        time.sleep(2)
+        time.sleep(1)
 
 
     data = pd.DataFrame(data)
-    data = data.drop_duplicates()
-    filt = data['f12'].str.contains('^(?!688|605|300|301|200)')
+    data = data.drop_duplicates(subset=['f12'])
+    filt = data['f12'].str.contains('^(?!688|605|300|301|200|900)')
     data = data[filt]
     filt = data['f14'].str.contains('^(?!S|退市|\*ST|N)')
     data = data[filt]
@@ -238,9 +241,6 @@ def fundHS():
     data = data.reset_index(drop=True)
     # print(data)
     return data
-
-
-
 
 
 
