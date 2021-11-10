@@ -80,7 +80,7 @@ def fundStock(code:str):
 
         print(tb)
 
-        time.sleep(10)
+        time.sleep(5)
 
 
 
