@@ -81,16 +81,26 @@ def fundStock(code:str):
     """个股资金查询"""
     color = Colored()
     code = '1.' + code if code.startswith('6') else '0.' + code
+    open_time = datetime.strptime(str(datetime.now().date()) + '9:30', '%Y-%m-%d%H:%M')
     close_time = datetime.strptime(str(datetime.now().date()) + '15:00', '%Y-%m-%d%H:%M')
-    now_time = datetime.now()
+    forenoon = datetime.strptime(str(datetime.now().date()) + '11:30', '%Y-%m-%d%H:%M')
+    afternoon = datetime.strptime(str(datetime.now().date()) + '13:30', '%Y-%m-%d%H:%M')
+    
     while True:
-
-        os.system("cls")  # 清屏需在终端中运行
-        market = ts.get_realtime_quotes('sh000001')
+        now_time = datetime.now()
+        
         deal_detail = ts.get_realtime_quotes(code[2:])
-        sh = market['price'][0]
-        sh_percent = round((float(sh)-float(market['pre_close'][0]))/float(market['pre_close'][0])*100,2)
+
+        sh_market = ts.get_realtime_quotes('sh000001')
+        sh = sh_market['price'][0]
+        sh_percent = round((float(sh)-float(sh_market['pre_close'][0]))/float(sh_market['pre_close'][0])*100,2)
+
+        sz_market = ts.get_realtime_quotes('399001')
+        sz = sz_market['price'][0]
+        sz_percent = round((float(sz)-float(sz_market['pre_close'][0]))/float(sz_market['pre_close'][0])*100,2)
+
         url = 'http://push2.eastmoney.com/api/qt/stock/get?ut=b2884a393a59ad64002292a3e90d46a5&secid={}&fields=f469,f137,f193,f140,f194,f143,f195,f146,f196,f149,f197,f470,f434,f454,f435,f455,f436,f456,f437,f457,f438,f458,f471,f459,f460,f461,f462,f463,f464,f465,f466,f467,f468,f170,f119,f291'.format(code)
+
         resp = requests.get(url,headers=headers)
         data = resp.json()['data']
         # print('涨幅：{}%'.format(data['f170']/100))
@@ -100,9 +110,9 @@ def fundStock(code:str):
         # print('中单净流入：{}万，中单净占比：{}万'.format(data['f146']/10000,data['f196']/100))
         # print('小单净流入：{}万，小单净占比：{}万'.format(data['f149']/10000,data['f197']/100))
         
-        change = color.red(str(data['f170']/100)+'%') if data['f170'] > 0 else color.green(str(data['f170']/100)+'%')
-        change5 = color.red(str(data['f119']/100)+'%') if data['f119'] > 0 else color.green(str(data['f119']/100)+'%')
-        change10 = color.red(str(data['f291']/100)+'%') if data['f291'] > 0 else color.green(str(data['f291']/100)+'%')
+        change = color.red(str(data['f170']/100)+'% ↑') if data['f170'] > 0 else color.green(str(data['f170']/100)+'% ↓')
+        change5 = color.red(str(data['f119']/100)+'% ↑') if data['f119'] > 0 else color.green(str(data['f119']/100)+'% ↓')
+        change10 = color.red(str(data['f291']/100)+'% ↑') if data['f291'] > 0 else color.green(str(data['f291']/100)+'% ↓')
         
         
         ZLZJ = color.red(str(data['f137']/10000)) if data['f137'] >0 else color.green(str(data['f137']/10000))
@@ -160,9 +170,28 @@ def fundStock(code:str):
 
 
 
+        if sh_market['price'][0] > sh_market['pre_close'][0]:
+            sh_title = color.red('{}\t{}% ↑\t{}'.format(sh,sh_percent,round(float(sh)-float(sh_market['pre_close'][0]),2)))  
+        else:
+            sh_title = color.green('{}\t{}% ↓\t{}'.format(sh,sh_percent,round(float(sh)-float(sh_market['pre_close'][0]),2)))
+        
+        if sz_market['price'][0] > sz_market['pre_close'][0]:
+            sz_title = color.red('{}\t{}% ↑\t{}'.format(sz,sz_percent,round(float(sz)-float(sz_market['pre_close'][0]),2)))  
+        else:
+            sz_title = color.green('{}\t{}% ↓\t{}'.format(sz,sz_percent,round(float(sz)-float(sz_market['pre_close'][0]),2)))
+
+        if deal_detail['price'][0] > deal_detail['pre_close'][0]:
+            p = color.red(str(deal_detail['price'][0])+' ↑')
+        else:
+            p = color.green(str(deal_detail['price'][0])+' ↓')
+        if data['f170'] > 0:
+            c = color.red('{}% ↑'.format(data['f170']/100))
+        else:
+            c = color.green('{}% ↓'.format(data['f170']/100))
+
 
         ptb = pt.PrettyTable()
-        ptb.field_names = [' ','今日（万）{}'.format(change),'今日占比','5日（万）{}'.format(change5),'5日占比','10日（万）{}'.format(change10),'10日占比','竞买','买价','买量','竞卖','卖价','卖量',]
+        ptb.field_names = [p,'今日（万）{}'.format(change),'今日占比','5日（万）{}'.format(change5),'5日占比','10日（万）{}'.format(change10),'10日占比','竞买','买价','买量','竞卖','卖价','卖量',]
         ptb.add_row([color.magenta('主力'),ZLZJ,ZLZB,ZLZJ5,ZLZB5,ZLZJ10,ZLZB10,color.red('买一'),color.red(deal_detail['b1_p'][0]),color.red(deal_detail['b1_v'][0]),color.green('卖一'),color.green(deal_detail['a1_p'][0]),color.green(deal_detail['a1_v'][0]),])
         ptb.add_row([color.red('超大'),CDZJ,CDZB,CDZJ5,CDZB5,CDZJ10,CDZB10,'买二',deal_detail['b2_p'][0],deal_detail['b2_v'][0],'卖二',deal_detail['a2_p'][0],deal_detail['a2_v'][0],])
         ptb.add_row([color.yellow('大单'),DDZJ,DDZB,DDZJ5,DDZB5,DDZJ10,DDZB10,'买三',deal_detail['b3_p'][0],deal_detail['b3_v'][0],'卖三',deal_detail['a3_p'][0],deal_detail['a3_v'][0],])
@@ -174,30 +203,19 @@ def fundStock(code:str):
         # tb_market.field_names = ['上证指数','上证涨跌%','名称','现价','涨跌%','昨收']
         # tb_market.add_row([sh,sh_percent,deal_detail['name'][0],deal_detail['price'][0],round((float(deal_detail['price'][0])-float(deal_detail['pre_close'][0]))/float(deal_detail['pre_close'][0])*100,2),deal_detail['pre_close'][0]])
         
-        if market['price'][0] > market['pre_close'][0]:
-            title = color.red('{}/{}%↑'.format(sh,sh_percent))  
-        else:
-            title = color.green('{}/{}%↓'.format(sh,sh_percent))
 
-        if deal_detail['price'][0] > deal_detail['pre_close'][0]:
-            p = color.red(str(deal_detail['price'][0])+'↑')
-        else:
-            p = color.green(str(deal_detail['price'][0])+'↓')
-        if data['f170'] > 0:
-            c = color.red('{}%↑'.format(data['f170']/100))
-        else:
-            c = color.green('{}%↓'.format(data['f170']/100))
-        
-        print('上证:',title)
-        print('{}\t现价:{}\t涨幅:{}\t昨收:{}'.format(deal_detail['name'][0],p,c,deal_detail['pre_close'][0]))
+
+        os.system("cls")  # 清屏需在终端中运行
+        print('上证:',sh_title,'\t深成:',sz_title)
+        print('{}  {}\t现价:{}\t涨幅:{}\t今开:{}\t最高:{}\t最低:{}\t昨收:{}'.format(deal_detail['name'][0],code[2:],p,c,deal_detail['open'][0],deal_detail['high'][0],deal_detail['low'][0],deal_detail['pre_close'][0]))
         print(ptb)
         # print(tb_deal)
         # print(tb)
-        
 
-        if datetime.now() < close_time:
+        if open_time < now_time < forenoon or afternoon < now_time < close_time:
 
-            time.sleep(5)
+            time.sleep(8)
+
         else:
             print('休市.....')
             break
@@ -206,8 +224,8 @@ def fundStock(code:str):
 
 if __name__ == '__main__':
 
-    # code = input('代码：')
-    # stat('601727')
+    code = input('代码：')
+    # stat(code)
 
-    fundStock('002169')
+    fundStock(code)
 

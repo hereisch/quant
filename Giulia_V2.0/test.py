@@ -35,13 +35,13 @@ db = client['quant']
 
 
 headers = {
-    'Accept': '*/*',
-    'Accept-Encoding': 'gzip, deflate',
-    'Accept-Language': 'zh-CN,zh;q=0.9',
-    'Cookie': '__51cke__=; Hm_lvt_34e0d77f0c897023357dcfa7daa006f3=1626846961; d_ddx=1626846965; Hm_lpvt_34e0d77f0c897023357dcfa7daa006f3=1626846985; __tins__1523105=%7B%22sid%22%3A%201626849104630%2C%20%22vd%22%3A%202%2C%20%22expires%22%3A%201626851989983%7D; __51laig__=11',
-    'Host': 'ddx.gubit.cn',
-    'Referer': 'http://ddx.gubit.cn/xg/xuangu2.html',
-    'X-Requested-With': 'XMLHttpRequest',
+    # 'Accept': '*/*',
+    # 'Accept-Encoding': 'gzip, deflate',
+    # 'Accept-Language': 'zh-CN,zh;q=0.9',
+    # 'Cookie': '__51cke__=; Hm_lvt_34e0d77f0c897023357dcfa7daa006f3=1626846961; d_ddx=1626846965; Hm_lpvt_34e0d77f0c897023357dcfa7daa006f3=1626846985; __tins__1523105=%7B%22sid%22%3A%201626849104630%2C%20%22vd%22%3A%202%2C%20%22expires%22%3A%201626851989983%7D; __51laig__=11',
+    # 'Host': 'ddx.gubit.cn',
+    # 'Referer': 'http://ddx.gubit.cn/xg/xuangu2.html',
+    # 'X-Requested-With': 'XMLHttpRequest',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36',
 }
 
@@ -67,20 +67,7 @@ pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 
 
-class MainWindow(QMainWindow, Ui_MainWindow):
 
-    def __init__(self, parent=None):
-        super(MainWindow, self).__init__(parent)
-        client = pymongo.MongoClient(host="192.168.0.28", port=27017)
-        setupUi(self)
-        SearchButton.clicked.connect(dumiao)
-        _translate = QtCore.QCoreApplication.translate
-
-    def dumiao(self):
-        for i in range(30):
-            print(i)
-            QtWidgets.QApplication.processEvents()
-            DownButton.setText(_translate("MainWindow", str(i)))
 
 
 
@@ -195,6 +182,30 @@ def stat():
     print('总卖出：', sale['amount'].sum())
     print('净买入额：', (buy['amount'].sum() - sale['amount'].sum()) / 10000, '万')
 
+
+
+def fund(code):
+
+    code = '1.' + code if code.startswith('6') else '0.' + code
+    url = 'http://push2.eastmoney.com/api/qt/stock/fflow/kline/get?lmt=0&klt=1&fields1=f1%2Cf2%2Cf3%2Cf7&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59%2Cf60%2Cf61%2Cf62%2Cf63%2Cf64%2Cf65&ut=b2884a393a59ad64002292a3e90d46a5&secid={}'.format(code)
+    resp = requests.get(url,headers=headers)
+    data = resp.json()['data']['klines']
+    df = pd.DataFrame(data,columns=['dd'])
+    new = df['dd'].str.split(',',6,expand=True)
+    new.columns = ['time','ZLJE','XDJE','ZDJE','DDJE','CDJE']
+    new['time'] = new['time'].str.extract("(\d\d:\d\d)")
+    new['ZLJE'] = new['ZLJE'].astype(float)/10000
+    new['XDJE'] = new['XDJE'].astype(float)/10000
+    new['ZDJE'] = new['ZDJE'].astype(float)/10000
+    new['DDJE'] = new['DDJE'].astype(float)/10000
+    new['CDJE'] = new['CDJE'].astype(float)/10000
+    # print(new)
+    return new
+
+
+
+
+
 if __name__ == '__main__':
 
 
@@ -225,57 +236,24 @@ if __name__ == '__main__':
     # industry = {i['code']: i['name'] for i in base}
 
 
-    # ddx_config = ['代码','最新价', '涨幅', '换手率', '量比', 'DDX1日', 'DDY1日', 'DDZ', 'DDX3日', 'DDX5日', 'DDX10日', 'DDX60日', 'DDX5红', 'DDX10红', 'DDX连红', 'DDX连增', '涨幅3日', '涨幅5日', '涨幅10日', 'DDY3日', 'DDY5日', 'DDY10日',
-    #               'DDY60日', '成交量(万元)', 'BBD(万元)', '通吃率1日', '通吃率5日', '通吃率10日', '通吃率20日', '单数比', '特大差', '大单差', '中单差', '小单差', '主动率1日', '主动率5日', '主动率10日', '流通盘(万股)','未知']
-    #
-    # abcddx_config = ['code','spj', 'zf', 'huanshou', 'liangbi', 'ddx', 'ddy', 'ddz', 'ddx3', 'ddx5', 'ddx10', 'ddx60', '5ddx', '10ddx', 'ddxlh', 'ddxlz', 'zf3', 'zf5', 'zf10', 'ddy3', 'ddy5', 'ddy10',
-    #                  'ddy60', 'cjl', 'bbd', 'tcl1', 'tcl5', 'tcl10', 'tcl20', 'dsb', 'tdc', 'ddc', 'zdc', 'xdc', 'zdl1', 'zdl5', 'zdl10', 'wtp','unknow']
-    #
-    # url_sz = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=5&gtype=sz0&isdesc=1&page={}&t={}'.format(1,random.random())
-    # url_sh = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=5&gtype=sh&isdesc=1&page={}&t={}'.format(1,random.random())
-    # respSZ = requests.get(url_sz,headers=headers)
-    # respSH = requests.get(url_sh,headers=headers)
-    # count = respSZ.json()['data'] + respSH.json()['data']
-    # df = pd.DataFrame(count,columns=ddx_config)
-    # df['代码'] = df['代码'].apply(lambda x: str('{:0>6d}'.format(x)))
-    # filt = df['代码'].str.contains('^(?!688|605|300|301)')
-    # df = df[filt]
-    # df = df.drop_duplicates()
-    # df['名称'] = df['代码'].apply(lambda x:industry[x])
-    # df = df.sort_values(by=['DDX1日'],ascending=(False))
+
+
+    # df = ts.get_sina_dd('600023',date='2021-10-28')
     # print(df)
+    # a = 'http://vip.stock.finance.sina.com.cn/quotes_service/view/cn_bill_all.php?num=100&page=1&sort=ticktime&asc=0&volume=40000&type=0&symbol=sh600023'
 
-
-    url_sz = 'http://ddx.gubit.cn/xg/zhddxlist2.php?&t={}&zh19=1'.format(random.random())
-    # url_sh = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=5&gtype=sh&isdesc=1&page={}&t={}'.format(1, random.random())
-    # respSZ = requests.get(url_sz, headers=headers)
-    # print(respSZ.text)
-    # respSH = requests.get(url_sh, headers=headers)
-    # count = respSZ.json()['data'] + respSH.json()['data']
-    # ddx_config = ['代码', '最新价', '涨幅', '换手率', '量比', 'DDX1日', 'DDY1日', 'DDZ', 'DDX3日', 'DDX5日', 'DDX10日', 'DDX60日', 'DDX5红', 'DDX10红', 'DDX连红', 'DDX连增', '涨幅3日', '涨幅5日', '涨幅10日', 'DDY3日', 'DDY5日',
-    #               'DDY10日',
-    #               'DDY60日', '成交量(万)', 'BBD(万)', '通吃率1日', '通吃率5日', '通吃率10日', '通吃率20日', '单数比', '特大差', '大单差', '中单差', '小单差', '主动率1日', '主动率5日', '主动率10日', '流通盘(万股)', '未知']
-    # count = []
-    # count += respSZ.json()['data']
-    # count += respSH.json()['data']
-    # print(respSZ.json()['data'])
-
-    # data = ts.get_today_all()  # 今日复盘
-    # # data = ts.get_day_all(date='2021-02-18')   #历史复盘
-    # filt = data['code'].str.contains('^(?!688|605|300|301|000792|601868)')
+    # db.get_collection('NMC').remove()
+    # data = ts.get_today_all()
+    # filt = data['code'].str.contains('^(?!8|688)')
+    # data = ts.get_today_all()
+    # filt = data['name'].str.contains('^(?!S|退市|\*ST)')
     # data = data[filt]
-    # filt = data['name'].str.contains('^(?!S|退市|\*ST|N)')
-    # data = data[filt]
-    # data = data.drop_duplicates()
-    # # data = data[data['trade'] >= 2]
-    # # data = data[data['changepercent'] > 0]
     # data = data.to_json(orient='records')
     # for i in eval(data):
-    #     db.get_collection('temp').insert(i)
-
-    df = ts.get_sina_dd('600023',date='2021-10-28')
-    print(df)
-    a = 'http://vip.stock.finance.sina.com.cn/quotes_service/view/cn_bill_all.php?num=100&page=1&sort=ticktime&asc=0&volume=40000&type=0&symbol=sh600023'
+    #     db.get_collection('NMC').insert(i)
+    res = db.get_collection('NMC').find()
+    nmc = {i['code']:i['nmc']/100000000 for i in res}
+    print(nmc)
 
 
 

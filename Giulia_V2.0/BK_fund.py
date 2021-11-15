@@ -193,9 +193,10 @@ def fundBK():
 def fundHS():
     """沪深个股资金流向"""
 
-    today = time.strftime("%Y-%m-%d", time.localtime())
-    close_time = datetime.strptime(str(datetime.now().date()) + '15:00', '%Y-%m-%d%H:%M')
-    now_time = datetime.now()
+    # today = time.strftime("%Y-%m-%d", time.localtime())
+    # close_time = datetime.strptime(str(datetime.now().date()) + '15:00', '%Y-%m-%d%H:%M')
+    # now_time = datetime.now()
+
     data = []
     for page in tqdm(range(1,4)):
 

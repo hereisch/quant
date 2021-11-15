@@ -22,18 +22,27 @@ pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 
 
+client = pymongo.MongoClient(host="192.168.0.28", port=27017)
+db = client['quant']
+
+
 class HSfundWindow(QMainWindow,Ui_HSfund):
 
     def __init__(self,parent=None):
         super(HSfundWindow,self).__init__(parent)
         self.setupUi(self)
         self.data = fundHS()
-        self.header = ['f12','f14','f3','f2','f62','f184','f66','f69','f72','f75','f78','f81','f84','f87','date',]
-        self.headerCN = ["code","name","涨跌幅","最新价","主力净额（万）","主力净占比","超大单净额（万）","超大单净占比","大单净额（万）","大单净占比","中单净额（万）","中单净占比","小单净额（万）","小单净占比","时间",]
+        res = db.get_collection('NMC').find()
+        nmc = {i['code']: round(i['nmc']/10000,2) for i in res}
+        self.data['nmc'] = self.data['f12'].apply(lambda x:nmc[x])
+        self.header = ['f12','f14','f3','f2','nmc','f62','f184','f66','f69','f72','f75','f78','f81','f84','f87','date',]
+        self.headerCN = ["code","name","涨跌幅","最新价","市值","主力净额（万）","主力净占比","超大单净额（万）","超大单净占比","大单净额（万）","大单净占比","中单净额（万）","中单净占比","小单净额（万）","小单净占比","时间"]
         self.data = self.data[self.header]
         self.SearchButton.clicked.connect(lambda: self.showStock(autoRresh=99,))
         self.maxPrice.returnPressed.connect(lambda: self.showStock(autoRresh=99,))
         self.minPrice.returnPressed.connect(lambda: self.showStock(autoRresh=99,))
+        self.maxNMC.returnPressed.connect(lambda: self.showStock(autoRresh=99, ))
+        self.minNMC.returnPressed.connect(lambda: self.showStock(autoRresh=99, ))
         self.maxChange.returnPressed.connect(lambda: self.showStock(autoRresh=99,))
         self.minChange.returnPressed.connect(lambda: self.showStock(autoRresh=99,))
         self.RefreshButton.clicked.connect(lambda: self.showStock(autoRresh=True))
@@ -68,12 +77,18 @@ class HSfundWindow(QMainWindow,Ui_HSfund):
 
         highPrice = self.maxPrice.text()
         lowPrice = self.minPrice.text()
+        highNMC = self.maxNMC.text()
+        lowNMC = self.minNMC.text()
         highChange = self.maxChange.text()
         lowChange = self.minChange.text()
         if highPrice.isdigit():
             self.data = self.data[self.data['f2'] <= float(highPrice)]
         if lowPrice.isdigit():
             self.data = self.data[self.data['f2'] >= float(lowPrice)]
+        if highNMC.isdigit():
+            self.data = self.data[self.data['nmc'] <= float(highNMC)]
+        if lowNMC.isdigit():
+            self.data = self.data[self.data['nmc'] >= float(lowNMC)]
         try:
             highChange = eval(highChange)
             self.data = self.data[self.data['f3'] <= float(highChange)]
