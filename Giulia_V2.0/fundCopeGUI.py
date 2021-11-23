@@ -14,8 +14,8 @@ pd.set_option('display.max_columns', None)
 
 
 win = pg.GraphicsLayoutWidget(show=True)
-win.setWindowTitle('Fund')
-win.resize(1200,300)
+win.setWindowTitle('StockFund')
+win.resize(400,1000)
 p1 = win.addPlot()
 
 headers = {
@@ -40,6 +40,7 @@ def fund(code):
     new['CDJE'] = new['CDJE'].astype(float)/10000
     os.system("cls")
     print(new.tail(10))
+    print('主力:{}\t大单:{}\t超大:{}'.format(new.ZLJE.max(),new.DDJE.max(),new.CDJE.max()))
     return new
 
 

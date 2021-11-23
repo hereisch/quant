@@ -66,6 +66,8 @@ headers = {
 def ddxData():
     base = db.get_collection('base').find()
     industry = {i['code']: i['name'] for i in base}
+    res = db.get_collection('NMC').find()
+    nmc = {i['code']: round(i['nmc'] / 10000, 2) for i in res}
 
     ddx_config = ['代码', '最新价', '涨幅', '换手率', '量比', 'DDX1日', 'DDY1日', 'DDZ', 'DDX3日', 'DDX5日', 'DDX10日', 'DDX60日', 'DDX5红', 'DDX10红', 'DDX连红', 'DDX连增', '涨幅3日', '涨幅5日', '涨幅10日', 'DDY3日', 'DDY5日',
                   'DDY10日',
@@ -96,6 +98,7 @@ def ddxData():
     df = df[filt]
     df = df.drop_duplicates()
     df['名称'] = df['代码'].apply(lambda x: industry[x] if x in industry else '新股')
+    df['市值'] = df['代码'].apply(lambda x: nmc[x])
     df = df.sort_values(by=['DDX1日'], ascending=(False))
     print('实时刷新：',respSH.json()['updatetime'])
     return df
@@ -108,9 +111,9 @@ class DDEWindow(QMainWindow,Ui_DDE):
         self.client = pymongo.MongoClient(host=MONGOHOST, port=27017)
         self.db = self.client['quant']
         self.stockList = None
-        self.header = ['code', 'name','spj', 'zf', 'huanshou', 'liangbi', 'ddx', 'ddy', 'ddz', 'ddx3', 'ddx5', 'ddx10', 'ddx60', '5ddx', '10ddx', 'ddxlh', 'ddxlz', 'zf3', 'zf5', 'zf10', 'ddy3', 'ddy5','ddy10','ddy60', 'cjl', 'bbd', 'tcl1', 'tcl5', 'tcl10', 'tcl20', 'dsb', 'tdc', 'ddc', 'zdc', 'xdc', 'zdl1', 'zdl5', 'zdl10', 'wtp', 'unknow']
+        self.header = ['code', 'name','nmc','spj', 'zf', 'huanshou', 'liangbi', 'ddx', 'ddy', 'ddz', 'ddx3', 'ddx5', 'ddx10', 'ddx60', '5ddx', '10ddx', 'ddxlh', 'ddxlz', 'zf3', 'zf5', 'zf10', 'ddy3', 'ddy5','ddy10','ddy60', 'cjl', 'bbd', 'tcl1', 'tcl5', 'tcl10', 'tcl20', 'dsb', 'tdc', 'ddc', 'zdc', 'xdc', 'zdl1', 'zdl5', 'zdl10', 'wtp', 'unknow']
         # self.headerCN = ['代码', '名称','最新价', '涨幅', '换手率', '量比', 'DDX1日', 'DDY1日', 'DDZ', 'DDX3日', 'DDX5日', 'DDX10日', 'DDX60日', 'DDX5红', 'DDX10红', 'DDX连红', 'DDX连增', '涨幅3日', '涨幅5日', '涨幅10日', 'DDY3日', 'DDY5日','DDY10日','DDY60日', '成交量(万)', 'BBD(万)', '通吃率1日', '通吃率5日', '通吃率10日', '通吃率20日', '单数比', '特大差', '大单差', '中单差', '小单差', '主动率1日', '主动率5日', '主动率10日', '流通盘(万股)', '未知']
-        self.headerCN = ['代码', '名称','最新价', '涨幅', 'BBD(万)', 'DDX1日', 'DDY1日', 'DDZ', 'DDX3日', 'DDX5日', 'DDX10日', 'DDY3日', 'DDY5日','DDY10日', '通吃率1日', '通吃率5日', '通吃率10日','单数比', '特大差', '大单差', '中单差', '小单差', '主动率1日', '主动率5日', '主动率10日',  'DDX5红', 'DDX10红', 'DDX连红', 'DDX连增', '涨幅3日', '涨幅5日', '涨幅10日', '换手率', '量比','成交量(万)', '流通盘(万股)', '未知']
+        self.headerCN = ['代码', '名称','市值','最新价', '涨幅', 'BBD(万)', 'DDX1日', 'DDY1日', 'DDZ', 'DDX3日', 'DDX5日', 'DDX10日', 'DDY3日', 'DDY5日','DDY10日', '通吃率1日', '通吃率5日', '通吃率10日','单数比', '特大差', '大单差', '中单差', '小单差', '主动率1日', '主动率5日', '主动率10日',  'DDX5红', 'DDX10红', 'DDX连红', 'DDX连增', '涨幅3日', '涨幅5日', '涨幅10日', '换手率', '量比','成交量(万)', '流通盘(万股)', '未知']
         self.setupUi(self)
         self.tabK.currentChanged.connect(self.tabShow)
         self.topList = self.db.get_collection('topList').distinct('code')
@@ -123,8 +126,8 @@ class DDEWindow(QMainWindow,Ui_DDE):
         self.RefreshButton.clicked.connect(lambda: self.showStock(autoRresh=True))
         self.minPrice.returnPressed.connect(lambda: self.showStock(autoRresh=99,))
         self.maxPrice.returnPressed.connect(lambda: self.showStock(autoRresh=99,))
-        # self.maxNMC.returnPressed.connect(lambda: self.showStock(autoRresh=99,filter=True))
-        # self.minNMC.returnPressed.connect(lambda: self.showStock(autoRresh=99,filter=True))
+        self.maxNMC.returnPressed.connect(lambda: self.showStock(autoRresh=99))
+        self.minNMC.returnPressed.connect(lambda: self.showStock(autoRresh=99))
         self.minChange.returnPressed.connect(lambda: self.showStock(autoRresh=99))
         self.maxChange.returnPressed.connect(lambda: self.showStock(autoRresh=99,))
 
@@ -166,14 +169,18 @@ class DDEWindow(QMainWindow,Ui_DDE):
 
         highPrice = self.maxPrice.text()
         lowPrice = self.minPrice.text()
-        # highNMC = self.maxNMC.text()
-        # lowNMC = self.minNMC.text()
+        highNMC = self.maxNMC.text()
+        lowNMC = self.minNMC.text()
         highChange = self.maxChange.text()
         lowChange = self.minChange.text()
         if highPrice.isdigit():
             self.stockList = self.stockList[self.stockList['最新价'] <= float(highPrice)]
         if lowPrice.isdigit():
             self.stockList = self.stockList[self.stockList['最新价'] >= float(lowPrice)]
+        if highNMC.isdigit():
+            self.stockList = self.stockList[self.stockList['市值'] <= float(highNMC)]
+        if lowNMC.isdigit():
+            self.stockList = self.stockList[self.stockList['市值'] >= float(lowNMC)]
         try:
             highChange = eval(highChange)
             self.stockList = self.stockList[self.stockList['涨幅'] <= float(highChange)]

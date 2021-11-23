@@ -256,7 +256,7 @@ class Ui_DDE(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "DDE"))
         self.labelPrice.setText(_translate("MainWindow", "价格区间："))
         self.label_.setText(_translate("MainWindow", "-"))
-        self.labelNMC.setText(_translate("MainWindow", "待定："))
+        self.labelNMC.setText(_translate("MainWindow", "市值："))
         self.label_NMC.setText(_translate("MainWindow", "-"))
         self.labelChange.setText(_translate("MainWindow", "涨幅："))
         self.label_Change.setText(_translate("MainWindow", "-"))

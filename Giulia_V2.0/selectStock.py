@@ -45,8 +45,9 @@ class Select():
         """
         if init:
             self.data = ts.get_today_all() #今日复盘
+            self.updateNMC(self.data)
             # data = ts.get_day_all(date='2021-02-18')   #历史复盘
-            filt = self.data['code'].str.contains('^(?!688|605|300|301|000792|601868)')
+            filt = self.data['code'].str.contains('^(?!688|605|300|301|000792|601868|8)')
             self.data = self.data[filt]
             filt = self.data['name'].str.contains('^(?!S|退市|\*ST|N)')
             self.data = self.data[filt]
@@ -88,6 +89,19 @@ class Select():
                 longhu = json.loads(longhu)
                 for k,v in longhu.items():
                     db.get_collection('topList').insert(v)
+
+
+
+    def updateNMC(self,data):
+
+        db.get_collection('NMC').remove()
+        filt = data['code'].str.contains('^(?!8|688)')
+        data = data[filt]
+        filt = data['name'].str.contains('^(?!S|退市|\*ST)')
+        data = data[filt]
+        data = data.to_json(orient='records')
+        for i in eval(data):
+            db.get_collection('NMC').insert(i)
 
     def uniqDayK(self):
         """
@@ -174,14 +188,17 @@ class Select():
                 # 次新数据少于300天，删除自选 len(index)<300
                 #     time.sleep(0.5)
                 data = ts.get_hist_data(i)
-                # 开盘价和收盘价对比取压力值pressure
-                data['pressure'] = data.apply(lambda x:max(x['open'],x['close']),axis=1)
-                data = json.loads(data.to_json(orient='index'))
-                for k,v in data.items():
-                    # print(k,v)
-                    v['date'] = k
-                    v['code'] = i
-                    db.get_collection('dayK').insert(v)
+                if not data.empty:
+                    # 开盘价和收盘价对比取压力值pressure
+                    data['pressure'] = data.apply(lambda x:max(x['open'],x['close']),axis=1)
+                    data = json.loads(data.to_json(orient='index'))
+                    for k,v in data.items():
+                        # print(k,v)
+                        v['date'] = k
+                        v['code'] = i
+                        db.get_collection('dayK').insert(v)
+                else:
+                    print(i,data,'无历史数据')
 
 
     def topN(self,Coll='today'):

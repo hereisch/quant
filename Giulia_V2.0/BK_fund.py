@@ -229,7 +229,7 @@ def fundHS():
 
     data = pd.DataFrame(data)
     data = data.drop_duplicates(subset=['f12'])
-    filt = data['f12'].str.contains('^(?!688|605|300|301|200|900)')
+    filt = data['f12'].str.contains('^(?!68|605|300|301|20|900|603048)')
     data = data[filt]
     filt = data['f14'].str.contains('^(?!S|退市|\*ST|N)')
     data = data[filt]

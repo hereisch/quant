@@ -32,9 +32,9 @@ class HSfundWindow(QMainWindow,Ui_HSfund):
         super(HSfundWindow,self).__init__(parent)
         self.setupUi(self)
         self.data = fundHS()
-        res = db.get_collection('NMC').find()
-        nmc = {i['code']: round(i['nmc']/10000,2) for i in res}
-        self.data['nmc'] = self.data['f12'].apply(lambda x:nmc[x])
+        self.res = db.get_collection('NMC').find()
+        self.nmc = {i['code']: round(i['nmc']/10000,2) for i in self.res} 
+        self.data['nmc'] = self.data['f12'].apply(lambda x:self.nmc[x])
         self.header = ['f12','f14','f3','f2','nmc','f62','f184','f66','f69','f72','f75','f78','f81','f84','f87','date',]
         self.headerCN = ["code","name","涨跌幅","最新价","市值","主力净额（万）","主力净占比","超大单净额（万）","超大单净占比","大单净额（万）","大单净占比","中单净额（万）","中单净占比","小单净额（万）","小单净占比","时间"]
         self.data = self.data[self.header]
@@ -66,9 +66,11 @@ class HSfundWindow(QMainWindow,Ui_HSfund):
     def showStock(self,autoRresh=False):
         if autoRresh is True:
             self.data = fundHS()
+            self.data['nmc'] = self.data['f12'].apply(lambda x: self.nmc[x])
         elif autoRresh == 99:
             if self.data is None:
                 self.data = fundHS()
+                self.data['nmc'] = self.data['f12'].apply(lambda x: self.nmc[x])
 
         # 设置数据层次结构，2行2列
         self.model = QStandardItemModel(2, 2)
