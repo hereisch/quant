@@ -47,7 +47,7 @@ class Select():
             self.data = ts.get_today_all() #今日复盘
             self.updateNMC(self.data)
             # data = ts.get_day_all(date='2021-02-18')   #历史复盘
-            filt = self.data['code'].str.contains('^(?!688|605|300|301|000792|601868|8)')
+            filt = self.data['code'].str.contains('^(?!688|605|300|301|000792|601868|8|43)')
             self.data = self.data[filt]
             filt = self.data['name'].str.contains('^(?!S|退市|\*ST|N)')
             self.data = self.data[filt]
@@ -95,7 +95,7 @@ class Select():
     def updateNMC(self,data):
 
         db.get_collection('NMC').remove()
-        filt = data['code'].str.contains('^(?!8|688)')
+        filt = data['code'].str.contains('^(?!8|688|43)')
         data = data[filt]
         filt = data['name'].str.contains('^(?!S|退市|\*ST)')
         data = data[filt]
@@ -188,16 +188,18 @@ class Select():
                 # 次新数据少于300天，删除自选 len(index)<300
                 #     time.sleep(0.5)
                 data = ts.get_hist_data(i)
-                if not data.empty:
-                    # 开盘价和收盘价对比取压力值pressure
-                    data['pressure'] = data.apply(lambda x:max(x['open'],x['close']),axis=1)
-                    data = json.loads(data.to_json(orient='index'))
-                    for k,v in data.items():
-                        # print(k,v)
-                        v['date'] = k
-                        v['code'] = i
-                        db.get_collection('dayK').insert(v)
-                else:
+                try:
+                    if not data.empty:
+                        # 开盘价和收盘价对比取压力值pressure
+                        data['pressure'] = data.apply(lambda x:max(x['open'],x['close']),axis=1)
+                        data = json.loads(data.to_json(orient='index'))
+                        for k,v in data.items():
+                            # print(k,v)
+                            v['date'] = k
+                            v['code'] = i
+                            db.get_collection('dayK').insert(v)
+                except Exception as e:
+                    print(e)
                     print(i,data,'无历史数据')
 
 

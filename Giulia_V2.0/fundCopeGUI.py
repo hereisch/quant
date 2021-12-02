@@ -40,7 +40,7 @@ def fund(code):
     new['CDJE'] = new['CDJE'].astype(float)/10000
     os.system("cls")
     print(new.tail(10))
-    print('主力:{}\t大单:{}\t超大:{}'.format(new.ZLJE.max(),new.DDJE.max(),new.CDJE.max()))
+    print('主力:{}/{}\t大单:{}/{}\t超大:{}/{}\tcode:{}'.format(new.ZLJE.max(),new.ZLJE.min(),new.DDJE.max(),new.DDJE.min(),new.CDJE.max(),new.CDJE.min(),code))
     return new
 
 
@@ -56,7 +56,7 @@ def update():
     curve_ZL = p1.plot(data['ZLJE'],pen=(102,255,255),name='主力')
     curve_CD = p1.plot(data['CDJE'],pen=(255,0,0),name='超大')
     curve_DD = p1.plot(data['DDJE'],pen=(255,200,0),name='大单')
-    curve_ZD = p1.plot(data['ZDJE'],pen=(0,0,255),name='中单')
+    curve_ZD = p1.plot(data['ZDJE'],pen=(0,102,255),name='中单')
     curve_XD = p1.plot(data['XDJE'],pen=(0,255,0),name='小单')
 
 
@@ -71,7 +71,7 @@ def update():
 
 timer = pg.QtCore.QTimer()
 timer.timeout.connect(update)
-timer.start(10000)
+timer.start(5000)
 
 if __name__ == '__main__':
 

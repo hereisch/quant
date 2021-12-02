@@ -7,7 +7,7 @@ import requests
 import time
 from CONSTANT import MONGOHOST
 from datetime import datetime, date, timedelta
-from tqdm import tqdm
+from tqdm import tqdm,trange
 import pandas as pd
 pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
@@ -229,7 +229,7 @@ def fundHS():
 
     data = pd.DataFrame(data)
     data = data.drop_duplicates(subset=['f12'])
-    filt = data['f12'].str.contains('^(?!68|605|300|301|20|900|603048)')
+    filt = data['f12'].str.contains('^(?!68|605|300|301|20|900|603048|600935|001)')
     data = data[filt]
     filt = data['f14'].str.contains('^(?!S|退市|\*ST|N)')
     data = data[filt]
@@ -244,9 +244,35 @@ def fundHS():
     return data
 
 
+def breakThrough():
+
+    """东财平台突破数据"""
+    print('GET平台突破数据.....')
+    url = 'https://emdczttz.eastmoney.com/Stock/PlatformBreakthrough'
+    data = []
+    for page in trange(1,11):
+        form = {"OrderType":0,"OrderField":"Zdf","pageSize":100,"startIndex":page}
+        resp = requests.post(url,headers=headers,data=str(form))
+        data += resp.json()['Data'][0]['Data']
+
+        # print(new)
+        time.sleep(1)
+    df = pd.DataFrame(data, columns=['dd'])
+    new = df['dd'].str.split('|', 4, expand=True)
+    new.columns = ['code', 'name', 'market', 'new', 'zdf']
+    filt = new['code'].str.contains('^(?!688|605|300)')
+    new = new[filt]
+    filt = new['name'].str.contains('^(?!S|退市|\*ST)')
+    new = new[filt]
+    new = new.drop_duplicates(subset=['code'])
+    new['new'] = new['new'].astype(float)
+    new['zdf'] = new['zdf'].astype(float)
+    # print(new)
+    return new
 
 if __name__ == '__main__':
 
 
     # fundBK()
-    fundHS()
+    # fundHS()
+    breakThrough()

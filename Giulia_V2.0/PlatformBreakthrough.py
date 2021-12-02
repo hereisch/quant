@@ -8,13 +8,13 @@ from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QMainWindow
 import os
-from UI.UI_HSfund import Ui_HSfund
+from UI.UI_PlatformBreakthrough import Ui_PlatformBreakthrough
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 import sys
 from CONSTANT import MONGOHOST
-from BK_fund import fundHS
+from BK_fund import breakThrough
 from selectStock import async_
 
 pd.set_option('display.width', 5000)
@@ -26,17 +26,17 @@ client = pymongo.MongoClient(host=MONGOHOST, port=27017)
 db = client['quant']
 
 
-class HSfundWindow(QMainWindow,Ui_HSfund):
-
+class PlatformBreakthroughWindow(QMainWindow,Ui_PlatformBreakthrough):
+    """共用HSfund UI"""
     def __init__(self,parent=None):
-        super(HSfundWindow,self).__init__(parent)
+        super(PlatformBreakthroughWindow,self).__init__(parent)
         self.setupUi(self)
-        self.data = fundHS()
+        self.data = breakThrough()
         self.res = db.get_collection('NMC').find()
-        self.nmc = {i['code']: round(i['nmc']/10000,2) for i in self.res}
-        self.data['nmc'] = self.data['f12'].apply(lambda x:self.nmc[x])
-        self.header = ['f12','f14','f3','f2','nmc','f62','f184','f66','f69','f72','f75','f78','f81','f84','f87','date',]
-        self.headerCN = ["code","name","涨跌幅","最新价","市值","主力净额（万）","主力净占比","超大单净额（万）","超大单净占比","大单净额（万）","大单净占比","中单净额（万）","中单净占比","小单净额（万）","小单净占比","时间"]
+        self.nmc = {i['code']: round(i['nmc']/10000,2) for i in self.res} 
+        self.data['nmc'] = self.data['code'].apply(lambda x:self.nmc[x])
+        self.header = ['code', 'name', 'nmc', 'new', 'zdf']
+        self.headerCN = ["code","name","市值","最新价","涨跌幅"]
         self.data = self.data[self.header]
         self.SearchButton.clicked.connect(lambda: self.showStock(autoRresh=99,))
         self.maxPrice.returnPressed.connect(lambda: self.showStock(autoRresh=99,))
@@ -65,12 +65,12 @@ class HSfundWindow(QMainWindow,Ui_HSfund):
     @async_
     def showStock(self,autoRresh=False):
         if autoRresh is True:
-            self.data = fundHS()
-            self.data['nmc'] = self.data['f12'].apply(lambda x: self.nmc[x])
+            self.data = breakThrough()
+            self.data['nmc'] = self.data['code'].apply(lambda x: self.nmc[x])
         elif autoRresh == 99:
             if self.data is None:
-                self.data = fundHS()
-                self.data['nmc'] = self.data['f12'].apply(lambda x: self.nmc[x])
+                self.data = breakThrough()
+                self.data['nmc'] = self.data['code'].apply(lambda x: self.nmc[x])
 
         # 设置数据层次结构，2行2列
         self.model = QStandardItemModel(2, 2)
@@ -84,33 +84,32 @@ class HSfundWindow(QMainWindow,Ui_HSfund):
         highChange = self.maxChange.text()
         lowChange = self.minChange.text()
         if highPrice.isdigit():
-            self.data = self.data[self.data['f2'] <= float(highPrice)]
+            self.data = self.data[self.data['new'] <= float(highPrice)]
         if lowPrice.isdigit():
-            self.data = self.data[self.data['f2'] >= float(lowPrice)]
+            self.data = self.data[self.data['new'] >= float(lowPrice)]
         if highNMC.isdigit():
             self.data = self.data[self.data['nmc'] <= float(highNMC)]
         if lowNMC.isdigit():
             self.data = self.data[self.data['nmc'] >= float(lowNMC)]
         try:
             highChange = eval(highChange)
-            self.data = self.data[self.data['f3'] <= float(highChange)]
+            self.data = self.data[self.data['zdf'] <= float(highChange)]
         except:
             pass
         try:
             lowChange = eval(lowChange)
-            self.data = self.data[self.data['f3'] >= float(lowChange)]
+            self.data = self.data[self.data['zdf'] >= float(lowChange)]
         except:
             pass
         
         
-        if self.sortZLJE.isChecked():
-            self.data = self.data.sort_values(by=['f62',],ascending=(False))
-        if self.sortZLJZB.isChecked():
-            self.data = self.data.sort_values(by=['f184',],ascending=(False))
-        if self.sortCDJE.isChecked():
-            self.data = self.data.sort_values(by=['f66',],ascending=(False))
-        if self.sortCDJZB.isChecked():
-            self.data = self.data.sort_values(by=['f69',],ascending=(False))
+        if self.sortNMC.isChecked():
+            self.data = self.data.sort_values(by=['nmc',],ascending=(False))
+        if self.sortChange.isChecked():
+            self.data = self.data.sort_values(by=['zdf',],ascending=(False))
+        if self.sortPrice.isChecked():
+            self.data = self.data.sort_values(by=['new',],ascending=(False))
+
             
         self.data = self.data.reset_index(drop=True)
 
@@ -119,7 +118,7 @@ class HSfundWindow(QMainWindow,Ui_HSfund):
             for idy, itemX in self.data.iterrows():
                 for idx, itemY in enumerate(self.header):
                     item = QStandardItem(str(itemX[itemY]))
-                    if self.headerCN.index('主力净额（万）') <= idx < self.headerCN.index('时间'):
+                    if self.headerCN.index('涨跌幅') == idx:
                         if itemX[itemY] > 0:
                             item.setForeground(QColor(255,0,0))
                         else:
@@ -160,7 +159,7 @@ if __name__ == '__main__':
         For My Dream Car  -----  Alfa Romeo Giulia
         """
     app = QApplication(sys.argv)
-    win = HSfundWindow()
+    win = PlatformBreakthroughWindow()
     win.show()
     # win.showMaximized()
     app.exec_()

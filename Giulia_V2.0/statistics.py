@@ -205,7 +205,7 @@ def fundStock(code:str):
         
 
 
-        os.system("cls")  # 清屏需在终端中运行60040
+        os.system("cls")  # 清屏需在终端中运行
         print('上证:',sh_title,'\t深成:',sz_title)
         print('{}  {}\t现价:{}\t涨幅:{}\t今开:{}\t最高:{}\t最低:{}\t昨收:{}\t成交量:{}万\t成交额:{}万'.format(deal_detail['name'][0],code[2:],p,c,deal_detail['open'][0],deal_detail['high'][0],deal_detail['low'][0],deal_detail['pre_close'][0],round(float(deal_detail['volume'][0])/10000,2),round(float(deal_detail['amount'][0])/10000),2))
         print(ptb)
