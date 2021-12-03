@@ -251,9 +251,17 @@ if __name__ == '__main__':
     # data = data.to_json(orient='records')
     # for i in eval(data):
     #     db.get_collection('NMC').insert(i)
-    res = db.get_collection('NMC').find()
-    nmc = {i['code']:i['nmc']/100000000 for i in res}
-    print(nmc)
 
+    # import codecs
+    # with codecs.open('SZ000755.dat',encoding='ISO-8859-1') as f:
+    #
+    #     print(f.readlines())
+    #
+
+
+    # ts.get_sina_dd(code='000755',date='2021-12-02')
+    url = 'https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_Bill.GetBillList?symbol=sz000755&num=60&page=1&sort=ticktime&asc=0&volume=50000&amount=0&type=0&day=2021-12-02'
+    resp = requests.get(url,headers=headers)
+    print(resp.json())
 
 
