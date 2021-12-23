@@ -173,21 +173,23 @@ def fundBK():
 
         # 行业板块股票资金流向
         res = db.get_collection('BK_fund').aggregate([{'$group': {'_id': {'BK': '$BK', 'industry': '$industry'}}}])
+        res = list(res)
         for j in tqdm(res):
             time.sleep(1)
             url = 'http://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=100&pn=1&np=1&fltt=2&invt=2&ut=b2884a393a59ad64002292a3e90d46a5&fs=b%3A{}&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'.format(
                 j['_id']['BK'])
             resp = requests.get(url, headers=headers)
             data = json.loads(resp.text)['data']
-            num = data['total']
-            print(num, j)
-            for i in data['diff']:
-                item = {'BK': j['_id']['BK'], 'industry': j['_id']['industry'], 'code': i['f12'], 'name': i['f14'], 'price': i['f2'], 'change': i['f3'], '主力净额': i['f62'], '主力净占比': i['f184'],
-                        '超大单净额': i['f66'], '超大单净占比': i['f69'],
-                        '大单净额': i['f72'], '大单净占比': i['f75'], '中单净额': i['f78'], '中单净占比': i['f81'], '小单净额': i['f84'], '小单净占比': i['f87'], 'date': today}
-                if not db.get_collection('BK_stock').find_one(item) and i['f2'] != '-':
-                    db.get_collection('BK_stock').insert(item)
-                    # print(item)
+            if data:
+                num = data['total']
+                print(num, j)
+                for i in data['diff']:
+                    item = {'BK': j['_id']['BK'], 'industry': j['_id']['industry'], 'code': i['f12'], 'name': i['f14'], 'price': i['f2'], 'change': i['f3'], '主力净额': i['f62'], '主力净占比': i['f184'],
+                            '超大单净额': i['f66'], '超大单净占比': i['f69'],
+                            '大单净额': i['f72'], '大单净占比': i['f75'], '中单净额': i['f78'], '中单净占比': i['f81'], '小单净额': i['f84'], '小单净占比': i['f87'], 'date': today}
+                    if not db.get_collection('BK_stock').find_one(item) and i['f2'] != '-':
+                        db.get_collection('BK_stock').insert(item)
+                        # print(item)
 
 
 def fundHS():
@@ -229,7 +231,7 @@ def fundHS():
 
     data = pd.DataFrame(data)
     data = data.drop_duplicates(subset=['f12'])
-    filt = data['f12'].str.contains('^(?!68|605|300|301|20|900|603048|600935|001)')
+    filt = data['f12'].str.contains('^(?!68|605|300|301|20|900|603048|600935|001|603216|603071|002629)')
     data = data[filt]
     filt = data['f14'].str.contains('^(?!S|退市|\*ST|N)')
     data = data[filt]
@@ -270,9 +272,33 @@ def breakThrough():
     # print(new)
     return new
 
+
+def priceDistribution(code,start,end):
+
+    if code.startswith('6'):
+        code = 'sh' + code
+    else:
+        code = 'sz' + code
+
+    url = 'https://market.finance.sina.com.cn/iframe/pricehis.php?symbol={}&startdate={}&enddate={}'.format(code,start,end)
+    print(url)
+    data = pd.read_html(url)
+    data = pd.DataFrame(data[0])
+    data = data.rename(columns={"成交价(元)": 'price',"成交量(股)":'vol', "占比": 'ratio',"占比图":'amount'})
+    data['amount'] = data['price'] * data['vol']
+    data = data.sort_values(by='vol',ascending=False)
+    data = data.reset_index(drop=True)
+    print(data.head(10))
+    N = int(input('前N项：'))
+    # print(data[:N])
+    print('前N日均价:{:.2f},总量(股):{},总额:{},占比:{:.2f}'.format(data['amount'][:N].sum()/data['vol'][:N].sum(),data['vol'][:N].sum(),data['amount'][:N].sum(),data['vol'][:N].sum()/data['vol'].sum()))
+    print('总均价:{:.2f}'.format(data['amount'].sum()/data['vol'].sum()))
+
+
 if __name__ == '__main__':
 
 
     # fundBK()
     # fundHS()
-    breakThrough()
+    # breakThrough()
+    priceDistribution('603569','2021-12-13','2021-12-23')

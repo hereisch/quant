@@ -82,8 +82,8 @@ def fundStock(code:str):
     color = Colored()
     code = '1.' + code if code.startswith('6') else '0.' + code
     open_time = datetime.strptime(str(datetime.now().date()) + '9:30', '%Y-%m-%d%H:%M')
-    close_time = datetime.strptime(str(datetime.now().date()) + '15:00', '%Y-%m-%d%H:%M')
-    forenoon = datetime.strptime(str(datetime.now().date()) + '11:30', '%Y-%m-%d%H:%M')
+    close_time = datetime.strptime(str(datetime.now().date()) + '15:01', '%Y-%m-%d%H:%M')
+    forenoon = datetime.strptime(str(datetime.now().date()) + '11:31', '%Y-%m-%d%H:%M')
     afternoon = datetime.strptime(str(datetime.now().date()) + '13:30', '%Y-%m-%d%H:%M')
     
     while True:
@@ -212,9 +212,9 @@ def fundStock(code:str):
         # print(tb_deal)
         # print(tb)
 
-        if open_time < now_time < forenoon or afternoon < now_time < close_time:
+        if open_time < now_time <= forenoon or afternoon < now_time <= close_time:
 
-            time.sleep(8)
+            time.sleep(5)
 
         else:
             print('休市.....')
@@ -224,7 +224,8 @@ def fundStock(code:str):
 
 if __name__ == '__main__':
 
-    code = input('代码：')
+    # code = input('代码：')
+    code = '600213'
     # stat(code)
 
     fundStock(code)

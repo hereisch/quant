@@ -247,15 +247,15 @@ class Ui_Selector(object):
 
 
         self.sortCount.setChecked(True)
-        self.splitter_2.setStretchFactor(0, 2)
-        self.splitter_2.setStretchFactor(1, 9)
+        self.splitter_2.setStretchFactor(0, 9)
+        self.splitter_2.setStretchFactor(1, 2)
         self.splitter.setStretchFactor(0, 7)
         self.splitter.setStretchFactor(1, 2)
 
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "创新高"))
         self.labelPrice.setText(_translate("MainWindow", "价格区间："))
         self.label_.setText(_translate("MainWindow", "-"))
         self.labelNMC.setText(_translate("MainWindow", "流通市值："))

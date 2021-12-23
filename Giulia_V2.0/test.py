@@ -260,8 +260,12 @@ if __name__ == '__main__':
 
 
     # ts.get_sina_dd(code='000755',date='2021-12-02')
-    url = 'https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_Bill.GetBillList?symbol=sz000755&num=60&page=1&sort=ticktime&asc=0&volume=50000&amount=0&type=0&day=2021-12-02'
-    resp = requests.get(url,headers=headers)
-    print(resp.json())
+    # url = 'https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_Bill.GetBillList?symbol=sz000755&num=60&page=1&sort=ticktime&asc=0&volume=50000&amount=0&type=0&day=2021-12-02'
+    # resp = requests.get(url,headers=headers)
+    # print(resp.json())
+
+
+
+
 
 

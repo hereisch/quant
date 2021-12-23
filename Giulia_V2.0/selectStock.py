@@ -47,7 +47,7 @@ class Select():
             self.data = ts.get_today_all() #今日复盘
             self.updateNMC(self.data)
             # data = ts.get_day_all(date='2021-02-18')   #历史复盘
-            filt = self.data['code'].str.contains('^(?!688|605|300|301|000792|601868|8|43)')
+            filt = self.data['code'].str.contains('^(?!688|605|300|301|8|43)')
             self.data = self.data[filt]
             filt = self.data['name'].str.contains('^(?!S|退市|\*ST|N)')
             self.data = self.data[filt]
@@ -117,6 +117,7 @@ class Select():
 
 
     def updBase(self):
+        """update base stock information"""
         db.get_collection('base').remove()
         pro = ts.pro_api()
         data = pro.stock_basic()
@@ -370,11 +371,12 @@ def downStock(init=True):
     now_time = datetime.now()
     close_time =datetime.strptime(str(datetime.now().date())+'15:00', '%Y-%m-%d%H:%M')
     if now_time > close_time:
+        s.AddStockPool()
         fundBK()
         s.riseN()
         s.riseN(p_change=9,coll='strong')  # N日内强势票
         s.impactPool()
-        s.AddStockPool()
+
 
 
 @async_
@@ -412,12 +414,12 @@ if __name__ == '__main__':
     downStock(init=True)
     # refresh()
 
-
 #################################################################
 
 
     # print('Debug....')
     # s = Select(init=False)
+    # s.updBase()
     # s.topN()
     # s.riseN()
     # s.impactPool(debug=True)
