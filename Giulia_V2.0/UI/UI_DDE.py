@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_DDE(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(2000, 1200)
+        MainWindow.resize(2200, 1200)
         # MainWindow.setWindowOpacity(0.5)
         # MainWindow.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -134,10 +134,10 @@ class Ui_DDE(object):
 
         spacerItem2 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem2)
-        # self.Stop = QtWidgets.QPushButton(self.scrollAreaWidgetContents)
-        # self.Stop.setMaximumSize(QtCore.QSize(200, 100))
-        # self.Stop.setObjectName("Stop")
-        # self.horizontalLayout.addWidget(self.Stop)
+        self.PopButton = QtWidgets.QPushButton(self.scrollAreaWidgetContents)
+        self.PopButton.setMaximumSize(QtCore.QSize(200, 100))
+        self.PopButton.setObjectName("GoldX")
+        self.horizontalLayout.addWidget(self.PopButton)
         self.RefreshButton = QtWidgets.QPushButton(self.scrollAreaWidgetContents)
         self.RefreshButton.setMaximumSize(QtCore.QSize(200, 100))
         self.RefreshButton.setObjectName("RefreshButton")
@@ -288,7 +288,7 @@ class Ui_DDE(object):
         self.sortChange3.setText(_translate("MainWindow", "3日↓"))
         self.sortChange5.setText(_translate("MainWindow", "5日↓"))
         self.sortChange10.setText(_translate("MainWindow", "10日↓"))
-        # self.Stop.setText(_translate("MainWindow", "停止刷新"))
+        self.PopButton.setText(_translate("MainWindow", "自动选择"))
         self.RefreshButton.setText(_translate("MainWindow", "刷新"))
         self.SearchButton.setText(_translate("MainWindow", "Search"))
         self.tabK.setTabText(self.tabK.indexOf(self.Day), _translate("MainWindow", "Day"))

@@ -25,7 +25,7 @@ from drawK import intervalStat
 from selectStock import downStock,refresh
 from CONSTANT import MONGOHOST
 from selectStock import async_
-
+from BK_fund import MA
 
 
 
@@ -76,7 +76,7 @@ def ddxData():
                      'ddy10',
                      'ddy60', 'cjl', 'bbd', 'tcl1', 'tcl5', 'tcl10', 'tcl20', 'dsb', 'tdc', 'ddc', 'zdc', 'xdc', 'zdl1', 'zdl5', 'zdl10', 'wtp', 'unknow']
     data = []
-    for i in tqdm(range(1,36)):
+    for i in tqdm(range(1,6)):
         url_sz = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=8&gtype=sz0&isdesc=1&page={}&t={}'.format(i, random.random())
         url_sh = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=8&gtype=sh&isdesc=1&page={}&t={}'.format(i, random.random())
         respSZ = requests.get(url_sz, headers=headers)
@@ -121,7 +121,7 @@ class DDEWindow(QMainWindow,Ui_DDE):
         self.name = None
         self.autoRefresh = False
         self.SearchButton.clicked.connect(lambda: self.showStock(autoRresh=99,))
-        # self.Stop.clicked.connect(lambda: self.showStock(autoRresh=False,))
+        self.PopButton.clicked.connect(self.popStock)
         self.RefreshButton.clicked.connect(lambda: self.showStock(autoRresh=True))
         self.minPrice.returnPressed.connect(lambda: self.showStock(autoRresh=99,))
         self.maxPrice.returnPressed.connect(lambda: self.showStock(autoRresh=99,))
@@ -129,6 +129,25 @@ class DDEWindow(QMainWindow,Ui_DDE):
         self.minNMC.returnPressed.connect(lambda: self.showStock(autoRresh=99))
         self.minChange.returnPressed.connect(lambda: self.showStock(autoRresh=99))
         self.maxChange.returnPressed.connect(lambda: self.showStock(autoRresh=99,))
+
+    # @async_
+    def popStock(self,event):
+        text = '自选列表：'
+        for idx,_c in self.stockList[:20].iterrows():
+            # print(_c['code'])
+            min30 = ts.get_k_data(_c['代码'],ktype='30')
+            min30 = MA(min30,5)
+            min30 = MA(min30,20)
+            min30 = MA(min30,60)
+            new = min30.tail(1)
+            print(new.ma_5)
+            if new.ma_5 >= new.ma_20 >= new.ma_60:
+                text += '\ncode:{}\tname:{}\t价格:{}\t涨幅:{}'.format(_c['代码'],_c['名称'],_c['最新价'],_c['涨幅'])
+            # print(min30.tail(10),_c['代码'])
+            time.sleep(0.1)
+
+        QMessageBox.information(self,'自动选择',text,)
+
 
 
     def tabShow(self,x):
@@ -231,7 +250,7 @@ class DDEWindow(QMainWindow,Ui_DDE):
                     if idx ==0 and itemX[itemY] in self.topList:
                         item.setBackground(QColor(220,102,0))
                     # 'trade' index in self.header
-                    if self.headerCN.index('BBD(万)') <= idx <= self.headerCN.index('主动率10日') :
+                    if self.headerCN.index('涨幅') <= idx <= self.headerCN.index('主动率10日') :
                         if itemX[itemY] > 0:
                             item.setForeground(QColor(255,0,0))
                         else:

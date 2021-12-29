@@ -151,6 +151,31 @@ mappingCN = {
 }
 
 
+
+def MA(df, n,ksgn='close'):
+    '''
+    def MA(df, n,ksgn='close'):
+    #Moving Average
+    MA是简单平均线，也就是平常说的均线
+    【输入】
+        df, pd.dataframe格式数据源
+        n，时间长度
+        ksgn，列名，一般是：close收盘价
+    【输出】
+        df, pd.dataframe格式数据源,
+        增加了一栏：ma_{n}，均线数据
+    '''
+    xnam='ma_{n}'.format(n=n)
+    #ds5 = pd.Series(pd.rolling_mean(df[ksgn], n), name =xnam)
+    ds2=pd.Series(df[ksgn], name =xnam,index=df.index);
+    ds5 = ds2.rolling(center=False,window=n).mean()
+    #print(ds5.head()); print(df.head())
+    #
+    df = df.join(ds5)
+    #
+    return df
+
+
 def fundBK():
     """获取板块资金流向，个股资金流向"""
     today = time.strftime("%Y-%m-%d", time.localtime())
