@@ -78,6 +78,23 @@ def supervisory(label=0):
             time.sleep(1)
 
 
+def supervisory_stk(item):
+    """
+    自选目标位监控
+    :param code: 代码，
+    :param target: 目标位
+    :return:
+    """
+    code = item['code']
+    target = item['day']
+    price = float(ts.get_realtime_quotes(code)['price'][0])
+    ma = item['ma{}'.format(int(target))]
+    if price < ma*1.01:
+        # 回踩5日线
+        msg = '回踩{}日线：\n代码：{}\n名称：{}\n现价：{}\nMA5：{}\n{}'.format(target,code, item['name'], price, ma, time.strftime('%m-%d  %H:%M:%S'))
+        sendMSG(msg=msg)
+
+
 def initBoard(board='',label=0):
 
     """
@@ -126,13 +143,39 @@ def initBoard(board='',label=0):
 
 def stockPool():
     """
-    自选监控
+    自选监控、回踩监控
     30min、15min、5min极值支撑位
     """
-    # 获取30min
-    df = ts
-    # 筛选压力、支撑
+    code = db.get_collection('stk_pool').distinct('code')
+    for _code in code:
+        # print(_code)
+        res = db.get_collection('NMC').find_one({'code':_code})
+        res.pop('_id')
+        c = res.pop('code')
+        db.get_collection('stk_pool').update({'code':c},{'$set':res})
+        dayK = ts.get_hist_data(_code).iloc[[0]]
+        dayK = dayK.to_dict(orient='records')[0]
+        db.get_collection('stk_pool').update({'code':_code},{'$set':dayK})
+        print(dayK)
 
+    res = db.get_collection('stk_pool').find()
+    res = list(res)
+    while True:
+        now_time = datetime.now()
+        if open_time < now_time <forenoon or afternoon < now_time < close_time:
+            for i in res:
+                supervisory_stk(i)
+            time.sleep(3)
+        elif open_time > now_time:
+            print('未开盘，等待...')
+            time.sleep(120)
+        elif now_time > close_time:
+            print('非交易时间...')
+            break
+
+        else:
+            print('午间休盘....',now_time)
+            time.sleep(600)
 
 
 if __name__ == '__main__':
@@ -145,35 +188,43 @@ if __name__ == '__main__':
     forenoon = datetime.strptime(str(datetime.now().date()) + '11:30', '%Y-%m-%d%H:%M')
     afternoon = datetime.strptime(str(datetime.now().date()) + '13:30', '%Y-%m-%d%H:%M')
 
+    # stockPool()
+    res = db.get_collection('stk_pool').find()
+    res = list(res)
+
+    for i in res:
+        supervisory_stk(i)
+
+
     #开板初始化，开板保持涨停
-    impact23 = []
-    impact12 = []
-    impact99 = []
-    board2to3 = db.get_collection('impact2to3').distinct('code')
-    board1to2 = db.get_collection('impact1to2').distinct('code')
-    initBoard(board=board2to3, label=23)
-    initBoard(board=board1to2, label=12)
-    initBoard(label=99)
-    res = db.get_collection('base').find()
-    name = {i['code']:i['name'] for i in res}
-
-    while True:
-        now_time = datetime.now()
-        if open_time < now_time <forenoon or afternoon < now_time < close_time:
-            supervisory(label=23)
-            supervisory(label=12)
-            # supervisory(label=99)
-            time.sleep(120)
-        elif open_time > now_time:
-            print('未开盘，等待...')
-            time.sleep(120)
-        elif now_time > close_time:
-            print('非交易时间...')
-            break
-
-        else:
-            print('午间休盘....',now_time)
-            time.sleep(600)
+    # impact23 = []
+    # impact12 = []
+    # impact99 = []
+    # board2to3 = db.get_collection('impact2to3').distinct('code')
+    # board1to2 = db.get_collection('impact1to2').distinct('code')
+    # initBoard(board=board2to3, label=23)
+    # initBoard(board=board1to2, label=12)
+    # initBoard(label=99)
+    # res = db.get_collection('base').find()
+    # name = {i['code']:i['name'] for i in res}
+    #
+    # while True:
+    #     now_time = datetime.now()
+    #     if open_time < now_time <forenoon or afternoon < now_time < close_time:
+    #         supervisory(label=23)
+    #         supervisory(label=12)
+    #         # supervisory(label=99)
+    #         time.sleep(120)
+    #     elif open_time > now_time:
+    #         print('未开盘，等待...')
+    #         time.sleep(120)
+    #     elif now_time > close_time:
+    #         print('非交易时间...')
+    #         break
+    #
+    #     else:
+    #         print('午间休盘....',now_time)
+    #         time.sleep(600)
 
 
 

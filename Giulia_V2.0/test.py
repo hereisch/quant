@@ -21,8 +21,10 @@ from plotly import subplots
 from tqdm import tqdm
 from datetime import datetime, date, timedelta
 import scipy.signal as signal
-
-
+from sklearn.model_selection import train_test_split
+import sklearn
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.metrics import mean_squared_error
 
 
 pd.set_option('display.width', 5000)
@@ -204,6 +206,43 @@ def fund(code):
 
 
 
+def getDDXData():
+    base = db.get_collection('base').find()
+    industry = {i['code']: i['name'] for i in base}
+    res = db.get_collection('NMC').find()
+    nmc = {i['code']: round(i['nmc'] / 10000, 2) for i in res}
+
+    ddx_config = ['代码', '最新价', '涨幅', '换手率', '量比', 'DDX1日', 'DDY1日', 'DDZ', 'DDX3日', 'DDX5日', 'DDX10日', 'DDX60日', 'DDX5红', 'DDX10红', 'DDX连红', 'DDX连增', '涨幅3日', '涨幅5日', '涨幅10日', 'DDY3日', 'DDY5日',
+                  'DDY10日','DDY60日', '成交量(万)', 'BBD(万)', '通吃率1日', '通吃率5日', '通吃率10日', '通吃率20日', '单数比', '特大差', '大单差', '中单差', '小单差', '主动率1日', '主动率5日', '主动率10日', '流通盘(万股)', '未知']
+
+    abcddx_config = ['code', 'spj', 'zf', 'huanshou', 'liangbi', 'ddx', 'ddy', 'ddz', 'ddx3', 'ddx5', 'ddx10', 'ddx60', '5ddx', '10ddx', 'ddxlh', 'ddxlz', 'zf3', 'zf5', 'zf10', 'ddy3', 'ddy5',
+                     'ddy10',
+                     'ddy60', 'cjl', 'bbd', 'tcl1', 'tcl5', 'tcl10', 'tcl20', 'dsb', 'tdc', 'ddc', 'zdc', 'xdc', 'zdl1', 'zdl5', 'zdl10', 'wtp', 'unknow']
+    data = []
+    for i in tqdm(range(1,221)):
+        url_sz = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=8&isdesc=1&page={}&t={}'.format(i, random.random())
+        respSZ = requests.get(url_sz, headers=headers)
+        try:
+            data += respSZ.json()['data']
+        except Exception as e:
+            print(e)
+            print('SZ...',respSZ.text)
+
+        time.sleep(0.2)
+    today = time.strftime("%Y-%m-%d", time.localtime())
+    df = pd.DataFrame(data, columns=ddx_config)
+    df['代码'] = df['代码'].apply(lambda x: str('{:0>6d}'.format(x)))
+    # filt = df['代码'].str.contains('^(?!68|605|300|301|001296)')
+    # df = df[filt]
+    df = df.drop_duplicates()
+    df['名称'] = df['代码'].apply(lambda x: industry[x] if x in industry else '新股')
+    df['市值'] = df['代码'].apply(lambda x: nmc[x] if x in nmc else 0)
+    df['date'] = today
+    # df = df.sort_values(by=['DDX1日'], ascending=(False))
+    df = df.to_json(orient='records',)
+    # db.get_collection('test_stock')
+    return df
+
 
 
 if __name__ == '__main__':
@@ -264,8 +303,70 @@ if __name__ == '__main__':
     # resp = requests.get(url,headers=headers)
     # print(resp.json())
 
+    # db.get_collection('stk_pool').insert({'code':'605318','day':5})
+    # db.get_collection('stk_pool').insert({'code':'002495','day':5})
+    # db.get_collection('stk_pool').insert({'code':'603421','day':5})
+    # db.get_collection('stk_pool').insert({'code':'603982','day':20})
+    # db.get_collection('stk_pool').insert({'code':'000929','day':5})
+    # db.get_collection('stk_pool').insert({'code':'600371','day':5})
+    # db.get_collection('stk_pool').insert({'code':'600444','day':5})
 
 
+    # 逻辑回归选股测试
+    # 1.获取ddx数据
+    # ddx = getDDXData()
+    # ddx = json.loads(ddx)
+    # for i in ddx:
+    #     print(i)
+    #     db.get_collection('test').insert(i)
 
 
+    # 2.GBDT+LR选股策略
+
+    seed = 3
+    np.random.seed(seed)  # Numpy module.
+    random.seed(seed)  # Python random module.
+    sklearn.utils.check_random_state(seed)
+    ddx_config = ['最新价','涨幅','市值','换手率', 'DDX1日', 'DDX3日', 'DDX5日', 'DDX10日',
+                  '通吃率1日', '通吃率5日', '通吃率10日', '单数比', '特大差', '大单差', '主动率1日', '主动率5日', '主动率10日', ]
+    res = pd.DataFrame(db.get_collection('test').find({'$and': [{'市值': {'$ne': 0}}, {'DDX10日': {'$ne': 0}}]}))
+    # print(res)
+    data = res[ddx_config].values
+    label = res[['涨幅3日']].values
+
+    params = {'n_estimators': 1000, 'max_depth': 4, 'min_samples_split': 2, 'learning_rate': 0.01, 'loss': 'ls'}
+
+    trainX, testX, trainY, testY = train_test_split(data, label, train_size=0.7, random_state=0)
+    gbr = GradientBoostingRegressor(**params)
+    gbr.fit(trainX, trainY.ravel())
+    pred = gbr.predict(testX)
+    mse = mean_squared_error(testY, pred)
+    print("MSE: %.4f" % mse)
+
+    test_score = np.zeros((params['n_estimators'],), dtype=np.float64)
+    for i, y_pred in enumerate(gbr.staged_predict(testX)):
+        test_score[i] = gbr.loss_(testY, y_pred)
+
+    plt.figure(figsize=(12, 6))
+    plt.subplot(1, 2, 1)
+    plt.title('Deviance:\n{}\nMSE:{}'.format(params,np.around(mse,4)))
+    plt.plot(np.arange(params['n_estimators']) + 1, gbr.train_score_, 'b-', label='Training Set Deviance')
+    plt.plot(np.arange(params['n_estimators']) + 1, test_score, 'r-', label='Test Set Deviance')
+    plt.legend(loc='upper right')
+    plt.xlabel('Boosting Iterations')
+    plt.ylabel('Deviance')
+
+    feature_importance = gbr.feature_importances_
+
+    feature_importance = 100.0 * (feature_importance / feature_importance.max())
+    sorted_idx = np.argsort(feature_importance)
+    pos = np.arange(sorted_idx.shape[0]) + .5
+    plt.subplot(1, 2, 2)
+    plt.barh(pos, feature_importance[sorted_idx], align='center')
+    # plt.yticks(pos, boston.feature_names[sorted_idx])
+    plt.xlabel('Relative Importance')
+    plt.title('Variable Importance')
+
+
+    plt.show()
 
