@@ -225,7 +225,7 @@ def fundHS():
     # now_time = datetime.now()
 
     data = []
-    for page in tqdm(range(1,4)):
+    for page in tqdm(range(1,6)):
 
 
         # 主力净额排序前300
@@ -238,7 +238,7 @@ def fundHS():
         for i in js['data']['diff']:
             # print(i)
             data.append(i)
-        time.sleep(1)
+        time.sleep(0.5)
 
 
         # 主力净占比排序前300
@@ -251,7 +251,7 @@ def fundHS():
         for i in js2['data']['diff']:
             # print(i)
             data.append(i)
-        time.sleep(1)
+        time.sleep(0.5)
 
 
     data = pd.DataFrame(data)

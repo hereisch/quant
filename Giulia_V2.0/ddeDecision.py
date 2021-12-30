@@ -76,7 +76,7 @@ def ddxData():
                      'ddy10',
                      'ddy60', 'cjl', 'bbd', 'tcl1', 'tcl5', 'tcl10', 'tcl20', 'dsb', 'tdc', 'ddc', 'zdc', 'xdc', 'zdl1', 'zdl5', 'zdl10', 'wtp', 'unknow']
     data = []
-    for i in tqdm(range(1,6)):
+    for i in tqdm(range(1,36)):
         url_sz = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=8&gtype=sz0&isdesc=1&page={}&t={}'.format(i, random.random())
         url_sh = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=8&gtype=sh&isdesc=1&page={}&t={}'.format(i, random.random())
         respSZ = requests.get(url_sz, headers=headers)
@@ -132,21 +132,23 @@ class DDEWindow(QMainWindow,Ui_DDE):
 
     # @async_
     def popStock(self,event):
-        text = '自选列表：'
-        for idx,_c in self.stockList[:20].iterrows():
+        text = '自选列表：\ncode\tname\t价格\t涨幅\t市值\t资金\tDDX1\tDDX3\tDDX5'
+        for idx,_c in self.stockList[:50].iterrows():
             # print(_c['code'])
             min30 = ts.get_k_data(_c['代码'],ktype='30')
             min30 = MA(min30,5)
             min30 = MA(min30,20)
             min30 = MA(min30,60)
             new = min30.tail(1)
-            print(new.ma_5)
-            if new.ma_5 >= new.ma_20 >= new.ma_60:
-                text += '\ncode:{}\tname:{}\t价格:{}\t涨幅:{}'.format(_c['代码'],_c['名称'],_c['最新价'],_c['涨幅'])
+            # print(new)
+            if float(new.ma_5) >= float(new.ma_20) >= float(new.ma_60) and min30.iloc[-1].ma_5 > min30.iloc[-2].ma_5:
+                text += '\n{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}'.format(_c['代码'],_c['名称'],_c['最新价'],_c['涨幅'],_c['市值'],_c['BBD(万)'],_c['DDX1日'],_c['DDX3日'],_c['DDX5日'])
+                print('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}'.format(_c['代码'],_c['名称'],_c['最新价'],_c['涨幅'],_c['市值'],_c['BBD(万)'],_c['DDX1日'],_c['DDX3日'],_c['DDX5日']))
             # print(min30.tail(10),_c['代码'])
             time.sleep(0.1)
-
-        QMessageBox.information(self,'自动选择',text,)
+        box = QMessageBox()
+        box.setFixedSize(500,300)
+        box.information(self,'自动选择',text,)
 
 
 
