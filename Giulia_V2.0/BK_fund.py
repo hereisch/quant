@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-#
 import json
 import os
+import random
 import re
 import pymongo
 import requests
@@ -299,7 +300,13 @@ def breakThrough():
 
 
 def priceDistribution(code,start,end):
-
+    """
+    新浪分价表
+    :param code:
+    :param start: 开始日期
+    :param end: 结束日期
+    :return:
+    """
     if code.startswith('6'):
         code = 'sh' + code
     else:
@@ -318,6 +325,51 @@ def priceDistribution(code,start,end):
     # print(data[:N])
     print('前N日均价:{:.2f},总量(股):{},总额:{},占比:{:.2f}'.format(data['amount'][:N].sum()/data['vol'][:N].sum(),data['vol'][:N].sum(),data['amount'][:N].sum(),data['vol'][:N].sum()/data['vol'].sum()))
     print('总均价:{:.2f}'.format(data['amount'].sum()/data['vol'].sum()))
+
+
+def getDDXData():
+    """
+    查股网ddx数据
+    :return:
+    """
+    print('GET DDX DATA...')
+    base = db.get_collection('base').find()
+    industry = {i['code']: i['name'] for i in base}
+    res = db.get_collection('NMC').find()
+    nmc = {i['code']: round(i['nmc'] / 10000, 2) for i in res}
+
+    ddx_config = ['代码', '最新价', '涨幅', '换手率', '量比', 'DDX1日', 'DDY1日', 'DDZ', 'DDX3日', 'DDX5日', 'DDX10日', 'DDX60日', 'DDX5红', 'DDX10红', 'DDX连红', 'DDX连增', '涨幅3日', '涨幅5日', '涨幅10日', 'DDY3日', 'DDY5日',
+                  'DDY10日','DDY60日', '成交量(万)', 'BBD(万)', '通吃率1日', '通吃率5日', '通吃率10日', '通吃率20日', '单数比', '特大差', '大单差', '中单差', '小单差', '主动率1日', '主动率5日', '主动率10日', '流通盘(万股)', '未知']
+
+    abcddx_config = ['code', 'spj', 'zf', 'huanshou', 'liangbi', 'ddx', 'ddy', 'ddz', 'ddx3', 'ddx5', 'ddx10', 'ddx60', '5ddx', '10ddx', 'ddxlh', 'ddxlz', 'zf3', 'zf5', 'zf10', 'ddy3', 'ddy5',
+                     'ddy10',
+                     'ddy60', 'cjl', 'bbd', 'tcl1', 'tcl5', 'tcl10', 'tcl20', 'dsb', 'tdc', 'ddc', 'zdc', 'xdc', 'zdl1', 'zdl5', 'zdl10', 'wtp', 'unknow']
+    data = []
+    for i in tqdm(range(1,221)):
+        url_sz = 'http://ddx.gubit.cn/xg/ddxlist.php?orderby=8&isdesc=1&page={}&t={}'.format(i, random.random())
+        respSZ = requests.get(url_sz, headers=headers)
+        try:
+            data += respSZ.json()['data']
+        except Exception as e:
+            print(e)
+            print('SZ...',respSZ.text)
+
+        time.sleep(0.2)
+    today = time.strftime("%Y-%m-%d", time.localtime())
+    df = pd.DataFrame(data, columns=ddx_config)
+    df['代码'] = df['代码'].apply(lambda x: str('{:0>6d}'.format(x)))
+    # filt = df['代码'].str.contains('^(?!68|605|300|301|001296)')
+    # df = df[filt]
+    df = df.drop_duplicates()
+    df['名称'] = df['代码'].apply(lambda x: industry[x] if x in industry else '新股')
+    df['市值'] = df['代码'].apply(lambda x: nmc[x] if x in nmc else 0)
+    df['date'] = today
+    # df = df.sort_values(by=['DDX1日'], ascending=(False))
+    df = df.to_json(orient='records',)
+    # db.get_collection('test_stock')
+    return df
+
+
 
 
 if __name__ == '__main__':

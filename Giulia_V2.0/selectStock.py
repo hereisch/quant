@@ -16,7 +16,7 @@ from Ui_Giulia import Ui_MainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets
 from CONSTANT import MONGOHOST
 from jetton import jetton
-from BK_fund import fundBK
+from BK_fund import fundBK,getDDXData
 
 
 pd.set_option('display.width', 5000)
@@ -93,12 +93,13 @@ class Select():
 
 
     def updateNMC(self,data):
-
-        db.get_collection('NMC').remove()
-        filt = data['code'].str.contains('^(?!8|688|43)')
-        data = data[filt]
-        filt = data['name'].str.contains('^(?!S|退市|\*ST)')
-        data = data[filt]
+        today = time.strftime("%Y-%m-%d", time.localtime())
+        # db.get_collection('NMC').remove()
+        # filt = data['code'].str.contains('^(?!8|688|43)')
+        # data = data[filt]
+        # filt = data['name'].str.contains('^(?!S|退市|\*ST)')
+        # data = data[filt]
+        data['date'] = today
         data = data.to_json(orient='records')
         for i in eval(data):
             db.get_collection('NMC').insert(i)
@@ -203,6 +204,21 @@ class Select():
                     print(e)
                     print(i,data,'无历史数据')
 
+    def DDX(self):
+        """获取DDX数据"""
+
+        yesterday = db.get_collection('DDX').find_one(sort=[('_id', -1)])
+        yesterday = yesterday['date']
+        ddx = getDDXData()
+        ddx = json.loads(ddx)
+        for i in ddx:
+            # print(i)
+            db.get_collection('DDX').insert(i)
+        today = time.strftime("%Y-%m-%d", time.localtime())
+        res = db.get_collection('DDX').find({'date':today})
+        for i in res:
+        #     print(i)
+            db.get_collection('DDX').update({'date':yesterday,'代码':i['代码']},{'$set':{'next_price':i['最新价'],'next_change':i['涨幅']}})
 
     def topN(self,Coll='today'):
         """
@@ -372,6 +388,7 @@ def downStock(init=True):
     close_time =datetime.strptime(str(datetime.now().date())+'15:00', '%Y-%m-%d%H:%M')
     if now_time > close_time:
         s.AddStockPool()
+        s.DDX()
         fundBK()
         s.riseN()
         s.riseN(p_change=9,coll='strong')  # N日内强势票

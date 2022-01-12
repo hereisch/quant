@@ -93,7 +93,7 @@ def ddxData():
 
     df = pd.DataFrame(data, columns=ddx_config)
     df['代码'] = df['代码'].apply(lambda x: str('{:0>6d}'.format(x)))
-    filt = df['代码'].str.contains('^(?!68|605|300|301|001296)')
+    filt = df['代码'].str.contains('^(?!68|605|300|301|001296|603176)')
     df = df[filt]
     df = df.drop_duplicates()
     df['名称'] = df['代码'].apply(lambda x: industry[x] if x in industry else '新股')
@@ -240,6 +240,12 @@ class DDEWindow(QMainWindow,Ui_DDE):
         elif self.sortChange10.isChecked():
             self.stockList = self.stockList.sort_values(by=['涨幅10日'],ascending=(False,))
 
+        elif self.sortDanshu.isChecked():
+            self.stockList = self.stockList.sort_values(by=['单数比'],ascending=(True,))
+        elif self.sortTeda.isChecked():
+            self.stockList = self.stockList.sort_values(by=['特大差'], ascending=(False,))
+        elif self.sortZhongdan.isChecked():
+            self.stockList = self.stockList.sort_values(by=['大单差'],ascending=(False,))
         if self.ddxCheck.isChecked():
             self.stockList = self.stockList[(self.stockList['DDX1日']>=0)&(self.stockList['DDX3日']>=0)&(self.stockList['DDX5日']>=0)&(self.stockList['DDX10日']>=0)]
 
