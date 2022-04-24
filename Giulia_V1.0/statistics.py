@@ -17,6 +17,7 @@ def stat(code):
     """区间成交量统计"""
     df = ts.get_today_ticks(code=code,)
     df['amount'] = df['price']* df['vol']*100
+    print(df.head(100))
     buy = df[df['type']=='买入']
     sale = df[df['type']=='卖出']
     s = sale.groupby(['price'])['vol'].sum()

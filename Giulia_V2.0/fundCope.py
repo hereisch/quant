@@ -115,7 +115,7 @@ def update_his():
     curve_XD = p1.plot(data['XD_exist'],pen=(0,255,0),name='小单')
 
 
-    curve_ZL.setData(data['ZL_exist'][:-1])
+    curve_ZL.setData(data['ZL_exist'][:-1]) 
     curve_CD.setData(data['CD_exist'][:-1])
     curve_DD.setData(data['DD_exist'][:-1])
     curve_ZD.setData(data['ZD_exist'][:-1])
@@ -143,7 +143,7 @@ if __name__ == '__main__':
 
     """个股分时资金博弈窗口"""
     # code = input('代码:')
-    code = '002697'
+    code = '600249'
 
     QtGui.QApplication.instance().exec_()
 

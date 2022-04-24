@@ -114,7 +114,7 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         elif self.sortVol.isChecked():
             self.stockList = self.stockList.sort_values(by=['volRatio','count','changepercent'],ascending=(False,False,False))
         elif self.sortCount.isChecked():
-            self.stockList = self.stockList.sort_values(by=['count','changepercent','volRatio'],ascending=(False,False,False))
+            self.stockList = self.stockList.sort_values(by=['count','changepercent',],ascending=(False,False,))
         elif self.profit.isChecked():
             self.stockList = self.stockList.sort_values(by=['profit', 'count', 'changepercent'], ascending=(False, False, False))
         elif self.coverage.isChecked():
@@ -217,8 +217,22 @@ class SelectorWindow(QMainWindow,Ui_Selector):
             query.append({"nmc": {"$gte": int(lowNMC)*10000}})
         if lowChange.isdigit():
             query.append({"changepercent" : { "$gte" : int(lowChange) }})
+        else:
+            try:
+                lowChange = eval(lowChange)
+                query.append({"changepercent" : { "$gte" : int(lowChange) }})
+            except:
+                pass
+
         if highChange.isdigit():
             query.append({"changepercent" : { "$lte" : int(highChange) }})
+        else:
+            try:
+                highChange = eval(highChange)
+                query.append({"changepercent" : { "$lte" : int(highChange) }})
+            except:
+                pass
+
 
         if query:
             result = self.db.get_collection('today').find({ "$and" : query})

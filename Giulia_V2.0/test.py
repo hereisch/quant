@@ -219,7 +219,7 @@ def getDDXData():
     nmc = {i['code']: round(i['nmc'] / 10000, 2) for i in res}
 
     ddx_config = ['代码', '最新价', '涨幅', '换手率', '量比', 'DDX1日', 'DDY1日', 'DDZ', 'DDX3日', 'DDX5日', 'DDX10日', 'DDX60日', 'DDX5红', 'DDX10红', 'DDX连红', 'DDX连增', '涨幅3日', '涨幅5日', '涨幅10日', 'DDY3日', 'DDY5日',
-                  'DDY10日','DDY60日', '成交量(万)', 'BBD(万)', '通吃率1日', '通吃率5日', '通吃率10日', '通吃率20日', '单数比', '特大差', '大单差', '中单差', '小单差', '主动率1日', '主动率5日', '主动率10日', '流通盘(万股)', '未知']
+                  'DDY10日','DDY60日', '成交量(万)', 'BBD(万)', '通吃率1日', '通吃率5日', '通吃率10日', '通吃率20日', '单数比', '特大差', '大单差', '中单差', '小单差', '主动率1日', '主动率5日', '主动率10日', '流通盘(万股)', '小单买入']
 
     abcddx_config = ['code', 'spj', 'zf', 'huanshou', 'liangbi', 'ddx', 'ddy', 'ddz', 'ddx3', 'ddx5', 'ddx10', 'ddx60', '5ddx', '10ddx', 'ddxlh', 'ddxlz', 'zf3', 'zf5', 'zf10', 'ddy3', 'ddy5',
                      'ddy10',
@@ -289,7 +289,7 @@ def gbr():
 
 ]
     # ddx_config = ['代码', '最新价', '涨幅', '换手率', '量比', 'DDX1日', 'DDY1日', 'DDZ', 'DDX3日', 'DDX5日', 'DDX10日', 'DDX60日', 'DDX5红', 'DDX10红', 'DDX连红', 'DDX连增', '涨幅3日', '涨幅5日', '涨幅10日', 'DDY3日', 'DDY5日',
-    #               'DDY10日', 'DDY60日', '成交量(万)', 'BBD(万)', '通吃率1日', '通吃率5日', '通吃率10日', '通吃率20日', '单数比', '特大差', '大单差', '中单差', '小单差', '主动率1日', '主动率5日', '主动率10日', '流通盘(万股)', '未知']
+    #               'DDY10日', 'DDY60日', '成交量(万)', 'BBD(万)', '通吃率1日', '通吃率5日', '通吃率10日', '通吃率20日', '单数比', '特大差', '大单差', '中单差', '小单差', '主动率1日', '主动率5日', '主动率10日', '流通盘(万股)', '小单买入']
     res = pd.DataFrame(db.get_collection('DDX').find({'$and': [{'市值': {'$ne': 0}}, {'DDX10日': {'$ne': 0}},{'date':{'$ne':'2021-12-31'}},{'next_price':{'$ne':None}},]}))
     # print(res)
     # filt = res['代码'].str.contains('^(?!688|605|300|301|8|43)')
@@ -495,7 +495,21 @@ if __name__ == '__main__':
     # 2.GBDT+LR选股策略
 
     # gbr()
-    xgbr()
+    # xgbr()
+
+    # df = pd.read_html('https://www.xilimao.com/qiangshigu/')
+    # df = pd.DataFrame(df[0])
+    # df['代码'] = df['代码'].apply(lambda x: str('{:0>6d}'.format(x)))
+    # del df['#']
+    # # ['代码', '名称', '短线主题', '涨幅%', '现价', '封单', '今开%', '总金额', '换手率', '流通市值','总市值', '振幅', '地区', '行业', '首次封板', '连板', '几天几板', '强势原因']
+    # print(df)
+
+    res = db.get_collection('DDX').distinct('代码',{'名称':'新股'})
+    for i in res:
+
+        kk = db.get_collection('base').find_one({'code':i})
+        print(kk)
+        db.get_collection('DDX').update_many({'代码':i},{'$set':{'名称':kk['name']}})
 
 
     # 5日线选股
