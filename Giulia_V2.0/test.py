@@ -349,7 +349,7 @@ def gbr():
 def xgbr():
 
     """
-    DDX 市值 预测第二天价格
+    DDX 市值 预测第二天价格/涨幅
     :return:
     """
     seed = 3
@@ -359,40 +359,43 @@ def xgbr():
 
     # 特征列
     # ddx_config = ['最新价','涨幅', 'DDX1日', 'DDX3日', 'DDX5日', 'DDX10日', '涨幅3日', '涨幅5日', '涨幅10日',
-    # '通吃率1日', '通吃率5日', '通吃率10日', '通吃率20日', '特大差', '大单差', '主动率1日', '主动率5日', '主动率10日', ] #best mse 2.1373  误差17.5
+    # '通吃率1日', '通吃率5日', '通吃率10日', '通吃率20日', '特大差', '大单差', '主动率1日', '主动率5日', '主动率10日', ] #best mse 2.1373  误差17.5 label:next_price
     ddx_config = [
-		'最新价',
-		'涨幅',
-		 'DDX1日',
-		 'DDX3日',
-		 'DDX5日',
-		 'DDX10日',
-		 '涨幅3日',
-		 '涨幅5日',
-		 '涨幅10日',
-		 '通吃率1日',
-		 '通吃率5日',
-		 '通吃率10日',
-		 '通吃率20日',
-		 '特大差',
-		 '大单差',
-		 '主动率1日',
-		 '主动率5日',
-		 '主动率10日',
+            '最新价',
+            '涨幅',
+            'DDX1日',
+            'DDX3日',
+            'DDX5日',
+            'DDX10日',
+            '涨幅3日',
+            '涨幅5日',
+            '涨幅10日',
+            '通吃率1日',
+            '通吃率5日',
+            '通吃率10日',
+            '通吃率20日',
+            '特大差',
+            '大单差',
+            '主动率1日',
+            '主动率5日',
+            '主动率10日',
 
-        '市值',
-        'open','high','low','ma5','ma10','ma20',
-        # 'BBD(万)',
+            '市值',
+            'open','high','low','ma5','ma10','ma20',
+            # 'BBD(万)',
 
 ]
 
-    today = time.strftime("%Y-%m-%d", time.localtime())
-    res = pd.DataFrame(db.get_collection('DDX').find({'$and': [{'市值': {'$ne': 0}}, {'DDX10日': {'$ne': 0}},{'date':{'$ne':today}},{'open':{'$ne':None}},{'next_price':{'$ne':None}},]}))
-    # print(res)
-    # filt = res['代码'].str.contains('^(?!688|605|300|301|8|43)')
-    # res = res[filt]
 
-    res = res[(res['最新价']<20) & (res['最新价'] >5) & (res['市值'] <200) ]
+    today = time.strftime("%Y-%m-%d", time.localtime())
+    res = pd.DataFrame(db.get_collection('DDX').find({'$and': [{'市值': {'$ne': 0}}, {'DDX10日': {'$ne': 0}},{'date':{'$ne':today}},{'open':{'$ne':None}},{'next_price':{'$ne':None}},{'next_price':{'$ne':0}}]}))
+    print(res.shape)
+    filt = res['代码'].str.contains('^(?!688|300|301|8|43)')
+    res = res[filt]
+    filt = res['代码'].str.contains('^(?!S|退市|\*ST|N)')
+    res = res[filt]
+
+    res = res[(res['最新价']<20) & (res['最新价'] >5) & (res['市值'] <150) ]
     # res['BBD(万)'] = res['BBD(万)']/10000
     data = res[ddx_config].values
     label = res[['next_price']].values
@@ -402,18 +405,17 @@ def xgbr():
     trainX, testX, trainY, testY = train_test_split(data, label, train_size=0.7, random_state=0)
     gbr = xgb.XGBRegressor(**params)
     evalset = [(trainX, trainY), (testX, testY)]
-
     gbr.fit(trainX, trainY.ravel(),eval_set=evalset)
     pred = gbr.predict(testX)
     mse = mean_squared_error(testY, pred)
-    count= 0
-    for idx,y in enumerate(testY):
-        if abs((y[0]-pred[idx])/y[0]) > 0.03:
+    # count= 0
+    # for idx,y in enumerate(testY):
+        # if abs((y[0]-pred[idx])/y[0]) > 0.03:
         # if y[0] < testX[idx][0]:
-            print('最新价：{}，预测:{}，实际:{}，误差:{},比例:{}%'.format(testX[idx][0],round(pred[idx],2),y[0],round(y[0]-pred[idx],2),100*round((y[0]-pred[idx])/y[0],2)))
-        count += abs(100*round((y[0]-pred[idx])/y[0],2))
+        #     print('最新价：{}，预测:{}，实际:{}，误差:{},比例:{}%'.format(testX[idx][0],round(pred[idx],2),y[0],round(y[0]-pred[idx],2),100*round((y[0]-pred[idx])/y[0],2)))
+        # count += abs(100*round((y[0]-pred[idx])/y[0],2))
     print("MSE: %.4f" % mse)
-    print('平均误差：',count/len(pred))
+    # print('平均误差：',count/len(pred))
     print('训练数据：', trainX.shape, '测试数据：', testX.shape)
 
 
@@ -504,12 +506,23 @@ if __name__ == '__main__':
     # # ['代码', '名称', '短线主题', '涨幅%', '现价', '封单', '今开%', '总金额', '换手率', '流通市值','总市值', '振幅', '地区', '行业', '首次封板', '连板', '几天几板', '强势原因']
     # print(df)
 
-    res = db.get_collection('DDX').distinct('代码',{'名称':'新股'})
-    for i in res:
+    # res = db.get_collection('DDX').distinct('代码',{'名称':'新股'})
+    # for i in res:
+    #
+    #     kk = db.get_collection('base').find_one({'code':i})
+    #     print(kk)
+    #     db.get_collection('DDX').update_many({'代码':i},{'$set':{'名称':kk['name']}})
 
-        kk = db.get_collection('base').find_one({'code':i})
-        print(kk)
-        db.get_collection('DDX').update_many({'代码':i},{'$set':{'名称':kk['name']}})
+    # dat = db.get_collection('DDX').distinct('date',{'next_price':None})
+    # for idx,i in enumerate(dat):
+    #     res = db.get_collection('DDX').find({'date':i,'next_price':None})
+    #     for j in res:
+    #         print(j)
+    #         kk = db.get_collection('DDX').find_one({'代码':j['代码'],'date':dat[idx+1]})
+    #         if kk:
+    #             db.get_collection('DDX').update({'_id':j['_id']},{'$set':{'next_price':kk['最新价'],'next_change':kk['涨幅']}})
+    #         else:
+    #             db.get_collection('DDX').update({'_id':j['_id']},{'$set':{'next_price':0,'next_change':0}})
 
 
     # 5日线选股
@@ -576,3 +589,8 @@ if __name__ == '__main__':
     #
     #         print(i['代码'],i['date'],kk)
     #         db.get_collection('DDX').update({'代码':i['代码'],'date':i['date']},{'$set':{'open':kk['open'],'high':kk['high'],'close':kk['close'],'low':kk['low'],'ma5':kk['ma5'],'ma10':kk['ma10'],'ma20':kk['ma20']}})
+
+
+    pro = ts.pro_api()
+    df = pro.moneyflow(ts_code='002149.SZ', start_date='20190115', end_date='20190315')
+    print(df)

@@ -35,8 +35,8 @@ class HSfundWindow(QMainWindow,Ui_HSfund):
         self.res = db.get_collection('NMC').find()
         self.nmc = {i['code']: round(i['nmc']/10000,2) for i in self.res}
         self.data['nmc'] = self.data['f12'].apply(lambda x:self.nmc[x])
-        self.header = ['f12','f14','f3','f2','nmc','f62','f184','f66','f69','f72','f75','f78','f81','f84','f87','date',]
-        self.headerCN = ["code","name","涨跌幅","最新价","市值","主力净额（万）","主力净占比","超大单净额（万）","超大单净占比","大单净额（万）","大单净占比","中单净额（万）","中单净占比","小单净额（万）","小单净占比","时间"]
+        self.header = ['f12','f14','nmc','f2','f3','f62','f184','f66','f69','f72','f75','f78','f81','f84','f87','date',]
+        self.headerCN = ["code","name","市值","最新价","涨跌幅","主力净额（万）","主力净占比","超大单净额（万）","超大单净占比","大单净额（万）","大单净占比","中单净额（万）","中单净占比","小单净额（万）","小单净占比","时间"]
         self.data = self.data[self.header]
         self.SearchButton.clicked.connect(lambda: self.showStock(autoRresh=99,))
         self.maxPrice.returnPressed.connect(lambda: self.showStock(autoRresh=99,))
@@ -66,7 +66,7 @@ class HSfundWindow(QMainWindow,Ui_HSfund):
     def showStock(self,autoRresh=False):
         if autoRresh is True:
             self.data = fundHS()
-            self.data['nmc'] = self.data['f12'].apply(lambda x: self.nmc[x])
+            self.data['nmc'] = self.data['f12'].apply(lambda x: self.nmc[x] if x in self.nmc else 0)
         elif autoRresh == 99:
             if self.data is None:
                 self.data = fundHS()
@@ -119,7 +119,7 @@ class HSfundWindow(QMainWindow,Ui_HSfund):
             for idy, itemX in self.data.iterrows():
                 for idx, itemY in enumerate(self.header):
                     item = QStandardItem(str(itemX[itemY]))
-                    if self.headerCN.index('主力净额（万）') <= idx < self.headerCN.index('时间'):
+                    if self.headerCN.index('涨跌幅') <= idx < self.headerCN.index('时间'):
                         if itemX[itemY] > 0:
                             item.setForeground(QColor(255,0,0))
                         else:

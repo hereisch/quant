@@ -375,6 +375,7 @@ def downStock(init=True):
     print('开始下载数据....', time.strftime('%Y年%m月%d日%H时%M分%S秒'))
     if init:
         s = Select(init=True)
+        s.updBase()
         s.download()
     else:
         s = Select(init=False)

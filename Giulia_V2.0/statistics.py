@@ -225,7 +225,7 @@ def fundStock(code:str):
 if __name__ == '__main__':
 
     # code = input('代码：')
-    code = '600649'
+    code = '603116'
     # stat(code)
 
     fundStock(code)

@@ -152,6 +152,9 @@ class DDEWindow(QMainWindow,Ui_DDE):
 
 
 
+
+
+
     def tabShow(self,x):
         indexK = ['Day','min_30','min_15','min_5','min_60','tick_time']
         typeK = ['D','30','15','5','60',]
@@ -225,6 +228,10 @@ class DDEWindow(QMainWindow,Ui_DDE):
             self.stockList = self.stockList.sort_values(by=['DDX5日','DDX1日','DDX3日','DDX10日'],ascending=(False,False,False,False))
         elif self.sortDDX10.isChecked():
             self.stockList = self.stockList.sort_values(by=['DDX10日','DDX1日','DDX3日','DDX5日'],ascending=(False,False,False,False))
+        elif self.sortDDZ.isChecked():
+            self.stockList = self.stockList.sort_values(by=['DDZ','DDX1日','DDX3日','DDX5日'],ascending=(False,False,False,False))
+        elif self.sortDDY1.isChecked():
+            self.stockList = self.stockList.sort_values(by=['DDY1日','DDX1日','DDX3日','DDX5日'],ascending=(False,False,False,False))
         elif self.dsb.isChecked():
             self.stockList = self.stockList.sort_values(by=['单数比','特大差','大单差',],ascending=(False,False,False))
         elif self.BBD.isChecked():

@@ -143,7 +143,7 @@ if __name__ == '__main__':
 
     """个股分时资金博弈窗口"""
     # code = input('代码:')
-    code = '600249'
+    code = '002325'
 
     QtGui.QApplication.instance().exec_()
 
