@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-#
 import json
-import os
+import asyncio
+import time
+import aiohttp
+import async_timeout
 import random
 import re
 import pymongo
@@ -86,13 +89,33 @@ mappingEN = {
 mappingCN = {
     "f2": "最新价",
     "f3": "涨跌幅",
+    "f4":"涨跌",
+    "f5":"总手",
+    "f6":"金额",
+    "f7":"振幅",
+    "f8":"换手",
+    "f9":"市盈",
+    "f10":"量比",
+    "f11":"",
+    "f13":"市场",
+    "f15":"最高",
+    "f16":"最低",
+    "f17":"今开",
+    "f18":"昨收",
+    "f19":"",
+    "f20":"市值",
+    "f21":"流通市值",
+    "f22":"涨速",
+    "f23":"市净",
+    "f24":"",
+    "f25":"今年涨幅",
+    "f26":"上市时间",
     "f127": "zdf",
     "f109": "zdf",
     "f160": "zdf",
     "f12": "code",
     "f14": "name",
     "f62": "主力净额",
-    "f184": "主力净占比",
     "f64":"超大单流入",
     "f65":"超大单流出",
     "f66": "超大单净额",
@@ -139,6 +162,7 @@ mappingCN = {
     "f181": "zdjzb",
     "f182": "xdje",
     "f183": "xdjzb",
+    "f184": "主力净占比",
     "f205": "领涨股代码",
     "f204": "领涨股",
     "f258": "zdcode",
@@ -369,7 +393,87 @@ def getDDXData():
     # db.get_collection('test_stock')
     return df
 
+def ZRZT():
 
+    _zrztWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=100&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK1050&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
+    zrztWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=100&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK0815&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
+    ztContinueWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=100&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK0816&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
+
+    _zrztMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK1050&pn=1&pz=100&po=1&fid=f2&invt=2&np=1&fltt=2'
+    zrztMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK0815&pn=1&pz=100&po=1&fid=f2&invt=2&np=1&fltt=2'
+    ztContinueMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK0816&pn=1&pz=100&po=1&fid=f2&invt=2&np=1&fltt=2'
+    start = time.time()
+    _zrztWebResp = requests.get(_zrztWeb,headers=headers)
+    zrztWebResp = requests.get(zrztWeb,headers=headers)
+    ztContinueWebResp = requests.get(ztContinueWeb,headers=headers)
+
+    _zrztMobileResp = requests.get(_zrztMobile,headers=headers)
+    zrztMobileResp = requests.get(zrztMobile,headers=headers)
+    ztContinueMobileResp = requests.get(ztContinueMobile,headers=headers)
+
+    # print(_zrztMobileResp.json()['data']['diff'])
+    # print(zrztMobileResp.json()['data']['diff'])
+    # print(ztContinueMobileResp.json()['data']['diff'])
+
+    webData = _zrztWebResp.json()['data']['diff'] + zrztWebResp.json()['data']['diff'] + ztContinueWebResp.json()['data']['diff']
+    mobileData = _zrztMobileResp.json()['data']['diff'] + zrztMobileResp.json()['data']['diff'] + ztContinueMobileResp.json()['data']['diff']
+    wData = pd.DataFrame(webData).drop_duplicates().drop(['f1','f204','f205','f206','f13'],axis=1,)
+    mData = pd.DataFrame(webData).drop_duplicates().drop(['f1','f204','f205','f206','f13'],axis=1,)
+    print(wData)
+    print(mData)
+    start3 = time.time()
+    print(start3-start)
+
+
+
+class Zrzt():
+
+    _zrztWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=100&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK1050&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
+    zrztWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=100&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK0815&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
+    ztContinueWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=100&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK0816&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
+
+    _zrztMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK1050&pn=1&pz=100&po=1&fid=f2&invt=2&np=1&fltt=2'
+    zrztMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK0815&pn=1&pz=100&po=1&fid=f2&invt=2&np=1&fltt=2'
+    ztContinueMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK0816&pn=1&pz=100&po=1&fid=f2&invt=2&np=1&fltt=2'
+
+    web = [_zrztWeb,zrztWeb,ztContinueWeb,]
+    mobile = [_zrztMobile,zrztMobile,ztContinueMobile]
+    url = web+mobile
+
+
+    async def fetch(self,session, url):
+        with async_timeout.timeout(10):
+            async with session.get(url,headers=headers) as response:
+                resp = await response.json()
+                return resp['data']['diff']
+
+
+
+    async def main(self,url):
+        # print('---', url)
+        async with aiohttp.ClientSession() as session:
+            resp = await self.fetch(session, url)
+            # print(resp)
+            return resp
+
+    def run(self):
+        # start = time.time()
+        loop = asyncio.get_event_loop()
+        tasks1 = [self.main(url) for url in self.web]
+        tasks2 = [self.main(url) for url in self.mobile]
+
+        # 返回一个列表,内容为各个tasks的返回值
+        web = loop.run_until_complete(asyncio.gather(*tasks1))
+        mobile = loop.run_until_complete(asyncio.gather(*tasks2))
+        webData = pd.DataFrame(web[0]+web[1]+web[2]).drop_duplicates().drop(['f1','f204','f205','f206','f13'],axis=1,)
+        mobileData = pd.DataFrame(mobile[0] + mobile[1] + mobile[2]).drop_duplicates().drop(['f1', 'f2','f3', 'f13','f14','f27','f28','f29','f19'], axis=1, )
+
+        # print(webData,)
+        # print(mobileData)
+        data = pd.merge(webData,mobileData,on='f12')
+        print(data)
+        # end = time.time()
+        # print(end-start)
 
 
 if __name__ == '__main__':
@@ -378,4 +482,9 @@ if __name__ == '__main__':
     # fundBK()
     # fundHS()
     # breakThrough()
-    priceDistribution('603569','2021-12-13','2021-12-23')
+    # priceDistribution('603569','2021-12-13','2021-12-23')
+    # ZRZT()
+    s = Zrzt()
+
+    s.run()
+

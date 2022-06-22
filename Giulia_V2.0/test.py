@@ -591,6 +591,13 @@ if __name__ == '__main__':
     #         db.get_collection('DDX').update({'代码':i['代码'],'date':i['date']},{'$set':{'open':kk['open'],'high':kk['high'],'close':kk['close'],'low':kk['low'],'ma5':kk['ma5'],'ma10':kk['ma10'],'ma20':kk['ma20']}})
 
 
-    pro = ts.pro_api()
-    df = pro.moneyflow(ts_code='002149.SZ', start_date='20190115', end_date='20190315')
-    print(df)
+    df = ts.get_today_all()
+    df = df[df['code'].str.contains('^(?!688|605|300|301|8|43)')]
+    df = df[df['name'].str.contains('^(?!S|退市|\*ST|N)')]
+
+    high_open = df[df['trade'] > df['per']].count()
+    low_open = df[df['trade'] < df['per']].count()
+    equal_open = df[df['trade'] == df['per']].count()
+    print('高开:{}\n低开:{}\n平开:{}'.format(high_open,low_open,equal_open))
+
+
