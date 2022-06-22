@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-#
 import json
 import asyncio
-import time
+import locale
+import os
+if os.name == 'nt':
+    locale.setlocale(locale.LC_CTYPE, 'chinese')
 import aiohttp
 import async_timeout
 import random
@@ -96,18 +99,18 @@ mappingCN = {
     "f8":"换手",
     "f9":"市盈",
     "f10":"量比",
-    "f11":"",
+    "f11":"f11",
     "f13":"市场",
     "f15":"最高",
     "f16":"最低",
     "f17":"今开",
     "f18":"昨收",
-    "f19":"",
+    "f19":"f19",
     "f20":"市值",
     "f21":"流通市值",
     "f22":"涨速",
     "f23":"市净",
-    "f24":"",
+    "f24":"f24",
     "f25":"今年涨幅",
     "f26":"上市时间",
     "f127": "zdf",
@@ -466,12 +469,22 @@ class Zrzt():
         web = loop.run_until_complete(asyncio.gather(*tasks1))
         mobile = loop.run_until_complete(asyncio.gather(*tasks2))
         webData = pd.DataFrame(web[0]+web[1]+web[2]).drop_duplicates().drop(['f1','f204','f205','f206','f13'],axis=1,)
-        mobileData = pd.DataFrame(mobile[0] + mobile[1] + mobile[2]).drop_duplicates().drop(['f1', 'f2','f3', 'f13','f14','f27','f28','f29','f19'], axis=1, )
+        mobileData = pd.DataFrame(mobile[0] + mobile[1] + mobile[2]).drop_duplicates().drop(['f1', 'f2','f3', 'f13','f14',], axis=1, )
 
         # print(webData,)
         # print(mobileData)
         data = pd.merge(webData,mobileData,on='f12')
-        print(data)
+        data.rename(columns=mappingCN, inplace=True)
+        data = data[['code','name','最新价','涨跌幅','涨速','流通市值','主力净额', '主力净占比','超大单净额', '超大单净占比' ,'大单净额' ,'大单净占比', '中单净额',
+                    '中单净占比', '小单净额', '小单净占比','振幅','换手','最高','最低','今开','昨收',]]
+        filt = data['code'].str.contains('^(?!688|605|300|301|8|43)')
+        data = data[filt]
+        filt = data['name'].str.contains('^(?!S|退市|\*ST|N)')
+        data = data[filt]
+        print('实时刷新....', time.strftime('%Y年%m月%d日%H时%M分%S秒'))
+        # print(data)
+        # print(data.columns.values,data.shape)
+        return data
         # end = time.time()
         # print(end-start)
 
