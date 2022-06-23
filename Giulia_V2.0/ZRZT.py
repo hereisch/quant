@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-#
-
+from datetime import datetime,date,timedelta
 import re
 import requests
 from PyQt5.QtCore import *
@@ -25,12 +25,12 @@ class NewTableWidget(QWidget):
     zrzt = Zrzt()
     def __init__(self):
         super(NewTableWidget, self).__init__()
-        self.resize(2300, 1300)
+        self.resize(2300, 1200)
         self.setWindowTitle('昨日涨停')
 
         # 表头标签
-        self.headerlabels = ['code', 'name', '最新价', '涨跌幅', '涨速', '流通市值' ,'主力净额' ,'主力净占比' ,'超大单净额' ,'超大单净占比',
-                            '大单净额', '大单净占比', '中单净额', '中单净占比', '小单净额' ,'小单净占比', '振幅', '换手' ,'最高', '最低' ,'今开','昨收']
+        self.headerlabels = ['code','name','最新价','涨跌幅','涨速','流通市值','主力净额', '主力净占比','超大单净额', '超大单净占比' ,'大单净额' ,'大单净占比', '中单净额',
+                    '中单净占比', '小单净额', '小单净占比','最高','最低','今开','昨收','换手','振幅']
         # 行数和列数
         self.rowsnum, self.columnsnum = 60,len(self.headerlabels)
 
@@ -96,12 +96,18 @@ class NewTableWidget(QWidget):
     def switch_slot(self,):
         # 更新表格内容
         data = self.zrzt.run()
+        if datetime.now() < datetime.strptime(str(datetime.now().date()) + '9:25', '%Y-%m-%d%H:%M'):
+            for i in ['主力净额' ,'主力净占比' ,'超大单净额' ,'超大单净占比',
+                            '大单净额', '大单净占比', '中单净额', '中单净占比', '小单净额' ,'小单净占比']:
+                data[i] = data[i].replace('-',0)
+
         data['流通市值'] = round(data['流通市值'] / 100000000,2)
         data['主力净额'] = round(data['主力净额']/10000,2)
         data['超大单净额'] = round(data['超大单净额']/10000,2)
         data['大单净额'] = round(data['大单净额']/10000,2)
         data['中单净额'] = round(data['中单净额']/10000,2)
         data['小单净额'] = round(data['小单净额']/10000,2)
+        data = data.drop_duplicates()
         data = data.sort_values(by=['涨跌幅',],ascending=False)
         data = data.reset_index(drop=True)
         # print(data)
@@ -114,11 +120,17 @@ class NewTableWidget(QWidget):
                         newItem.setForeground(QColor(255,0,0))
                     else:
                         newItem.setForeground(QColor(0, 150, 0))
+                elif itemY in ['最新价','最高','最低','今开']:
+                    if itemX[itemY] >= itemX['昨收'] :
+                        newItem.setForeground(QColor(255,0,0))
+                    else:
+                        newItem.setForeground(QColor(0, 150, 0))
                 newItem.setTextAlignment(Qt.AlignCenter)
                 self.TableWidget.setItem(idy, idx, newItem)
 
 
         self.TableWidget.update()
+
 
 
 if __name__ == '__main__':

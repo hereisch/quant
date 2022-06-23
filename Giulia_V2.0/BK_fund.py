@@ -476,13 +476,13 @@ class Zrzt():
         data = pd.merge(webData,mobileData,on='f12')
         data.rename(columns=mappingCN, inplace=True)
         data = data[['code','name','最新价','涨跌幅','涨速','流通市值','主力净额', '主力净占比','超大单净额', '超大单净占比' ,'大单净额' ,'大单净占比', '中单净额',
-                    '中单净占比', '小单净额', '小单净占比','振幅','换手','最高','最低','今开','昨收',]]
+                    '中单净占比', '小单净额', '小单净占比','最高','最低','今开','昨收','换手','振幅']]
         filt = data['code'].str.contains('^(?!688|605|300|301|8|43)')
         data = data[filt]
         filt = data['name'].str.contains('^(?!S|退市|\*ST|N)')
         data = data[filt]
         print('实时刷新....', time.strftime('%Y年%m月%d日%H时%M分%S秒'))
-        # print(data)
+
         # print(data.columns.values,data.shape)
         return data
         # end = time.time()
