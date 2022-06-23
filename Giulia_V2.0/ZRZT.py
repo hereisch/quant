@@ -20,19 +20,18 @@ class my_thread(QThread):
             time.sleep(1)
 
 
-class NewTableWidget(QWidget):
+class NewTableWidget(QWidget,):
     sum = 0
     zrzt = Zrzt()
     def __init__(self):
         super(NewTableWidget, self).__init__()
         self.resize(2300, 1200)
         self.setWindowTitle('昨日涨停')
-
         # 表头标签
         self.headerlabels = ['code','name','最新价','涨跌幅','涨速','流通市值','主力净额', '主力净占比','超大单净额', '超大单净占比' ,'大单净额' ,'大单净占比', '中单净额',
                     '中单净占比', '小单净额', '小单净占比','最高','最低','今开','昨收','换手','振幅']
         # 行数和列数
-        self.rowsnum, self.columnsnum = 60,len(self.headerlabels)
+        self.rowsnum, self.columnsnum = 100,len(self.headerlabels)
 
         self.TableWidget = QTableWidget(self.rowsnum, self.columnsnum)
 
@@ -73,11 +72,65 @@ class NewTableWidget(QWidget):
         self.switch_btn.clicked.connect(self.on_clicked)
 
         # 整体布局
-        layout = QVBoxLayout()
-        layout.addWidget(self.TableWidget)
-        layout.addWidget(self.switch_btn)
 
-        self.setLayout(layout)
+        lay = QVBoxLayout()
+        hLayout = QHBoxLayout()
+        self.maxPrice = QLineEdit()
+        self.minPrice = QLineEdit()
+        self.maxChange = QLineEdit()
+        self.minChange = QLineEdit()
+        self.maxNMC = QLineEdit()
+        self.minNMC = QLineEdit()
+        self.label = QLabel()
+        self.label.setText('-')
+        self.labelChange = QLabel('涨幅:')
+        self.labelPrice = QLabel('价格:')
+        self.labelNMC = QLabel('市值:')
+
+        self.sortChange = QRadioButton('涨幅↓')
+        self.sortSpeed = QRadioButton('涨速↓')
+        self.sortZLJE = QRadioButton('主力净额↓')
+        self.sortZLJZB = QRadioButton('主力净占比↓')
+        self.sortCDJE = QRadioButton('超大净额↓')
+        self.sortCDJZB = QRadioButton('超大净占比↓')
+        self.sortDDJE = QRadioButton('大单净额↓')
+        self.sortDDJZB = QRadioButton('大单净占比↓')
+        self.sortTurn = QRadioButton('换手↓')
+        self.hold = QCheckBox('最低 > 昨收')
+        self.highOpen = QCheckBox('高开')
+
+        hLayout.addWidget(self.labelPrice)
+        hLayout.addWidget(self.minPrice)
+        hLayout.addWidget(self.label)
+        hLayout.addWidget(self.maxPrice)
+        hLayout.addWidget(self.labelNMC)
+        hLayout.addWidget(self.minNMC)
+        hLayout.addWidget(self.label)
+        hLayout.addWidget(self.maxNMC)
+        hLayout.addWidget(self.labelChange)
+        hLayout.addWidget(self.minChange)
+        hLayout.addWidget(self.label)
+        hLayout.addWidget(self.maxChange)
+
+
+        hLayout.addWidget(self.sortChange)
+        hLayout.addWidget(self.sortSpeed)
+        hLayout.addWidget(self.sortZLJE)
+        hLayout.addWidget(self.sortZLJZB)
+        hLayout.addWidget(self.sortCDJE)
+        hLayout.addWidget(self.sortCDJZB)
+        hLayout.addWidget(self.sortDDJE)
+        hLayout.addWidget(self.sortDDJZB)
+        hLayout.addWidget(self.sortTurn)
+        hLayout.addWidget(self.highOpen)
+        hLayout.addWidget(self.hold)
+
+        self.sortChange.setChecked(True)
+
+        hLayout.addWidget(self.switch_btn)
+        lay.addWidget(self.TableWidget)
+        lay.addLayout(hLayout)
+        self.setLayout(lay)
 
         # 单击按钮的槽
 
@@ -108,9 +161,62 @@ class NewTableWidget(QWidget):
         data['中单净额'] = round(data['中单净额']/10000,2)
         data['小单净额'] = round(data['小单净额']/10000,2)
         data = data.drop_duplicates()
-        data = data.sort_values(by=['涨跌幅',],ascending=False)
+        # print(data)
+
+        highPrice = self.maxPrice.text()
+        lowPrice = self.minPrice.text()
+        highNMC = self.maxNMC.text()
+        lowNMC = self.minNMC.text()
+        highChange = self.maxChange.text()
+        lowChange = self.minChange.text()
+        if highPrice.isdigit():
+            data = data[data['最新价'] <= float(highPrice)]
+        if lowPrice.isdigit():
+            data = data[data['最新价'] >= float(lowPrice)]
+        if highNMC.isdigit():
+            data = data[data['市值'] <= float(highNMC)]
+        if lowNMC.isdigit():
+            data = data[data['市值'] >= float(lowNMC)]
+        try:
+            highChange = eval(highChange)
+            data = data[data['涨跌幅'] <= float(highChange)]
+        except:
+            pass
+        try:
+            lowChange = eval(lowChange)
+            data = data[data['涨跌幅'] >= float(lowChange)]
+        except:
+            pass
+
+        if self.hold.isChecked():
+            data = data[data['最低']>=data['昨收']]
+        if self.highOpen.isChecked():
+            data = data[data['今开'] >= data['昨收']]
+
+        
+
+        if self.sortChange.isChecked():
+            data = data.sort_values(by=['涨跌幅',],ascending=False)
+        elif self.sortSpeed.isChecked():
+            data = data.sort_values(by=['涨速',],ascending=False)
+        elif self.sortZLJE.isChecked():
+            data = data.sort_values(by=['主力净额',],ascending=False)
+        elif self.sortZLJZB.isChecked():
+            data = data.sort_values(by=['主力净占比',],ascending=False)
+        elif self.sortCDJE.isChecked():
+            data = data.sort_values(by=['超大单净额',],ascending=False)
+        elif self.sortCDJZB.isChecked():
+            data = data.sort_values(by=['超大单净占比',],ascending=False)
+        elif self.sortDDJE.isChecked():
+            data = data.sort_values(by=['大单净额',],ascending=False)
+        elif self.sortDDJZB.isChecked():
+            data = data.sort_values(by=['大单净占比',],ascending=False)
+        elif self.sortTurn.isChecked():
+            data = data.sort_values(by=['换手',],ascending=False)
+
         data = data.reset_index(drop=True)
         # print(data)
+        self.TableWidget.clearContents()
         for idy, itemX in data.iterrows():
             for idx, itemY in enumerate(self.headerlabels):
                 newItem = QTableWidgetItem(str(itemX[itemY]))
@@ -129,7 +235,9 @@ class NewTableWidget(QWidget):
                 self.TableWidget.setItem(idy, idx, newItem)
 
 
+
         self.TableWidget.update()
+
 
 
 
