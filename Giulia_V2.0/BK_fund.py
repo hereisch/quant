@@ -113,7 +113,7 @@ mappingCN = {
     "f24":"f24",
     "f25":"今年涨幅",
     "f26":"上市时间",
-    "f127": "zdf",
+    "f127": "zdf",  #所属板块？
     "f109": "zdf",
     "f160": "zdf",
     "f12": "code",
@@ -432,15 +432,20 @@ def ZRZT():
 class Zrzt():
 
     _zrztWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=100&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK1050&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
-    zrztWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=100&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK0815&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
-    ztContinueWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=100&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK0816&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
+    # zrztWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=100&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK0815&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
+    # ztContinueWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=100&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK0816&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
+    zrcbWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=100&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK0817&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
+
 
     _zrztMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK1050&pn=1&pz=100&po=1&fid=f2&invt=2&np=1&fltt=2'
-    zrztMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK0815&pn=1&pz=100&po=1&fid=f2&invt=2&np=1&fltt=2'
-    ztContinueMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK0816&pn=1&pz=100&po=1&fid=f2&invt=2&np=1&fltt=2'
+    # zrztMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK0815&pn=1&pz=100&po=1&fid=f2&invt=2&np=1&fltt=2'
+    # ztContinueMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK0816&pn=1&pz=100&po=1&fid=f2&invt=2&np=1&fltt=2'
+    zrcbMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK0817&pn=1&pz=100&po=1&fid=f2&invt=2&np=1&fltt=2'
 
-    web = [_zrztWeb,zrztWeb,ztContinueWeb,]
-    mobile = [_zrztMobile,zrztMobile,ztContinueMobile]
+
+
+    web = [_zrztWeb,zrcbWeb,]
+    mobile = [_zrztMobile,zrcbMobile,]
     url = web+mobile
 
 
@@ -468,15 +473,16 @@ class Zrzt():
         # 返回一个列表,内容为各个tasks的返回值
         web = loop.run_until_complete(asyncio.gather(*tasks1))
         mobile = loop.run_until_complete(asyncio.gather(*tasks2))
-        webData = pd.DataFrame(web[0]+web[1]+web[2]).drop_duplicates().drop(['f1','f204','f205','f206','f13'],axis=1,)
-        mobileData = pd.DataFrame(mobile[0] + mobile[1] + mobile[2]).drop_duplicates().drop(['f1', 'f2','f3', 'f13','f14',], axis=1, )
+        webData = pd.DataFrame(web[0]+web[1]).drop_duplicates().drop(['f1','f204','f205','f206','f13'],axis=1,)
+        mobileData = pd.DataFrame(mobile[0] + mobile[1] ).drop_duplicates().drop(['f1', 'f2','f3', 'f13','f14',], axis=1, )
 
         # print(webData,)
         # print(mobileData)
         data = pd.merge(webData,mobileData,on='f12')
         data.rename(columns=mappingCN, inplace=True)
+        # print(data)
         data = data[['code','name','最新价','涨跌幅','涨速','流通市值','主力净额', '主力净占比','超大单净额', '超大单净占比' ,'大单净额' ,'大单净占比', '中单净额',
-                    '中单净占比', '小单净额', '小单净占比','最高','最低','今开','昨收','换手','振幅']]
+                    '中单净占比', '小单净额', '小单净占比','最高','最低','今开','昨收','换手','振幅','量比']]
         filt = data['code'].str.contains('^(?!688|605|300|301|8|43)')
         data = data[filt]
         filt = data['name'].str.contains('^(?!S|退市|\*ST|N)')
