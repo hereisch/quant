@@ -3,6 +3,7 @@ import json
 import locale
 import os
 import random
+import requests
 from threading import Thread
 from datetime import datetime,date,timedelta
 import time
@@ -12,10 +13,8 @@ import pandas as pd
 from tqdm import tqdm
 from PyQt5.QtWidgets import QMainWindow
 import os
-from Ui_Giulia import Ui_MainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets
 from CONSTANT import MONGOHOST
-from jetton import jetton
 from BK_fund import fundBK,getDDXData
 
 
@@ -28,6 +27,13 @@ db = client['quant']
 
 if os.name == 'nt':
     locale.setlocale(locale.LC_CTYPE, 'chinese')
+
+
+
+headers = {
+    # 'Referer': 'http://data.eastmoney.com/bkzj/hy.html',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36',
+}
 
 
 def async_(f):
@@ -206,7 +212,7 @@ class Select():
 
     def DDX(self):
         """获取DDX数据"""
-
+        print('获取DDX数据...')
         yesterday = db.get_collection('DDX').find_one(sort=[('_id', -1)])
         yesterday = yesterday['date']
         ddx = getDDXData()
@@ -244,6 +250,28 @@ class Select():
         for i in tqdm(res):
             self.topN_child(today=today,i=i,topday=topday,Coll=Coll)
         # db.get_collection(Coll).remove({'top3': None})
+
+    def fundFlow(self):
+        """个股资金流向"""
+
+        today = time.strftime("%Y-%m-%d", time.localtime())
+        print('获取涨停股资金流...',today)
+        url = 'http://push2.eastmoney.com/api/qt/stock/fflow/kline/get?lmt=0&klt=1&secid={}&fields1=f1%2Cf2%2Cf3%2Cf7&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59%2Cf60%2Cf61%2Cf62%2Cf63%2Cf64%2Cf65'
+        res = db.get_collection('today').find({'changepercent':{'$gte':9.8}})
+        for i in res:
+            code = i['code']
+            if code.startswith('6'):
+                code = '1.' + code
+            else:
+                code = '0.' + code
+
+            resp = requests.get(url.format(code),headers=headers)
+            data = resp.json()['data']['klines']
+            db.get_collection('fundFlow').insert({'code':i['code'],'name':i['name'],"changepercent": i['changepercent'],
+                                                  "trade": i['trade'],'per_close':i['settlement'],"open": i['open'],"high": i['high'],"low": i['low'],'klines':data,'date':today})
+            time.sleep(3)
+
+
 
 
     @async_
@@ -390,6 +418,7 @@ def downStock(init=True):
     if now_time > close_time:
         s.AddStockPool()
         s.DDX()
+        s.fundFlow()
         fundBK()
         s.riseN()
         s.riseN(p_change=9,coll='strong')  # N日内强势票
@@ -437,6 +466,7 @@ if __name__ == '__main__':
 
     # print('Debug....')
     # s = Select(init=False)
+    # s.fundFlow()
     # s.updBase()
     # s.topN()
     # s.riseN()

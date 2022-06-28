@@ -16,9 +16,14 @@ from CONSTANT import MONGOHOST
 from datetime import datetime, date, timedelta
 from tqdm import tqdm,trange
 import pandas as pd
+import tushare as ts
+
+
 pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
+
+
 
 headers = {
     # 'Referer': 'http://data.eastmoney.com/bkzj/hy.html',
@@ -176,9 +181,40 @@ mappingCN = {
     "f263": "zlpm5",
     "f264": "zlpm10",
     "f124": "time",
+
+
+
+
+
 }
 
+mappingTHS = {
 
+    '5':'code',
+    '6':'昨收',
+    '7':'今开',
+    '8':'涨停',
+    '9':'最低',
+    '10':'最新',
+    '13':'总手',
+    '19':'成交额',
+    '55':'name',
+    "223": "122173380.00",
+    "224": "43838691.00",
+    "225": "29209553.00",
+    "226": "49731795.00",
+    "237": "53808723.00",
+    "238": "51183479.00",
+    "259": "64521815.00",
+    "260": "76610935.00",
+
+    '199112':'涨幅',
+    '264648':'涨跌',
+    "2034120": "",
+    "3475914": "流通市值",
+    "3541450": "总市值",
+    "1968584": "换手",
+}
 
 def MA(df, n,ksgn='close'):
     '''
@@ -206,6 +242,7 @@ def MA(df, n,ksgn='close'):
 
 def fundBK():
     """获取板块资金流向，个股资金流向"""
+    print('获取板块资金流向，个股资金流向...')
     today = time.strftime("%Y-%m-%d", time.localtime())
     close_time = datetime.strptime(str(datetime.now().date()) + '15:00', '%Y-%m-%d%H:%M')
     now_time = datetime.now()
@@ -431,16 +468,16 @@ def ZRZT():
 
 class Zrzt():
 
-    _zrztWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=100&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK1050&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
-    # zrztWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=100&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK0815&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
-    # ztContinueWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=100&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK0816&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
-    zrcbWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=100&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK0817&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
+    _zrztWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=150&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK1050&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
+    # zrztWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=150&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK0815&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
+    # ztContinueWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=150&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK0816&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
+    zrcbWeb = 'https://push2.eastmoney.com/api/qt/clist/get?fid=f62&po=1&pz=150&pn=1&np=1&fltt=2&invt=2&fs=b%3ABK0817&fields=f12%2Cf14%2Cf2%2Cf3%2Cf62%2Cf184%2Cf66%2Cf69%2Cf72%2Cf75%2Cf78%2Cf81%2Cf84%2Cf87%2Cf204%2Cf205%2Cf124%2Cf1%2Cf13'
 
 
-    _zrztMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK1050&pn=1&pz=100&po=1&fid=f2&invt=2&np=1&fltt=2'
-    # zrztMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK0815&pn=1&pz=100&po=1&fid=f2&invt=2&np=1&fltt=2'
-    # ztContinueMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK0816&pn=1&pz=100&po=1&fid=f2&invt=2&np=1&fltt=2'
-    zrcbMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK0817&pn=1&pz=100&po=1&fid=f2&invt=2&np=1&fltt=2'
+    _zrztMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK1050&pn=1&pz=150&po=1&fid=f2&invt=2&np=1&fltt=2'
+    # zrztMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK0815&pn=1&pz=150&po=1&fid=f2&invt=2&np=1&fltt=2'
+    # ztContinueMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK0816&pn=1&pz=150&po=1&fid=f2&invt=2&np=1&fltt=2'
+    zrcbMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK0817&pn=1&pz=150&po=1&fid=f2&invt=2&np=1&fltt=2'
 
 
 
@@ -495,6 +532,55 @@ class Zrzt():
         # print(end-start)
 
 
+
+def zrztTHS():
+
+    """同花顺昨日涨停板块"""
+    zrzt = 'https://d.10jqka.com.cn/v2/blockrank/883900/199112/d150.js'
+    zrcb = 'https://d.10jqka.com.cn/v2/blockrank/883918/199112/d150.js'
+    headers = {
+        'Accept': 'text/javascript, application/javascript, application/x-javascript',
+        'Origin': 'https://m.10jqka.com.cn',
+        'Referer': 'https://m.10jqka.com.cn/hq/rank/industry.html',
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
+    }
+    respZrzt = requests.get(zrzt,headers=headers)
+    data = re.findall('quotebridge_v2_blockrank_883900_199112_d150\((.*)\)',respZrzt.text)[0]
+    data = json.loads(data)
+    for i in data['items']:
+        print(i)
+
+
+
+def morningBid():
+
+    """昨日涨停 早盘9:25-9:30 高开强势放量"""
+    today = time.strftime("%Y-%m-%d", time.localtime())
+    zrztMobile = 'https://push2.eastmoney.com/api/qt/clist/get?forcect=1&fs=b:BK0815&pn=1&pz=150&po=1&fid=f2&invt=2&np=1&fltt=2'
+    resp = requests.get(zrztMobile,headers=headers)
+    data = resp.json()['data']['diff']
+    for i in data:
+        if not i['f12'].startswith('688') and 'ST' not in i['f14']:
+            resp_bid = ts.get_today_ticks(code=i['f12'])
+            bid_data = resp_bid[resp_bid['type']!='-']
+            bid_data = bid_data.head(20).iloc[0].to_json(force_ascii=False)
+            bid_data = json.loads(bid_data)
+            # i['bid_open'] = bid_data['price']
+            # i['bid_vol'] = bid_data['vol']
+            # i['bid_amount'] = bid_data['vol'] * bid_data['price'] *100
+            # i['type'] = bid_data['type']
+            print(i['f12'],i['f14'],bid_data,today)
+            bid_data['code'] = i['f12']
+            bid_data['name'] = i['f14']
+            bid_data['amount'] = bid_data['price'] * bid_data['vol'] / 100
+            bid_data['date'] = today
+            db.get_collection('bid').insert(bid_data)
+            time.sleep(0.1)
+
+
+
+
+
 if __name__ == '__main__':
 
 
@@ -503,7 +589,7 @@ if __name__ == '__main__':
     # breakThrough()
     # priceDistribution('603569','2021-12-13','2021-12-23')
     # ZRZT()
-    s = Zrzt()
-
-    s.run()
-
+    # s = Zrzt()
+    # s.run()
+    # zrztTHS()
+    morningBid()

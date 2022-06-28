@@ -1,13 +1,20 @@
 # -*- coding: utf-8 -*-#
+import os
 from datetime import datetime,date,timedelta
 import re
 import requests
+import pymongo
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 import sys
 import time
-from BK_fund import Zrzt
+from BK_fund import Zrzt,morningBid
+from CONSTANT import MONGOHOST
+import pandas as pd
+
+client = pymongo.MongoClient(host=MONGOHOST, port=27017)
+db = client['quant']
 
 
 class my_thread(QThread):
@@ -23,13 +30,23 @@ class my_thread(QThread):
 class NewTableWidget(QWidget,):
     sum = 0
     zrzt = Zrzt()
+    today = time.strftime("%Y-%m-%d", time.localtime())
     def __init__(self):
+        res = db.get_collection('bid').find({'date':self.today})
+        if not res:
+            morningBid()
+        else:
+            self.bidData = db.get_collection('bid').find({'date': '2022-06-27'})
+            self.bidData = list(self.bidData)
+            self.bidData = pd.DataFrame(self.bidData)
+            self.bidData.drop(['_id', 'time', 'name', 'date'], axis=1, inplace=True)
+            self.bidData.rename(columns=  {"price":"集合竞价","vol":"竞价成交量","amount":"竞价成交额","type":'买卖类型',}, inplace=True)
         super(NewTableWidget, self).__init__()
-        self.resize(2300, 1200)
+        self.resize(2400, 1200)
         self.setWindowTitle('昨日涨停&触板')
         # 表头标签
         self.headerlabels = ['code','name','最新价','涨跌幅','涨速','流通市值','主力净额', '主力净占比','超大单净额', '超大单净占比' ,'大单净额' ,'大单净占比', '中单净额',
-                    '中单净占比', '小单净额', '小单净占比','最高','最低','今开','昨收','换手','振幅','量比']
+                    '中单净占比', '小单净额', '小单净占比','最高','最低','今开','昨收','换手','振幅','量比','集合竞价', '竞价成交量', '买卖类型',  '竞价成交额']
         # 行数和列数
         self.rowsnum, self.columnsnum = 100,len(self.headerlabels)
 
@@ -96,8 +113,12 @@ class NewTableWidget(QWidget,):
         self.sortDDJE = QRadioButton('大单净额↓')
         self.sortDDJZB = QRadioButton('大单净占比↓')
         self.sortTurn = QRadioButton('换手↓')
-        self.hold = QCheckBox('最低 > 昨收')
+        self.sortBidVol = QRadioButton('竞价成交量↓')
+        self.zljlr = QCheckBox('主力净流入')
         self.highOpen = QCheckBox('高开')
+        self.bidBuy = QCheckBox('竞价买入')
+        self.lowGTper = QCheckBox('最低 > 昨收')
+        
 
         hLayout.addWidget(self.labelPrice)
         hLayout.addWidget(self.minPrice)
@@ -122,8 +143,11 @@ class NewTableWidget(QWidget,):
         hLayout.addWidget(self.sortDDJE)
         hLayout.addWidget(self.sortDDJZB)
         hLayout.addWidget(self.sortTurn)
+        hLayout.addWidget(self.sortBidVol)
         hLayout.addWidget(self.highOpen)
-        hLayout.addWidget(self.hold)
+        hLayout.addWidget(self.zljlr)
+        hLayout.addWidget(self.bidBuy)
+        hLayout.addWidget(self.lowGTper)
 
         self.sortChange.setChecked(True)
 
@@ -151,6 +175,7 @@ class NewTableWidget(QWidget,):
         data = self.zrzt.run()
         # if datetime.now() < datetime.strptime(str(datetime.now().date()) + '9:30', '%Y-%m-%d%H:%M'):
         data.replace('-',0,inplace=True)
+        # os.system('cls')
         # print(data)
         data['流通市值'] = round(data['流通市值'] / 100000000,2)
         data['主力净额'] = round(data['主力净额']/10000,2)
@@ -160,6 +185,7 @@ class NewTableWidget(QWidget,):
         data['小单净额'] = round(data['小单净额']/10000,2)
 
         data = data.drop_duplicates()
+        data = data.merge(self.bidData,on='code')
         print('数据：',data.shape)
 
         highPrice = self.maxPrice.text()
@@ -173,9 +199,9 @@ class NewTableWidget(QWidget,):
         if lowPrice.isdigit():
             data = data[data['最新价'] >= float(lowPrice)]
         if highNMC.isdigit():
-            data = data[data['市值'] <= float(highNMC)]
+            data = data[data['流通市值'] <= float(highNMC)]
         if lowNMC.isdigit():
-            data = data[data['市值'] >= float(lowNMC)]
+            data = data[data['流通市值'] >= float(lowNMC)]
         try:
             highChange = eval(highChange)
             data = data[data['涨跌幅'] <= float(highChange)]
@@ -187,10 +213,14 @@ class NewTableWidget(QWidget,):
         except:
             pass
 
-        if self.hold.isChecked():
+        if self.lowGTper.isChecked():
             data = data[data['最低']>=data['昨收']]
         if self.highOpen.isChecked():
             data = data[data['今开'] >= data['昨收']]
+        if self.zljlr.isChecked():
+            data = data[data['主力净额'] >= 0]
+        if self.bidBuy.isChecked():
+            data = data[data['买卖类型'] == '买入']
 
         
 
@@ -212,21 +242,24 @@ class NewTableWidget(QWidget,):
             data = data.sort_values(by=['大单净占比',],ascending=False)
         elif self.sortTurn.isChecked():
             data = data.sort_values(by=['换手',],ascending=False)
+        elif self.sortBidVol.isChecked():
+            data = data.sort_values(by=['竞价成交量', ], ascending=False)
 
         data = data.reset_index(drop=True)
         # print(data)
         self.TableWidget.clearContents()
+        self.TableWidget.setRowCount(data.shape[0])
         for idy, itemX in data.iterrows():
             for idx, itemY in enumerate(self.headerlabels):
                 newItem = QTableWidgetItem(str(itemX[itemY]))
                 if  itemY in ['涨跌幅','涨速','主力净额' ,'主力净占比' ,'超大单净额' ,'超大单净占比',
-                            '大单净额', '大单净占比', '中单净额', '中单净占比', '小单净额' ,'小单净占比']:
+                            '大单净额', '大单净占比', '中单净额', '中单净占比', '小单净额' ,'小单净占比',]:
                     if itemX[itemY] >= 0:
                         newItem.setForeground(QColor(255,0,0))
                     else:
                         newItem.setForeground(QColor(0, 150, 0))
 
-                elif itemY in ['最新价','最高','最低','今开']:
+                elif itemY in ['最新价','最高','最低','今开','集合竞价']:
                     if itemX[itemY] >= itemX['昨收'] :
                         newItem.setForeground(QColor(255,0,0))
                     else:
@@ -234,6 +267,12 @@ class NewTableWidget(QWidget,):
                     if itemY == '最新价' and itemX['最低'] == itemX['最高'] and  itemX['最低'] == itemX['今开']:
                         # 一字板
                         newItem.setBackground(QColor(153, 204, 255))
+                elif itemY in ['竞价成交量', '买卖类型',  '竞价成交额']:
+                    if itemX['买卖类型'] == '买入':
+                        newItem.setForeground(QColor(255, 0, 0))
+                    else:
+                        newItem.setForeground(QColor(0, 150, 0))
+
 
                 newItem.setTextAlignment(Qt.AlignCenter)
                 self.TableWidget.setItem(idy, idx, newItem)

@@ -5,6 +5,8 @@ import json
 import io
 import re
 from threading import Thread
+
+import execjs
 import matplotlib.pyplot as plt
 import pandas as pd
 import pymongo
@@ -446,6 +448,29 @@ def xgbr():
         plt.show()
 
 
+
+def get_last_5days_data(code: str):
+    '''获取指定股票最近5天的分时线数据(含当天)'''
+    url = 'https://finance.sina.com.cn/realstock/company/%s/hisdata/klc_cm.js' % (code)  # 指定日期对应的最近5天的分时数据 KLC_ML_szxxxxxx=
+    prefix = 'KLC_ML_%s=' % code
+    res = requests.get(url)
+    if res.status_code == 200:
+        reg = re.compile(r'%s"(.+?)"' % prefix)
+        data = reg.findall(res.text)
+
+    with open('./sf_sdk.js', 'r') as f:
+        js_file = f.read()
+    ctx = execjs.compile(js_file)
+    days_data = data[0].split(',')
+    for i in range(len(days_data)):
+        arr = ctx.call('decode', days_data[i])
+        for j in arr:
+            print(j)
+
+
+
+
+
 if __name__ == '__main__':
 
 
@@ -591,13 +616,27 @@ if __name__ == '__main__':
     #         db.get_collection('DDX').update({'代码':i['代码'],'date':i['date']},{'$set':{'open':kk['open'],'high':kk['high'],'close':kk['close'],'low':kk['low'],'ma5':kk['ma5'],'ma10':kk['ma10'],'ma20':kk['ma20']}})
 
 
-    df = ts.get_today_all()
-    df = df[df['code'].str.contains('^(?!688|605|300|301|8|43)')]
-    df = df[df['name'].str.contains('^(?!S|退市|\*ST|N)')]
+    # df = ts.get_today_all()
+    # df = df[df['code'].str.contains('^(?!688|605|300|301|8|43)')]
+    # df = df[df['name'].str.contains('^(?!S|退市|\*ST|N)')]
+    #
+    # high_open = df[df['trade'] > df['per']].count()
+    # low_open = df[df['trade'] < df['per']].count()
+    # equal_open = df[df['trade'] == df['per']].count()
+    # print('高开:{}\n低开:{}\n平开:{}'.format(high_open,low_open,equal_open))
 
-    high_open = df[df['trade'] > df['per']].count()
-    low_open = df[df['trade'] < df['per']].count()
-    equal_open = df[df['trade'] == df['per']].count()
-    print('高开:{}\n低开:{}\n平开:{}'.format(high_open,low_open,equal_open))
+
+    from BK_fund import Zrzt
+    zrzt = Zrzt()
+    data = zrzt.run()
+    res = db.get_collection('bid').find({'date':'2022-06-27'})
+    res = list(res)
+    res = pd.DataFrame(res)
+    res.drop(['_id','time','name','date'],axis=1,inplace=True)
+    new = data.merge(res,on='code')
+    print(new)
+
+    # get_last_5days_data('sh600237')
+
 
 
