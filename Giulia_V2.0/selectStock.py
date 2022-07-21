@@ -53,7 +53,7 @@ class Select():
             self.data = ts.get_today_all() #今日复盘
             self.updateNMC(self.data)
             # data = ts.get_day_all(date='2021-02-18')   #历史复盘
-            filt = self.data['code'].str.contains('^(?!688|605|300|301|8|43)')
+            filt = self.data['code'].str.contains('^(?!688|300|301|8|43)')
             self.data = self.data[filt]
             filt = self.data['name'].str.contains('^(?!S|退市|\*ST|N)')
             self.data = self.data[filt]

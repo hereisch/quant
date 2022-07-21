@@ -93,7 +93,7 @@ def ddxData():
 
     df = pd.DataFrame(data, columns=ddx_config)
     df['代码'] = df['代码'].apply(lambda x: str('{:0>6d}'.format(x)))
-    filt = df['代码'].str.contains('^(?!68|605|300|301|001296|603176)')
+    filt = df['代码'].str.contains('^(?!68|300|301)')
     df = df[filt]
     df = df.drop_duplicates()
     df['名称'] = df['代码'].apply(lambda x: industry[x] if x in industry else '新股')
