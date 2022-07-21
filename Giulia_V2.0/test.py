@@ -625,16 +625,33 @@ if __name__ == '__main__':
     # equal_open = df[df['trade'] == df['per']].count()
     # print('高开:{}\n低开:{}\n平开:{}'.format(high_open,low_open,equal_open))
 
+    url = 'http://push2.eastmoney.com/api/qt/stock/fflow/kline/get?lmt=0&klt=1&secid=1.600218&fields1=f1%2Cf2%2Cf3%2Cf7&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59%2Cf60%2Cf61%2Cf62%2Cf63%2Cf64%2Cf65'
+    resp = requests.get(url,headers=headers)
+    res = resp.json()['data']
+    # res = db.get_collection('fundFlow').find_one({'name':'国中水务','date':'2022-06-30'})
+    for i in res['klines']:
 
-    from BK_fund import Zrzt
-    zrzt = Zrzt()
-    data = zrzt.run()
-    res = db.get_collection('bid').find({'date':'2022-06-27'})
-    res = list(res)
-    res = pd.DataFrame(res)
-    res.drop(['_id','time','name','date'],axis=1,inplace=True)
-    new = data.merge(res,on='code')
-    print(new)
+        [_,a,b,c,d,e] = i.split(',')
+        f = abs(eval(b)) + abs(eval(c)) + abs(eval(d)) + abs(eval(e))
+        print(_,round(eval(a)/f,2))
+
+    # res = db.get_collection('bidData').find({'bidVol':None})  # debug
+    # res = db.get_collection('bidData').find({ '$and' : [{"openPercent" : { '$gt' : 4 }}, {"openPercent" : { '$lt' : 7 }}] })
+    #
+    # for i in res:
+    #     try:
+    #         df = ts.get_today_ticks(code=i['code'])
+    #         df = df[df['type'] != '-']
+    #         print(i['code'], i['name'], df.head(2))
+    #         bidAmount = round(df.iloc[0]['vol'] * df.iloc[0]['price'] / i['nmc'], 2)
+    #         db.get_collection('bidData').update({'code': i['code']}, {
+    #             '$set': {'bidVol': int(df.iloc[0]['vol']), 'type': df.iloc[0]['type'], '0930Vol': int(df.iloc[1]['vol']), '0930type': df.iloc[1]['type'], 'bidAmount': bidAmount}})
+    #         time.sleep(1)
+    #     except Exception as e:
+    #         print(e)
+    #         db.get_collection('bidData').remove({'_id':i['_id']})
+
+
 
     # get_last_5days_data('sh600237')
 

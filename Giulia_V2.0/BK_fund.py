@@ -578,8 +578,36 @@ def morningBid():
             time.sleep(0.1)
 
 
+def bidVol():
+    """集合竞价量 9.25-9.30"""
+    data = ts.get_today_all()  # 今日复盘
+    # data = ts.get_day_all(date='2021-02-18')   #历史复盘
+    filt = data['code'].str.contains('^(?!688|605|300|301|8|43)')
+    data = data[filt]
+    filt = data['name'].str.contains('^(?!S|退市|\*ST|N)')
+    data = data[filt]
+    data = data.drop_duplicates()
+    # data['amountRatio'] = data['amount'] / 10000 / data['nmc']
+    data['openPercent'] = round((data['open']/data['settlement'] - 1)*100,2)
+    print(data)
+    data = data.to_json(orient='records')
+    db.get_collection('bidData').remove()
+    for i in eval(data):
+        db.get_collection('bidData').insert(i)
 
-
+    # res = db.get_collection('bidData').find()  #debug
+    res = db.get_collection('bidData').find({ '$and' : [{"openPercent" : { '$gt' : 4 }}, {"openPercent" : { '$lt' : 7 }}] })
+    for i in res:
+        try:
+            df = ts.get_today_ticks(code=i['code'])
+            df = df[df['type'] != '-']
+            print(i['code'], i['name'], df.head(2))
+            bidAmount = round(df.iloc[0]['vol'] * df.iloc[0]['price']  / i['nmc'], 2)
+            db.get_collection('bidData').update({'code': i['code']}, {
+                '$set': {'bidVol': int(df.iloc[0]['vol']), 'type': df.iloc[0]['type'], '0930Vol': int(df.iloc[1]['vol']), '0930type': df.iloc[1]['type'], 'bidAmount': bidAmount}})
+            time.sleep(1)
+        except:
+            db.get_collection('bidData').remove({'_id': i['_id']})
 
 if __name__ == '__main__':
 
@@ -592,4 +620,5 @@ if __name__ == '__main__':
     # s = Zrzt()
     # s.run()
     # zrztTHS()
-    morningBid()
+    # morningBid()
+    bidVol()

@@ -113,6 +113,7 @@ class NewTableWidget(QWidget,):
         self.sortDDJE = QRadioButton('大单净额↓')
         self.sortDDJZB = QRadioButton('大单净占比↓')
         self.sortTurn = QRadioButton('换手↓')
+        self.sortVolPercent = QRadioButton('量比↓')
         self.sortBidVol = QRadioButton('竞价成交量↓')
         self.zljlr = QCheckBox('主力净流入')
         self.highOpen = QCheckBox('高开')
@@ -143,6 +144,7 @@ class NewTableWidget(QWidget,):
         hLayout.addWidget(self.sortDDJE)
         hLayout.addWidget(self.sortDDJZB)
         hLayout.addWidget(self.sortTurn)
+        hLayout.addWidget(self.sortVolPercent)
         hLayout.addWidget(self.sortBidVol)
         hLayout.addWidget(self.highOpen)
         hLayout.addWidget(self.zljlr)
@@ -242,6 +244,8 @@ class NewTableWidget(QWidget,):
             data = data.sort_values(by=['大单净占比',],ascending=False)
         elif self.sortTurn.isChecked():
             data = data.sort_values(by=['换手',],ascending=False)
+        elif self.sortVolPercent.isChecked():
+            data = data.sort_values(by=['量比',],ascending=False)
         elif self.sortBidVol.isChecked():
             data = data.sort_values(by=['竞价成交量', ], ascending=False)
 

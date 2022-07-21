@@ -267,7 +267,7 @@ class Select():
 
             resp = requests.get(url.format(code),headers=headers)
             data = resp.json()['data']['klines']
-            db.get_collection('fundFlow').insert({'code':i['code'],'name':i['name'],"changepercent": i['changepercent'],
+            db.get_collection('fundFlow').insert({'code':i['code'],'name':i['name'],"changepercent": i['changepercent'],'nmc':i['nmc'],
                                                   "trade": i['trade'],'per_close':i['settlement'],"open": i['open'],"high": i['high'],"low": i['low'],'klines':data,'date':today})
             time.sleep(3)
 
@@ -417,9 +417,9 @@ def downStock(init=True):
     close_time =datetime.strptime(str(datetime.now().date())+'15:00', '%Y-%m-%d%H:%M')
     if now_time > close_time:
         s.AddStockPool()
-        s.DDX()
         s.fundFlow()
         fundBK()
+        s.DDX()
         s.riseN()
         s.riseN(p_change=9,coll='strong')  # N日内强势票
         s.impactPool()

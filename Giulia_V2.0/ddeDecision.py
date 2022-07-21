@@ -89,7 +89,7 @@ def ddxData():
             print('SH...',respSH.text)
             print('SZ...',respSZ.text)
 
-        time.sleep(0.1)
+        time.sleep(0.5)
 
     df = pd.DataFrame(data, columns=ddx_config)
     df['代码'] = df['代码'].apply(lambda x: str('{:0>6d}'.format(x)))
