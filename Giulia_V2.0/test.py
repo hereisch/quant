@@ -625,15 +625,16 @@ if __name__ == '__main__':
     # equal_open = df[df['trade'] == df['per']].count()
     # print('高开:{}\n低开:{}\n平开:{}'.format(high_open,low_open,equal_open))
 
-    url = 'http://push2.eastmoney.com/api/qt/stock/fflow/kline/get?lmt=0&klt=1&secid=1.600218&fields1=f1%2Cf2%2Cf3%2Cf7&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59%2Cf60%2Cf61%2Cf62%2Cf63%2Cf64%2Cf65'
-    resp = requests.get(url,headers=headers)
-    res = resp.json()['data']
-    # res = db.get_collection('fundFlow').find_one({'name':'国中水务','date':'2022-06-30'})
-    for i in res['klines']:
+    # url = 'http://push2.eastmoney.com/api/qt/stock/fflow/kline/get?lmt=0&klt=1&secid=0.002828&fields1=f1%2Cf2%2Cf3%2Cf7&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59%2Cf60%2Cf61%2Cf62%2Cf63%2Cf64%2Cf65'
+    # resp = requests.get(url,headers=headers)
+    # res = resp.json()['data']
+    # # res = db.get_collection('fundFlow').find_one({'name':'国中水务','date':'2022-06-30'})
+    # for i in res['klines']:
+    #
+    #     [_,a,b,c,d,e] = i.split(',')
+    #     f = abs(eval(b)) + abs(eval(c)) + abs(eval(d)) + abs(eval(e))
+    #     print(_,round(eval(a)/f,2))
 
-        [_,a,b,c,d,e] = i.split(',')
-        f = abs(eval(b)) + abs(eval(c)) + abs(eval(d)) + abs(eval(e))
-        print(_,round(eval(a)/f,2))
 
     # res = db.get_collection('bidData').find({'bidVol':None})  # debug
     # res = db.get_collection('bidData').find({ '$and' : [{"openPercent" : { '$gt' : 4 }}, {"openPercent" : { '$lt' : 7 }}] })
@@ -654,6 +655,13 @@ if __name__ == '__main__':
 
 
     # get_last_5days_data('sh600237')
+
+    from BK_fund import bigBillCal
+    code = '002933'
+    print('-------超大---------')
+    bigBillCal(code=code,)
+    print('-------全部---------')
+    bigBillCal(code=code,vol=0,amount=0)
 
 
 

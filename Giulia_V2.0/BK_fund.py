@@ -3,6 +3,9 @@ import json
 import asyncio
 import locale
 import os
+
+import math
+
 if os.name == 'nt':
     locale.setlocale(locale.LC_CTYPE, 'chinese')
 import aiohttp
@@ -608,6 +611,51 @@ def bidVol():
             time.sleep(1)
         except:
             db.get_collection('bidData').remove({'_id': i['_id']})
+
+
+
+def bigBillCal(code:str,vol=0,amount=500000,date=''):
+
+    """
+    新浪大单均价计算器
+    :param code:
+    :param vol: int, 成交量：单位（股）
+    :param amount: int, 成交额：单位（元）
+    :param date: 日期
+    :return:
+    """
+    today = time.strftime("%Y-%m-%d", time.localtime())
+    date = today if not date else date
+    headers['referer'] = 'https://vip.stock.finance.sina.com.cn/quotes_service/view/cn_bill.php?symbol=sz002079'
+    if code.startswith('6'):
+        code = 'sh'+ code
+    else:
+        code = 'sz' + code
+    print(code,date)
+
+    #获取页码
+    urlPage = 'https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_Bill.GetBillListCount?symbol={}&sort=ticktime&asc=0&volume={}&amount={}&type=0&day={}'.format(code,vol,amount,date)
+    respPage = requests.get(urlPage,headers)
+    page = math.ceil(int(respPage.json())/60)
+    data = []   #kind: E:中性盘  D:卖盘  U:买盘  price:成交价  prev_price：上一秒成交价
+    for p in tqdm(range(1,page+1)):
+        url = 'https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_Bill.GetBillList?symbol={}&num=100&page={}&sort=ticktime&asc=0&volume={}&amount={}&type=0&day={}'.format(code,p,vol,amount,date)
+        resp = requests.get(url,headers=headers)
+        data += resp.json()
+        time.sleep(0.5)
+    data = pd.DataFrame(data)
+    # print(urlPage,data)
+    data['volume']  = data['volume'].astype(int)
+    data['price'] = data['price'].astype(float)
+    data['amount'] = data['volume']*data['price']
+    # print(data)
+    U = data[data['kind']=='U']
+    D = data[data['kind']=='D']
+    print('大单均价：',data['amount'].sum()/data['volume'].sum())
+    print('大买单均价：',U['amount'].sum()/U['volume'].sum())
+    print('大卖单均价：',D['amount'].sum()/D['volume'].sum())
+
+
 
 if __name__ == '__main__':
 

@@ -143,7 +143,7 @@ if __name__ == '__main__':
 
     """个股分时资金博弈窗口"""
     # code = input('代码:')
-    code = '002533'
+    code = '002606'
 
     QtGui.QApplication.instance().exec_()
 
@@ -157,4 +157,4 @@ if __name__ == '__main__':
     #     QtGui.QApplication.instance().exec_()
     #
     # else:
-    #     print('休市....')
+    #     print('休市....') 
