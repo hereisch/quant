@@ -268,7 +268,7 @@ class Select():
             resp = requests.get(url.format(code),headers=headers)
             data = resp.json()['data']['klines']
             db.get_collection('fundFlow').insert({'code':i['code'],'name':i['name'],"changepercent": i['changepercent'],'nmc':i['nmc'],
-                                                  "trade": i['trade'],'per_close':i['settlement'],"open": i['open'],"high": i['high'],"low": i['low'],'klines':data,'date':today})
+                                                  "trade": i['trade'],'per_close':i['settlement'],"open": i['open'],"high": i['high'],"low": i['low'],'klines':data,'volume':i['volume'],'date':today})
             time.sleep(3)
 
 

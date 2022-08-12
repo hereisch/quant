@@ -656,12 +656,55 @@ if __name__ == '__main__':
 
     # get_last_5days_data('sh600237')
 
-    from BK_fund import bigBillCal
-    code = '002933'
-    print('-------超大---------')
-    bigBillCal(code=code,)
-    print('-------全部---------')
-    bigBillCal(code=code,vol=0,amount=0)
+    # from BK_fund import bigBillCal
+    # code = '002933'
+    # print('-------超大---------')
+    # bigBillCal(code=code,)
+    # print('-------全部---------')
+    # bigBillCal(code=code,vol=0,amount=0)
 
 
+    url = 'http://www.iwencai.com/unifiedwap/unified-wap/v2/result/get-robot-data'
+    headers = {
+        'Host': 'www.iwencai.com',
+        'Accept': '*/*',
+        'Connection': 'keep-alive',
+        'hexin-v': 'AxrqApoOLOHFP6BN3Aj4wJ1ob8o8S546EMMSySSYxlN4ibVxDNvuNeBfYur3',
+        'Accept-Encoding': 'gzip, deflate',
+        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Origin': 'http://www.iwencai.com',
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/99.0.4844.59 Mobile/15E148 Safari/604.1',
+        'Referer': 'http://www.iwencai.com/unifiedmobile/',
+        'Content-Length': '496',
+        'Cookie': 'chat_bot_session_id=8cbb7b9b6f3a45e6888e524f08305232; v=AxrqApoOLOHFP6BN3Aj4wJ1ob8o8S546EMMSySSYxlN4ibVxDNvuNeBfYur3; cid=23fda069e0b058f23b6d381daa6f8c5e1660189192; THSSESSID=4477b1a4f16305f6a8432b6def; other_uid=ths_mobile_iwencai_07626bb59872de2bdb0ae7d7451bab76'
 
+    }
+
+    data = {
+        'question':'沪深主板非st，macd水上，昨日首板，高开，市值＜200亿，ma5＞ma20＞ma60',
+        'source':'ths_mobile_iwencai',
+        'user_id':'0',
+        'user_name':'0',
+        'version':'2.0',
+        'secondary_intent':'',
+        'add_info':{"urp": {"scene": 3, "company": 1, "business": 1},"contentType": "json"},
+        'log_info ': {"input_type": "typewrite"}
+    }
+
+    # resp = requests.post(url,headers=headers,data='question=%E6%B2%AA%E6%B7%B1%E4%B8%BB%E6%9D%BF%E9%9D%9Est%EF%BC%8Cmacd%E6%B0%B4%E4%B8%8A%EF%BC%8C%E6%98%A8%E6%97%A5%E9%A6%96%E6%9D%BF%EF%BC%8C%E9%AB%98%E5%BC%80%EF%BC%8C%E5%B8%82%E5%80%BC%EF%BC%9C200%E4%BA%BF%EF%BC%8Cma5%EF%BC%9Ema20%EF%BC%9Ema60&source=ths_mobile_iwencai&user_id=0&user_name=0&version=2.0&secondary_intent=&add_info=%7B%22urp%22%3A%7B%22scene%22%3A3%2C%22company%22%3A1%2C%22business%22%3A1%7D%2C%22contentType%22%3A%22json%22%7D&log_info=%7B%22input_type%22%3A%22typewrite%22%7D')
+    # print(resp.text)
+    # print(resp.json()['data']['answer'][0]['txt'][0]['content']['components'][0]['data']['datas'])
+    # for i in resp.json()['data']['answer'][0]['txt'][0]['content']['components'][0]['data']['datas']:
+    #     print(i['股票简称'],i['code'])
+
+    res = db.get_collection('fundFlow').find({'date':'2022-08-11'})
+    for i in res:
+        print(i['code'])
+        kk = ts.get_today_ticks(i['code'])
+        df = kk[kk['type'] != '-']
+        nextOpen = float(df.head(1).price)
+        nextChange = round((nextOpen/i['trade'] -1 )*100,2)
+        vol = int(df.head(1).vol*100)
+        time.sleep(2)
+        db.get_collection('fundFlow').update({'code':i['code'],'date':'2022-08-11'},{'$set':{'nextBidVol':vol,'nextBidRatio':vol/i['volume']*100,'nextOpen':nextOpen,'nextChange':nextChange}})

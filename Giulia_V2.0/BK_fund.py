@@ -25,8 +25,10 @@ import tushare as ts
 pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
-
-
+# 对齐显示
+pd.set_option('display.unicode.ambiguous_as_wide', True)
+pd.set_option('display.unicode.east_asian_width', True)
+pd.set_option('colheader_justify', 'center')
 
 headers = {
     # 'Referer': 'http://data.eastmoney.com/bkzj/hy.html',
@@ -656,6 +658,41 @@ def bigBillCal(code:str,vol=0,amount=500000,date=''):
     print('大卖单均价：',D['amount'].sum()/D['volume'].sum())
 
 
+def stockSelection():
+    """
+    东财当日选股器
+    :return:
+    """
+    url = 'https://datacenter.eastmoney.com/stock/selection/api/data/get/'
+    # 选股条件 ：市场为上交所主板,深交所主板;总市值为≤200亿;涨跌幅为≤6%;换手率为≥1%;量比为≥5;成交额为≥0.1亿;当日净流入额为≥0.05亿;当日增仓占比为≥5%;当日DDX为≥0.05%
+    condition = {
+        'type': 'RPTA_APP_STOCKSELECT',
+        'sty': 'SECUCODE,SECURITY_CODE,SECURITY_NAME_ABBR,NEW_PRICE,CHANGE_RATE,MARKET,TOTAL_MARKET_CAP,CHANGE_RATE,TURNOVERRATE,VOLUME_RATIO,DEAL_AMOUNT,NET_INFLOW,NOWINTERST_RATIO,DDX',
+        'filter': '(MARKET IN ("上交所主板","深交所主板"))(TOTAL_MARKET_CAP<=20000000000)(CHANGE_RATE<=6)(TURNOVERRATE>=1)(VOLUME_RATIO>=5)(DEAL_AMOUNT>=10000000)(NET_INFLOW>=5000000)(NOWINTERST_RATIO>=5)(DDX>=0.05)',
+        'p': '1',
+        'ps': '100',
+        'sr': '-1',
+        'st': 'CHANGE_RATE',
+        'source': 'SELECT_SECURITIES',
+        'client': 'APP'
+    }
+    title = {'SECUCODE':'代码', 'SECURITY_CODE':'code', 'SECURITY_NAME_ABBR':'名称', 'NEW_PRICE':'最新价', 'CHANGE_RATE':'涨幅', 'MARKET':'市场', 'TOTAL_MARKET_CAP':'总市值(亿)', 'TURNOVERRATE':'换手',
+             'VOLUME_RATIO':'量比', 'DEAL_AMOUNT':'成交额(亿)', 'NET_INFLOW':'当日净流入(万)', 'NOWINTERST_RATIO':'当日增仓占比', 'DDX':'DDX', 'MAX_TRADE_DATE':'日期'}
+    while True:
+        resp = requests.post(url,headers=headers,data=condition)
+        # print(resp.json()['result']['data'])
+        data = pd.DataFrame(resp.json()['result']['data'],)
+        data['TOTAL_MARKET_CAP'] = round(data['TOTAL_MARKET_CAP']/100000000,2)
+        data['DEAL_AMOUNT'] = round(data['DEAL_AMOUNT']/100000000,2)
+        data['NET_INFLOW'] = round(data['NET_INFLOW']/10000,2)
+        data.rename(columns=title,inplace=True)
+        # 默认换手降序排序
+        data = data.sort_values(['换手'],ascending=False)
+        print(data)
+        time.sleep(2)
+        os.system("cls")
+
+
 
 if __name__ == '__main__':
 
@@ -669,4 +706,5 @@ if __name__ == '__main__':
     # s.run()
     # zrztTHS()
     # morningBid()
-    bidVol()
+    # bidVol()
+    stockSelection()
