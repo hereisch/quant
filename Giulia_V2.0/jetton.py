@@ -6,8 +6,7 @@ import requests
 import time
 import pymongo
 from tqdm import tqdm
-from selenium import webdriver
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
 
 
 
@@ -42,9 +41,7 @@ data =  {
         'uuid': 18369,
 }
 
-
-from CONSTANT import MONGOHOST
-client = pymongo.MongoClient(host=MONGOHOST, port=27017)
+client = pymongo.MongoClient(host="127.0.0.1", port=27017)
 db = client['quant']
 
 

@@ -3,7 +3,6 @@ import json
 import locale
 import os
 import random
-import requests
 from threading import Thread
 from datetime import datetime,date,timedelta
 import time
@@ -13,27 +12,21 @@ import pandas as pd
 from tqdm import tqdm
 from PyQt5.QtWidgets import QMainWindow
 import os
+from UI.UI_Giulia import Ui_MainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets
-from CONSTANT import MONGOHOST
-from BK_fund import fundBK,getDDXData
+
+from jetton import jetton
+
 
 
 pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 
-client = pymongo.MongoClient(host=MONGOHOST, port=27017)
+client = pymongo.MongoClient(host="127.0.0.1", port=27017)
 db = client['quant']
 
-if os.name == 'nt':
-    locale.setlocale(locale.LC_CTYPE, 'chinese')
-
-
-
-headers = {
-    # 'Referer': 'http://data.eastmoney.com/bkzj/hy.html',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36',
-}
+locale.setlocale(locale.LC_CTYPE, 'chinese')
 
 
 def async_(f):
@@ -51,15 +44,14 @@ class Select():
         """
         if init:
             self.data = ts.get_today_all() #今日复盘
-            self.updateNMC(self.data)
             # data = ts.get_day_all(date='2021-02-18')   #历史复盘
-            filt = self.data['code'].str.contains('^(?!688|300|301|8|43)')
+            filt = self.data['code'].str.contains('^(?!688|605|300|301)')
             self.data = self.data[filt]
-            filt = self.data['name'].str.contains('^(?!S|退市|\*ST|N)')
+            filt = self.data['name'].str.contains('^(?!S|退市|\*ST)')
             self.data = self.data[filt]
             self.data = self.data.drop_duplicates()
             data = self.data[self.data['trade']>=2]
-            data = data[data['changepercent']>-3]
+            data = data[data['changepercent']>0]
             data = data.to_json(orient='records')
             db.get_collection('today').remove()
             base = db.get_collection('base').find()
@@ -87,28 +79,6 @@ class Select():
             # 剔除停牌
             db.get_collection('today').remove({'open': 0})
 
-            # 龙虎榜
-            if not (10 < time.localtime().tm_hour < 18):
-                db.get_collection('topList').remove()
-                longhu  = ts.top_list()
-                longhu = longhu.to_json(orient='index', )
-                longhu = json.loads(longhu)
-                for k,v in longhu.items():
-                    db.get_collection('topList').insert(v)
-
-
-
-    def updateNMC(self,data):
-        today = time.strftime("%Y-%m-%d", time.localtime())
-        # db.get_collection('NMC').remove()
-        # filt = data['code'].str.contains('^(?!8|688|43)')
-        # data = data[filt]
-        # filt = data['name'].str.contains('^(?!S|退市|\*ST)')
-        # data = data[filt]
-        data['date'] = today
-        data = data.to_json(orient='records')
-        for i in eval(data):
-            db.get_collection('NMC').insert(i)
 
     def uniqDayK(self):
         """
@@ -124,41 +94,13 @@ class Select():
 
 
     def updBase(self):
-        """update base stock information"""
         db.get_collection('base').remove()
         pro = ts.pro_api()
         data = pro.stock_basic()
         data.rename(columns={'symbol': 'code'}, inplace=True)
         for idx, i in data.iterrows():
-            # print(dict(i))
+            print(dict(i))
             db.get_collection('base').insert(dict(i))
-
-
-    def AddStockPool(self):
-        """
-        添加自选，保存15日自选
-        :return:
-        """
-        now_time = datetime.now()
-        close_time = datetime.strptime(str(datetime.now().date()) + '15:00', '%Y-%m-%d%H:%M')
-        open_time = datetime.strptime(str(datetime.now().date()) + '9:30', '%Y-%m-%d%H:%M')
-        today = time.strftime("%Y-%m-%d", time.localtime())
-        yesterday = (date.today() + timedelta(-1)).strftime('%Y-%m-%d')
-        day10 = (date.today() + timedelta(-15)).strftime('%Y-%m-%d')
-        print(now_time,day10)
-        db.get_collection('newTop').remove({'date':{'$lte':day10}})
-        res = db.get_collection('today').find({"$or": [{"changepercent": {"$gte": 8}}, {"count": {"$gte": 7}}]})
-        for i in res:
-            i.pop('_id')
-            if now_time < open_time:
-                r = db.get_collection('newTop').find_one({'date':yesterday,'code':i['code']})
-                i['date'] = yesterday
-            elif now_time > close_time:
-                r = db.get_collection('newTop').find_one({'date':today,'code':i['code']})
-                i['date'] = today
-            if not r:
-                db.get_collection('newTop').insert(i)
-                print('Add StockPool:',i)
 
 
     def download(self,):
@@ -196,35 +138,15 @@ class Select():
                 # 次新数据少于300天，删除自选 len(index)<300
                 #     time.sleep(0.5)
                 data = ts.get_hist_data(i)
-                try:
-                    if not data.empty:
-                        # 开盘价和收盘价对比取压力值pressure
-                        data['pressure'] = data.apply(lambda x:max(x['open'],x['close']),axis=1)
-                        data = json.loads(data.to_json(orient='index'))
-                        for k,v in data.items():
-                            # print(k,v)
-                            v['date'] = k
-                            v['code'] = i
-                            db.get_collection('dayK').insert(v)
-                except Exception as e:
-                    print(e)
-                    print(i,data,'无历史数据')
+                # 开盘价和收盘价对比取压力值pressure
+                data['pressure'] = data.apply(lambda x:max(x['open'],x['close']),axis=1)
+                data = json.loads(data.to_json(orient='index'))
+                for k,v in data.items():
+                    # print(k,v)
+                    v['date'] = k
+                    v['code'] = i
+                    db.get_collection('dayK').insert(v)
 
-    def DDX(self):
-        """获取DDX数据"""
-        print('获取DDX数据...')
-        yesterday = db.get_collection('DDX').find_one(sort=[('_id', -1)])
-        yesterday = yesterday['date']
-        ddx = getDDXData()
-        ddx = json.loads(ddx)
-        for i in ddx:
-            # print(i)
-            db.get_collection('DDX').insert(i)
-        today = time.strftime("%Y-%m-%d", time.localtime())
-        res = db.get_collection('DDX').find({'date':today})
-        for i in res:
-        #     print(i)
-            db.get_collection('DDX').update({'date':yesterday,'代码':i['代码']},{'$set':{'next_price':i['最新价'],'next_change':i['涨幅']}})
 
     def topN(self,Coll='today'):
         """
@@ -235,11 +157,13 @@ class Select():
         print('N日新高......')
         today = time.strftime("%Y-%m-%d", time.localtime())
         yesterday = (date.today() + timedelta(-1)).strftime('%Y%m%d')
-        pro = ts.pro_api()
-        lastTrade = pro.trade_cal(exchange='', start_date='20210601', end_date=yesterday)
-        lastTrade = lastTrade[lastTrade['is_open']==1]
-        lastTrade = lastTrade['cal_date'].iloc[-1]
-        lastTrade = lastTrade[:4] +'-'+ lastTrade[4:6] +'-'+ lastTrade[6:]
+        # ts.set_token('4dd7944aef7ce4e13cf1367654a175fea96f7bf971541150f93959bf')
+        # pro = ts.pro_api()
+        # lastTrade = pro.trade_cal(exchange='', start_date='20210601', end_date=yesterday)
+        # lastTrade = lastTrade[lastTrade['is_open']==1]
+        # lastTrade = lastTrade['cal_date'].iloc[-1]
+        # lastTrade = lastTrade[:4] +'-'+ lastTrade[4:6] +'-'+ lastTrade[6:]
+        lastTrade = '2021-06-17'
         topday = [3, 5, 13, 21, 34, 55, 89, 144, 233]
         if time.localtime().tm_hour >= 15:
             res = db.get_collection('dayK').find({'date': today})
@@ -251,34 +175,11 @@ class Select():
             self.topN_child(today=today,i=i,topday=topday,Coll=Coll)
         # db.get_collection(Coll).remove({'top3': None})
 
-    def fundFlow(self):
-        """个股资金流向"""
-
-        today = time.strftime("%Y-%m-%d", time.localtime())
-        print('获取涨停股资金流...',today)
-        url = 'http://push2.eastmoney.com/api/qt/stock/fflow/kline/get?lmt=0&klt=1&secid={}&fields1=f1%2Cf2%2Cf3%2Cf7&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59%2Cf60%2Cf61%2Cf62%2Cf63%2Cf64%2Cf65'
-        res = db.get_collection('today').find({'changepercent':{'$gte':9.8}})
-        for i in res:
-            code = i['code']
-            if code.startswith('6'):
-                code = '1.' + code
-            else:
-                code = '0.' + code
-
-            resp = requests.get(url.format(code),headers=headers)
-            data = resp.json()['data']['klines']
-            db.get_collection('fundFlow').insert({'code':i['code'],'name':i['name'],"changepercent": i['changepercent'],'nmc':i['nmc'],
-                                                  "trade": i['trade'],'per_close':i['settlement'],"open": i['open'],"high": i['high'],"low": i['low'],'klines':data,'volume':i['volume'],'date':today})
-            time.sleep(3)
-
-
-
 
     @async_
     def topN_child(self,today=None,i=None,topday=None,Coll=None):
         kk = db.get_collection('dayK').find({'$and': [{"date": {'$ne': today}}, {"code": i['code']}]}).sort('date', -1)
         df = pd.DataFrame(list(kk))
-
         count = 0
         topItem = {}
         for d in topday:
@@ -293,11 +194,6 @@ class Select():
             except :
                 pass
         topItem['count'] = count
-
-        if df['p_change'][0] > -2 and df['p_change'][1] >-2 and df['p_change'][2] <0 :
-            topItem['red3day'] = round(df[:3]['p_change'].mean(),2)
-        else:
-            topItem['red3day'] = -1
         try:
             # topItem['ma5'] = round(self.intersect[i['code']]['ma5'] / self.intersect[i['code']]['ma10']-1,3)
             topItem['ma5'] = self.intersect[i['code']]['ma5']
@@ -305,15 +201,7 @@ class Select():
             topItem['ma10'] = self.intersect[i['code']]['ma10']
             topItem['ma20'] = self.intersect[i['code']]['ma20']
         except Exception as e:
-            # print('MA error',Coll,e)
-            pass
-
-
-        # 上涨趋势 & 60日内新高，10日内回踩阳包阴
-        if df[:11]['pressure'].max() == df[:61]['pressure'].max() and i['trade'] >= df['pressure'].iloc[1] and df['open'].iloc[1] > df['close'].iloc[1]:
-            topItem['coverage'] = 1
-        else:
-            topItem['coverage'] = 0
+            print('MA error',Coll,e)
 
         db.get_collection(Coll).update({'code': i['code']}, {'$set': topItem})
 
@@ -347,7 +235,7 @@ class Select():
 
     def impactPool(self,debug=False):
         if not debug:
-            time.sleep(180)   # 等topN执行完毕
+            time.sleep(60)   # 等topN执行完毕
         calendar = ['today', 'yesterday', 'day3ago', 'day4ago', 'day5ago', 'day6ago', 'day7ago', ]
         today = time.strftime("%Y-%m-%d", time.localtime())
         limitUp = db.get_collection('today').find({'changepercent': {'$gte': 9}}).sort('changepercent', -1)
@@ -397,33 +285,25 @@ class Select():
 
 
 
+
 # @async_
-def downStock(init=True):
+def downStock():
     # 每日15:30后
     print('开始下载数据....', time.strftime('%Y年%m月%d日%H时%M分%S秒'))
-    if init:
-        s = Select(init=True)
-        s.updBase()
-        s.download()
-    else:
-        s = Select(init=False)
+    s = Select(init=True)
+    s.download()
     s.topN()
     s.vol()
-    # s.updBase()
+    jetton()
     # s.uniqDayK()
     print('数据下载完毕....', time.strftime('%Y年%m月%d日%H时%M分%S秒'))
     # 收盘前不可用
     now_time = datetime.now()
-    close_time =datetime.strptime(str(datetime.now().date())+'15:00', '%Y-%m-%d%H:%M')
+    close_time =datetime.strptime(str(datetime.now().date())+'15:30', '%Y-%m-%d%H:%M')
     if now_time > close_time:
-        s.AddStockPool()
-        s.fundFlow()
-        fundBK()
-        s.DDX()
         s.riseN()
         s.riseN(p_change=9,coll='strong')  # N日内强势票
         s.impactPool()
-
 
 
 @async_
@@ -433,22 +313,13 @@ def refresh():
     s = Select(init=True)
     s.topN()
     s.vol()
-    # jetton()
+    jetton()
     print('刷新完毕....',time.strftime('%Y年%m月%d日%H时%M分%S秒'))
     # 收盘前不可用
     # now_time = datetime.now()
     # close_time = datetime.strptime(str(datetime.now().date()) + '15:30', '%Y-%m-%d%H:%M')
     # if now_time > close_time:
     #     s.impactPool()
-
-
-def longhu():
-    db.get_collection('topList').remove()
-    longhu = ts.top_list()
-    longhu = longhu.to_json(orient='index', )
-    longhu = json.loads(longhu)
-    for k, v in longhu.items():
-        db.get_collection('topList').insert(v)
 
 
 if __name__ == '__main__':
@@ -458,7 +329,7 @@ if __name__ == '__main__':
     统计某段时间涨停票个数
     """
 
-    downStock(init=True)
+    downStock()
     # refresh()
 
 #################################################################
@@ -466,8 +337,6 @@ if __name__ == '__main__':
 
     # print('Debug....')
     # s = Select(init=False)
-    # s.fundFlow()
-    # s.updBase()
     # s.topN()
     # s.riseN()
     # s.impactPool(debug=True)

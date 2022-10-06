@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-#
-import time
-from datetime import datetime, date, timedelta
 import pymongo
 import pandas as pd
 from PyQt5 import QtCore, QtGui
@@ -18,41 +16,34 @@ import numpy as np
 import plotly.graph_objects as go
 from drawK import intervalStat
 from selectStock import downStock,refresh
-from CONSTANT import MONGOHOST
-
 
 pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 
 
-
 class SelectorWindow(QMainWindow,Ui_Selector):
 
     def __init__(self,parent=None):
         super(SelectorWindow,self).__init__(parent)
-        self.client = pymongo.MongoClient(host=MONGOHOST, port=27017)
+        self.client = pymongo.MongoClient(host="127.0.0.1", port=27017)
         self.db = self.client['quant']
         self.stockList = None
-        self.header = ['code', 'name', 'industry', 'nmc','turnoverratio','volRatio','changepercent', 'trade','coverage', 'red3day','top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233','ma5','ma10','ma20']
-        self.headerCN = ['代码', '名称', '行业', '流通市值','换手率','成交量比','涨幅', '现价','阳包阴', '三连阳','3日', '5日', '13日', '21日', '34日', '55日', '89日', '144日', '233日','5日线','10日线','20日线']
+        self.header = ['code', 'name', 'industry', 'nmc','turnoverratio','volRatio','changepercent', 'trade', 'top3', 'top5', 'top13', 'top21', 'top34', 'top55', 'top89', 'top144', 'top233','profit','ma5','ma10','ma20']
+        self.headerCN = ['代码', '名称', '行业', '流通市值','换手率','成交量比','涨幅', '现价', '3日', '5日', '13日', '21日', '34日', '55日', '89日', '144日', '233日','获利盘','5日线','10日线','20日线']
         self.setupUi(self)
         self.tabK.currentChanged.connect(self.tabShow)
-        self.topList = self.db.get_collection('topList').distinct('code')
+        self.topList = ts.top_list()['code'].tolist()
         self.showStock()
         self.code = None
         self.name = None
-        self.comboBox.addItems(['所有行业'] + self.db.get_collection('today').distinct('industry'))
         self.SearchButton.clicked.connect(self.showStock)
-        self.AddStockButton.clicked.connect(self.AddStockPool)
         self.DownButton.clicked.connect(lambda: self.showStock(download=True))
         self.RefreshButton.clicked.connect(lambda: self.showStock(fresh=True))
         self.minPrice.returnPressed.connect(self.showStock)
         self.maxPrice.returnPressed.connect(self.showStock)
         self.maxNMC.returnPressed.connect(self.showStock)
         self.minNMC.returnPressed.connect(self.showStock)
-        self.minChange.returnPressed.connect(self.showStock)
-        self.maxChange.returnPressed.connect(self.showStock)
         self.comboBox.currentIndexChanged[str].connect(self.showStock)
 
 
@@ -86,7 +77,6 @@ class SelectorWindow(QMainWindow,Ui_Selector):
             refresh()
         if download is True:
             downStock()
-        self.topList = self.db.get_collection('topList').distinct('code')
         # 设置数据层次结构，2行2列
         self.model = QStandardItemModel(2, 2)
         # 设置水平方向四个头标签文本内容
@@ -95,13 +85,13 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         lowPrice = self.minPrice.text()
         highNMC = self.maxNMC.text()
         lowNMC = self.minNMC.text()
-        highChange = self.maxChange.text()
-        lowChange = self.minChange.text()
         industryText = self.comboBox.currentText()
-        res = self.initDB(lowPrice=lowPrice,highPrice=highPrice,highNMC=highNMC,lowNMC=lowNMC,highChange=highChange,lowChange=lowChange)
+        res,industry = self.initDB(lowPrice=lowPrice,highPrice=highPrice,highNMC=highNMC,lowNMC=lowNMC,)
+        self.comboBox.addItems(['所有行业']+industry)
         self.stockList = pd.DataFrame(list(res))
         if industryText != '' and industryText != '所有行业':
             self.stockList = self.stockList[self.stockList['industry']==industryText]
+
 
         self.stockList['nmc'] = self.stockList['nmc'] / 10000
         self.stockList['nmc'] = self.stockList['nmc'].round(2)
@@ -114,11 +104,9 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         elif self.sortVol.isChecked():
             self.stockList = self.stockList.sort_values(by=['volRatio','count','changepercent'],ascending=(False,False,False))
         elif self.sortCount.isChecked():
-            self.stockList = self.stockList.sort_values(by=['count','changepercent',],ascending=(False,False,))
+            self.stockList = self.stockList.sort_values(by=['count','volRatio','changepercent'],ascending=(False,False,False))
         elif self.profit.isChecked():
             self.stockList = self.stockList.sort_values(by=['profit', 'count', 'changepercent'], ascending=(False, False, False))
-        elif self.coverage.isChecked():
-            self.stockList = self.stockList.sort_values(by=['red3day','coverage'], ascending=(False, False))
 
 
 
@@ -137,15 +125,9 @@ class SelectorWindow(QMainWindow,Ui_Selector):
                         item.setBackground(QColor(204, 102, 255))
                     if self.header.index('ma5') > idx > self.header.index('trade') and type(itemX[itemY]) == str:
                         item.setBackground(QColor(255, 153, 153))
-                    if idx == self.header.index('ma5') and _trade <= itemX['ma5']:
+                    if idx == self.header.index('ma5')  and  _trade <= itemX['ma5']:
                         # 跌破5日线
                         item.setBackground(QColor(0, 255, 0))
-                    if idx == self.header.index('changepercent') and itemX['open'] == itemX['high'] and itemX['changepercent'] > 9:
-                        # 涨停高开一字板
-                        item.setBackground(QColor(255, 10, 10))
-                    if idx == self.header.index('red3day') and itemX[itemY] >=0:
-                        # 三红兵
-                        item.setBackground(QColor(230, 30, 30))
 
                     # if idx >= self.header.index('ma5') and type(itemX[itemY]) == str:
                     #     item.setBackground(QColor(204,102,255))
@@ -165,8 +147,7 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         self.stockTable.verticalHeader().setDefaultSectionSize(20)
         # 设置tableview所有行的默认列宽为15
         self.stockTable.horizontalHeader().setDefaultSectionSize(80)
-        # self.stockTable.resizeRowsToContents()
-        # self.stockTable.resizeColumnsToContents()
+
         layout = QVBoxLayout()
         layout.addWidget(self.stockTable)
         self.setLayout(layout)
@@ -203,10 +184,10 @@ class SelectorWindow(QMainWindow,Ui_Selector):
         plotly.offline.plot(fig, filename=tabpage+'.html', auto_open=False)
         return tabpage+'.html'
 
-    def initDB(self,lowPrice='',highPrice='',highNMC='',lowNMC='',highChange='',lowChange=''):
+    def initDB(self,lowPrice='',highPrice='',highNMC='',lowNMC=''):
 
         query = []
-
+        industry_all = self.db.get_collection('today').distinct('industry')
         if lowPrice.isdigit():
             query.append({"trade" : { "$gte" : int(lowPrice) }})
         if highPrice.isdigit():
@@ -215,59 +196,12 @@ class SelectorWindow(QMainWindow,Ui_Selector):
             query.append({"nmc": {"$lte": int(highNMC)*10000}})
         if lowNMC.isdigit():
             query.append({"nmc": {"$gte": int(lowNMC)*10000}})
-        if lowChange.isdigit():
-            query.append({"changepercent" : { "$gte" : int(lowChange) }})
-        else:
-            try:
-                lowChange = eval(lowChange)
-                query.append({"changepercent" : { "$gte" : int(lowChange) }})
-            except:
-                pass
-
-        if highChange.isdigit():
-            query.append({"changepercent" : { "$lte" : int(highChange) }})
-        else:
-            try:
-                highChange = eval(highChange)
-                query.append({"changepercent" : { "$lte" : int(highChange) }})
-            except:
-                pass
-
 
         if query:
             result = self.db.get_collection('today').find({ "$and" : query})
         else:
             result = self.db.get_collection('today').find()
-        return result
-
-
-    def AddStockPool(self):
-        """
-        添加自选，保存15日自选
-        :return:
-        """
-        now_time = datetime.now()
-        close_time = datetime.strptime(str(datetime.now().date()) + '15:00', '%Y-%m-%d%H:%M')
-        open_time = datetime.strptime(str(datetime.now().date()) + '9:30', '%Y-%m-%d%H:%M')
-        today = time.strftime("%Y-%m-%d", time.localtime())
-        yesterday = (date.today() + timedelta(-1)).strftime('%Y-%m-%d')
-        day10 = (date.today() + timedelta(-15)).strftime('%Y-%m-%d')
-        print(now_time,day10)
-        self.db.get_collection('newTop').remove({'date':{'$lte':day10}})
-        res = self.db.get_collection('today').find({"$or": [{"changepercent": {"$gte": 8}}, {"count": {"$gte": 7}}]})
-        for i in res:
-            i.pop('_id')
-
-            if now_time < open_time:
-                r = self.db.get_collection('newTop').find_one({'date':yesterday,'code':i['code']})
-                i['date'] = yesterday
-            else:
-                r = self.db.get_collection('newTop').find_one({'date':today,'code':i['code']})
-                i['date'] = today
-            if not r:
-                self.db.get_collection('newTop').insert(i)
-                print('Add StockPool:',i)
-
+        return result,industry_all,
 
     def mouseDoubleClickEvent(self, event):
         # print('双击事件：',event.row(), event.column())

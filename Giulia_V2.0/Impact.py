@@ -16,9 +16,6 @@ import numpy as np
 import plotly.graph_objects as go
 from drawK import intervalStat
 from selectStock import downStock,refresh
-from CONSTANT import MONGOHOST
-
-
 
 pd.set_option('display.width', 5000)
 pd.set_option('display.max_rows', None)
@@ -29,7 +26,7 @@ class ImpactWindow(QMainWindow,Ui_impactWindow):
 
     def __init__(self,parent=None):
         super(ImpactWindow,self).__init__(parent)
-        self.client = pymongo.MongoClient(host=MONGOHOST, port=27017)
+        self.client = pymongo.MongoClient(host="127.0.0.1", port=27017)
         self.db = self.client['quant']
         self.setupUi(self)
         self.comboBox.addItems(['二进三','一进二'])
@@ -38,7 +35,7 @@ class ImpactWindow(QMainWindow,Ui_impactWindow):
         self.header = ['code', 'name', 'date','count','price','contBoard','today','yesterday','day3ago','day4ago','day5ago','day6ago','day7ago']
         self.headerCN = ['代码', '名称','日期','突破数','现价','连板','今日','昨日','前天','前4日','前5日','前6日','前7日']
         self.tabK.currentChanged.connect(self.tabShow)
-        self.topList = self.db.get_collection('topList').distinct('code')
+        self.topList = ts.top_list()['code'].tolist()
         self.showStock()
         self.code = None
         self.name = None

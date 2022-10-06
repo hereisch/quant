@@ -5,6 +5,9 @@ from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QMainWindow
 import os
+
+from qtpy import QtWidgets
+
 from UI.UI_Giulia import Ui_MainWindow
 from UI.UI_Selector import Ui_Selector
 import tushare as ts
@@ -88,5 +91,5 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     win = MainWindow()
     win.show()
-    # win.showMaximized()
+    win.showMaximized()
     app.exec_()
