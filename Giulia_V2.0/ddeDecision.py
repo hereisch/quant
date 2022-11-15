@@ -56,6 +56,7 @@ headers = {
     'Accept-Language': 'zh-CN,zh;q=0.9',
     'Cookie': '__51cke__=; Hm_lvt_34e0d77f0c897023357dcfa7daa006f3=1626846961; d_ddx=1626846965; Hm_lpvt_34e0d77f0c897023357dcfa7daa006f3=1626846985; __tins__1523105=%7B%22sid%22%3A%201626849104630%2C%20%22vd%22%3A%202%2C%20%22expires%22%3A%201626851989983%7D; __51laig__=11',
     'Host': 'ddx.gubit.cn',
+    'If-None-Match':'b6ea8c98168d81:d17',
     'Referer': 'http://ddx.gubit.cn/xg/ddx.html',
     'X-Requested-With': 'XMLHttpRequest',
     'User-Agent': random.choice(User_Agent),
