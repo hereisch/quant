@@ -48,7 +48,7 @@ def fund(code,_url='Eastmoney_flow',):
         sys.exit(0)
 
     if _url == 'Eastmoney_flow':
-        new = df['dd'].str.split(',', 6, expand=True)
+        new = df['dd'].str.split(',', expand=True)
         new.columns = ['time','ZLJE','XDJE','ZDJE','DDJE','CDJE']
         new['time'] = new['time'].str.extract("(\d\d:\d\d)")
     elif _url == 'Eastmoney_history_flow':
@@ -145,7 +145,7 @@ if __name__ == '__main__':
     # code = input('代码:')
     code = '002606'
 
-    QtGui.QApplication.instance().exec_()
+    QtGui.QGuiApplication.instance().exec_()
 
     # open_time = datetime.strptime(str(datetime.now().date()) + '9:30', '%Y-%m-%d%H:%M')
     # close_time = datetime.strptime(str(datetime.now().date()) + '15:00', '%Y-%m-%d%H:%M')
