@@ -688,8 +688,9 @@ def stockSelection():
         data.rename(columns=title,inplace=True)
         # 默认换手降序排序
         data = data.sort_values(['换手'],ascending=False)
+        data = data.reset_index(drop=True)
         print(data)
-        time.sleep(2)
+        time.sleep(3)
         os.system("cls")
 
 
@@ -707,4 +708,5 @@ if __name__ == '__main__':
     # zrztTHS()
     # morningBid()
     # bidVol()
+    # bigBillCal('000055')
     stockSelection()
