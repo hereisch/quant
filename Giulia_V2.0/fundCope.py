@@ -52,7 +52,7 @@ def fund(code,_url='Eastmoney_flow',):
         new.columns = ['time','ZLJE','XDJE','ZDJE','DDJE','CDJE']
         new['time'] = new['time'].str.extract("(\d\d:\d\d)")
     elif _url == 'Eastmoney_history_flow':
-        new = df['dd'].str.split(',', 15, expand=True)
+        new = df['dd'].str.split(',', expand=True)
         new.columns = ['time','ZLJE','XDJE','ZDJE','DDJE','CDJE','ZLJZB','XDJZB','ZDJZB','DDJZB','CDJZB','price','change','unknow1','unknow2']
         new['time'] = new['time'].str.extract("(\d\d-\d\d-\d\d)")
 
